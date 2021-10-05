@@ -18,4 +18,14 @@ Once the **New Sounds On Demand** skill has been enabled on the smartspeaker, I 
 
 On Alexa/Echo devices, most of the usual music-player navigation commands are available, and the core commands can work without having to be explicitly routed to this skill. Simply say the wake-word followed by **Next**, **Previous**, **Stop**, **Pause**, **Resume**, or **Restart**.
 
-For other commands, you will either have to Open the skill first, or explicitly say "**{wake-word}, ask New Sounds On Demand ...**" followed by what you want to do. In addition to the above commands, we support many synonyms of **Play the most recent broadcast**, **Play the oldest episode**, **Play episode {episode-number}**, **Play the show from {date}**, **Play the live stream**, and **Surprise me**, 
+For other commands, you will either have to Open the skill first, or explicitly say "**{wake-word}, ask New Sounds On Demand ...**" followed by what you want to do. In addition to the above commands, we support many synonyms of **Play the most recent broadcast**, **Play the oldest episode**, **Play episode {episode-number}**, **Play the show from {date}**, **Play the live stream**, and **Surprise me**. You can also ask it to **play the credits**. 
+
+**What's New**
+
+This skill is a skunkworks project, still in Alpha testing -- it's brand new, the back-end code is running on the developer's account and may be down at times, and we are still actively refining its capabilities and implementation. Alpha testing is in progress now, by invitation; I hope to submit it for approval as an official Alexa skill before the end of 2021.
+
+There's a long wishlist of known bugs and desired features in the comments at the front of **source/app.js**. Now that I'm posting this on Github those are likely to move to a more official issues-tracker.
+
+**Building and Running the New Sounds On Demand grammar and semantics service**
+
+Details to follow. If you don't want to wait for me, look at the instructions for building and running [Jovo's sample podcast player](https://www.jovo.tech/courses/project-3-podcast-player), which supplied the initial framework from which this code was derived.
