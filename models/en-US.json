@@ -4,7 +4,7 @@
     "intents": [
 	{
 	    "name": "DialogIntent",
-	    "comment": "Go back into dialog interactions",
+	    "comment": "Go back into prompted interactions",
             "phrases": [
 		"Play something else",
 		"I want to play something else",
