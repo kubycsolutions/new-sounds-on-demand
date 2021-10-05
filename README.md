@@ -18,4 +18,4 @@ Once the **New Sounds On Demand** skill has been enabled on the smartspeaker, I 
 
 On Alexa/Echo devices, most of the usual music-player navigation commands are available, and the core commands can work without having to be explicitly routed to this skill. Simply say the wake-word followed by **Next**, **Previous**, **Stop**, **Resume**, or **Restart**.
 
-For other commands, you will either have to Open the skill first, or explicitly say _"<wake-word>, ask New Sounds On Demand ..."_ followed by what you want to do. In addition to the above commands, we support many synonyms of **Play the most recent broadcast**, **Play the oldest episode**, **Play episode <episode-number>**, **Play the show from <date>**, **Play the live stream**, and **Surprise me**, 
+For other commands, you will either have to Open the skill first, or explicitly say _"<wake-word>, ask New Sounds On Demand ..."_ followed by what you want to do. In addition to the above commands, we support many synonyms of **Play the most recent broadcast**, **Play the oldest episode**, **Play episode {episode-number}**, **Play the show from {date}**, **Play the live stream**, and **Surprise me**, 
