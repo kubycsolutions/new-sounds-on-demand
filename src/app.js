@@ -234,7 +234,7 @@ app.setHandler({
     },
 
     LAUNCH() {
-	return DialogIntent()
+	return this.DialogIntent()
     },
 
     DialogIntent() {
