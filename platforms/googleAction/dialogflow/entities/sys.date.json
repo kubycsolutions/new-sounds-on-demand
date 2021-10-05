@@ -1,0 +1,9 @@
+{
+	"id": "08a65af8-1a56-4435-9b60-7506e577be0b",
+	"name": "sys.date",
+	"isOverridable": true,
+	"isEnum": false,
+	"automatedExpansion": false,
+	"isRegexp": false,
+	"allowFuzzyExtraction": false
+}

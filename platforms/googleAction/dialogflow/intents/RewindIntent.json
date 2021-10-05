@@ -1,0 +1,18 @@
+{
+	"id": "e4b42620-17d1-4232-be7e-c5b8b4f59b09",
+	"name": "RewindIntent",
+	"auto": true,
+	"webhookUsed": true,
+	"responses": [
+		{
+			"parameters": [
+				{
+					"isList": false,
+					"name": "duration",
+					"value": "$duration",
+					"dataType": "@sys.duration"
+				}
+			]
+		}
+	]
+}

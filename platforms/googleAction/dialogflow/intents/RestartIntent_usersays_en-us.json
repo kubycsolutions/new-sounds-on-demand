@@ -1,0 +1,3206 @@
+[
+	{
+		"id": "f9dfb06b-1d41-4f5c-aad5-357508758e81",
+		"data": [
+			{
+				"text": "beginning of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "fdab0ab5-b108-4fd6-b3a8-ce4e6b84a215",
+		"data": [
+			{
+				"text": "beginning of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "0e986a68-8b7f-4fb0-9754-c6467fc945da",
+		"data": [
+			{
+				"text": "beginning of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "e5a156c5-0400-46a5-9541-0ec546d6aa5e",
+		"data": [
+			{
+				"text": "beginning of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "db940dfc-1022-407c-b653-c29804ebbeea",
+		"data": [
+			{
+				"text": "beginning of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "7f4bbeaf-fc06-4bac-9631-419409eb2d46",
+		"data": [
+			{
+				"text": "beginning of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "4ac39305-6c2a-4371-a090-aacb7d983518",
+		"data": [
+			{
+				"text": "beginning of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "82a1b89e-4331-4199-9630-abf0781544fc",
+		"data": [
+			{
+				"text": "beginning of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "d193dd33-924b-424e-bb41-e0e0a3c0d59e",
+		"data": [
+			{
+				"text": "go back to beginning",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "9ad4f149-b478-4b23-8867-e8b8326929f9",
+		"data": [
+			{
+				"text": "go back to beginning of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "2bed050b-6b00-4dda-be03-28afda1c171b",
+		"data": [
+			{
+				"text": "go back to beginning of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "33a43e3f-6900-4083-9528-9c1d6adb3284",
+		"data": [
+			{
+				"text": "go back to beginning of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "8a6365f9-1330-42ae-9cb5-c39a85ee82aa",
+		"data": [
+			{
+				"text": "go back to beginning of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "bd3be103-a9e3-465f-895b-1110c584287c",
+		"data": [
+			{
+				"text": "go back to beginning of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "4cfab4d9-2016-4d2d-bfff-68926e6f044d",
+		"data": [
+			{
+				"text": "go back to beginning of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "ccced038-2c4e-43fa-b0f8-2461cce13775",
+		"data": [
+			{
+				"text": "go back to beginning of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "309ac455-1707-49ec-8332-6696707d1d47",
+		"data": [
+			{
+				"text": "go back to beginning of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "c15a4b3b-d3fb-40f9-8d9d-6c5fae8d6f26",
+		"data": [
+			{
+				"text": "go back to restart",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "53bf957c-337d-4ba1-9c29-f8575e749c08",
+		"data": [
+			{
+				"text": "go back to restart of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "eb31735d-0d65-4916-b5e8-04040501f022",
+		"data": [
+			{
+				"text": "go back to restart of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "70fdf463-d7c5-4025-912c-c85c072f7c0d",
+		"data": [
+			{
+				"text": "go back to restart of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "e7fde518-5394-4179-956a-900ae60b1b74",
+		"data": [
+			{
+				"text": "go back to restart of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "f5708407-ca4b-455f-b179-0818a24ca1df",
+		"data": [
+			{
+				"text": "go back to restart of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "8d6b2248-69aa-4584-8248-7d0f77cd4898",
+		"data": [
+			{
+				"text": "go back to restart of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "88450122-23fd-440e-b14e-c28034e6b711",
+		"data": [
+			{
+				"text": "go back to restart of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "10a8d8ff-c85c-4f8d-ad67-20114341ce07",
+		"data": [
+			{
+				"text": "go back to restart of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "97699243-21e6-442f-b7ae-b123cfe14d0e",
+		"data": [
+			{
+				"text": "go back to start",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "cdef59e4-cebd-4da4-a180-d48259ddd01a",
+		"data": [
+			{
+				"text": "go back to start of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "7624a60a-d1e3-47f0-bcb9-158ec0f26d96",
+		"data": [
+			{
+				"text": "go back to start of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "39cf6e45-88ed-4d71-b588-778bdfb0584a",
+		"data": [
+			{
+				"text": "go back to start of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "2e8ef106-3220-4f6d-8d49-e13653738ce1",
+		"data": [
+			{
+				"text": "go back to start of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "242d6871-57ce-42a1-a77c-19b1464f38b9",
+		"data": [
+			{
+				"text": "go back to start of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "61a4052f-919b-4721-9286-f2b0b88b6497",
+		"data": [
+			{
+				"text": "go back to start of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "2aa07b06-a121-4ca6-82b7-d543bde25f5c",
+		"data": [
+			{
+				"text": "go back to start of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "622b50d4-aa2f-4396-a101-da36e3a561ba",
+		"data": [
+			{
+				"text": "go back to start of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "48b8a1d8-2924-429e-9ccf-e23885376ed9",
+		"data": [
+			{
+				"text": "go back to the beginning",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "c288733e-b041-4e48-bb83-fd0f9656fa22",
+		"data": [
+			{
+				"text": "go back to the beginning of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "fd0924b7-b8bb-47b9-8424-7d05e23dd84d",
+		"data": [
+			{
+				"text": "go back to the beginning of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "53f7357a-0891-4306-917c-2778289210ad",
+		"data": [
+			{
+				"text": "go back to the beginning of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "70d97f6c-c295-4c64-a8d5-054e4f1dddda",
+		"data": [
+			{
+				"text": "go back to the beginning of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "80ff158a-7aea-47d9-91a0-b9b0abeaf17b",
+		"data": [
+			{
+				"text": "go back to the beginning of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "3f7e023e-c625-4666-b3bf-12701c4eb759",
+		"data": [
+			{
+				"text": "go back to the beginning of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "5b7171b1-d453-4c43-9bdd-3c119e3b7212",
+		"data": [
+			{
+				"text": "go back to the beginning of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "58b394e4-ade0-4f13-a808-a10823334f21",
+		"data": [
+			{
+				"text": "go back to the beginning of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "f9bcdf6f-a3e7-4f57-8782-72916850c218",
+		"data": [
+			{
+				"text": "go back to the restart",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "87d6ccb4-f1de-45a0-b5e1-366a2c6a2064",
+		"data": [
+			{
+				"text": "go back to the restart of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "d4a064c1-67d3-4a15-815f-e6f1eaa33566",
+		"data": [
+			{
+				"text": "go back to the restart of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "c4832861-379a-459d-9bb6-bac2d33907c0",
+		"data": [
+			{
+				"text": "go back to the restart of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "7673efb8-c501-48df-bd9b-4b03d75da6db",
+		"data": [
+			{
+				"text": "go back to the restart of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "8335a506-f43e-41f7-9cb4-7abb8ca84826",
+		"data": [
+			{
+				"text": "go back to the restart of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "60676323-5adc-4118-a0ce-b9ddc5fe9640",
+		"data": [
+			{
+				"text": "go back to the restart of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "3937049f-3363-418f-a757-2cd6997aa326",
+		"data": [
+			{
+				"text": "go back to the restart of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "757a20a0-3c1d-4d5d-9c9f-1b3fec9ffc32",
+		"data": [
+			{
+				"text": "go back to the restart of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "23d7bf9f-90fb-4eea-8b30-bd85e5d08a14",
+		"data": [
+			{
+				"text": "go back to the start",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "ef01ec7b-de11-4e99-a673-bb976c2d92b4",
+		"data": [
+			{
+				"text": "go back to the start of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "48f8d0a6-dca5-4110-b88d-8110bf4ce4fe",
+		"data": [
+			{
+				"text": "go back to the start of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "ffdcacfe-1cb4-4e0f-81e8-742ddccb798c",
+		"data": [
+			{
+				"text": "go back to the start of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "50522c77-dfac-4395-b5f1-0fc07db76f53",
+		"data": [
+			{
+				"text": "go back to the start of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "8b4ad22e-e278-4929-83d6-fe0c16834625",
+		"data": [
+			{
+				"text": "go back to the start of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "e3a702c8-025b-4f8e-96d1-635ec44adcdd",
+		"data": [
+			{
+				"text": "go back to the start of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "ac067662-f852-4085-a44a-d4ae07d85a87",
+		"data": [
+			{
+				"text": "go back to the start of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "2b895bf5-c6b9-410a-9a39-67482542e24e",
+		"data": [
+			{
+				"text": "go back to the start of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "cd4af746-2dd1-48c9-9405-cf933ccbd7df",
+		"data": [
+			{
+				"text": "go to beginning",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "1e680562-d13c-4545-a2ac-be8c975bb465",
+		"data": [
+			{
+				"text": "go to beginning of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "4579eb2d-9326-4848-b531-7cf17878c75a",
+		"data": [
+			{
+				"text": "go to beginning of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "e429922a-715e-4ef3-b1c0-fefa0baabe06",
+		"data": [
+			{
+				"text": "go to beginning of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "5ef7d6a3-150b-49b0-aa9a-6eca7bc1490f",
+		"data": [
+			{
+				"text": "go to beginning of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "5f0dbee9-89ce-476f-9fd1-cd36cdf1e891",
+		"data": [
+			{
+				"text": "go to beginning of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "c5a9feb7-a735-4fcd-9839-fc69364b57e9",
+		"data": [
+			{
+				"text": "go to beginning of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "2010f49d-64b3-4bb5-a115-4f056d830862",
+		"data": [
+			{
+				"text": "go to beginning of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "1c309ffd-4af2-4af2-98c9-a7cf0f6a9c59",
+		"data": [
+			{
+				"text": "go to beginning of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "e4282142-39e8-4022-b815-38f0d358a99a",
+		"data": [
+			{
+				"text": "go to restart",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "e3d0e474-6d17-47f0-be37-d0caa53ad639",
+		"data": [
+			{
+				"text": "go to restart of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "1940de3c-c064-41ab-81d0-e79dd8188d61",
+		"data": [
+			{
+				"text": "go to restart of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "3b010810-0f72-4549-a78e-15c647a920b1",
+		"data": [
+			{
+				"text": "go to restart of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "babb981a-d2a4-4d2b-938f-c0b1f00152ec",
+		"data": [
+			{
+				"text": "go to restart of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "612e4efa-d2c8-4e92-b370-bf3da8d4adc7",
+		"data": [
+			{
+				"text": "go to restart of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "6cf82893-089e-4843-a58e-a359594fa701",
+		"data": [
+			{
+				"text": "go to restart of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "227e0c20-a308-4ee0-855e-49fd0a3b2654",
+		"data": [
+			{
+				"text": "go to restart of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "67a8e7eb-f22c-4e3b-8103-79955d9f0e2e",
+		"data": [
+			{
+				"text": "go to restart of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "9e0d0f5c-5273-4691-ab21-eb853e02434b",
+		"data": [
+			{
+				"text": "go to start",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "fb6ce2e7-cf9b-4946-a5c2-6caf2e7dc5d6",
+		"data": [
+			{
+				"text": "go to start of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "ea820810-9e38-4237-b902-4fc1393ed8af",
+		"data": [
+			{
+				"text": "go to start of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "a4f75a94-809c-4ad0-9db8-6d7326b2dde3",
+		"data": [
+			{
+				"text": "go to start of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "8c12edec-f4b5-4173-ae8e-822181e2a16d",
+		"data": [
+			{
+				"text": "go to start of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "bdcf20a2-c11c-46c3-bfd3-dffa74551846",
+		"data": [
+			{
+				"text": "go to start of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "c436db8d-5b5a-4696-98e1-54bfd8b8bce4",
+		"data": [
+			{
+				"text": "go to start of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "cc35c883-d8f0-4b9a-8635-7cd1c56c739c",
+		"data": [
+			{
+				"text": "go to start of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "dd72d9c2-2055-4a58-bce1-f31a48d34847",
+		"data": [
+			{
+				"text": "go to start of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "8818300e-89a0-4f84-9f37-6e98ca7db81c",
+		"data": [
+			{
+				"text": "go to the beginning",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "d7c22d4e-f42f-47ff-b994-1b2eb29940af",
+		"data": [
+			{
+				"text": "go to the beginning of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "27bb2fbf-5c1f-474c-b75e-829c156250f6",
+		"data": [
+			{
+				"text": "go to the beginning of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "0486ce98-e5bd-48fc-90d1-184a459858e7",
+		"data": [
+			{
+				"text": "go to the beginning of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "28b31dd2-bb3c-4b6f-9d0c-0d349ad71c14",
+		"data": [
+			{
+				"text": "go to the beginning of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "0e9d18b1-638e-43f2-9a30-3851f58bef2e",
+		"data": [
+			{
+				"text": "go to the beginning of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "13f91100-2866-4439-908f-d31a5e691aec",
+		"data": [
+			{
+				"text": "go to the beginning of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "369336dd-c070-427d-b2ad-a5fba593e00b",
+		"data": [
+			{
+				"text": "go to the beginning of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "d45efa08-648b-4859-87f4-cc41a8371775",
+		"data": [
+			{
+				"text": "go to the beginning of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "150a09be-ef54-43a9-bae5-486b057c2795",
+		"data": [
+			{
+				"text": "go to the restart",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "7546da78-7f8a-4128-a7c1-3c5a06b3a5c4",
+		"data": [
+			{
+				"text": "go to the restart of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "75b2ba55-b579-4734-83d6-e0690869cfd5",
+		"data": [
+			{
+				"text": "go to the restart of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "a9006ecc-88aa-4cce-8560-6e540ebac0b2",
+		"data": [
+			{
+				"text": "go to the restart of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "37e9e8c1-fc7a-44ee-aaf7-48ac460681b9",
+		"data": [
+			{
+				"text": "go to the restart of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "6c2e7e4d-3ca6-451d-a665-cc2a2d3409e1",
+		"data": [
+			{
+				"text": "go to the restart of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "3b1163cf-2470-4288-a2ee-d727be9342f7",
+		"data": [
+			{
+				"text": "go to the restart of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "d90406b8-63e4-473e-b43a-dd13d3d5abf4",
+		"data": [
+			{
+				"text": "go to the restart of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "d459e84c-860e-4999-a0f4-7162ae676328",
+		"data": [
+			{
+				"text": "go to the restart of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "74dd0b17-1103-4e74-9b36-4a9e0d2c101e",
+		"data": [
+			{
+				"text": "go to the start",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "0815ac7d-cfb0-41a1-bbea-5f002576b102",
+		"data": [
+			{
+				"text": "go to the start of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "9d6ba8f5-0061-45c9-8e83-9cd3291113e4",
+		"data": [
+			{
+				"text": "go to the start of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "98391d89-5dd4-413d-a5b5-4a12dc23f879",
+		"data": [
+			{
+				"text": "go to the start of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "b73ba004-27f1-4e41-a0ba-0e82934c58a6",
+		"data": [
+			{
+				"text": "go to the start of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "d034b436-675d-4439-b19b-085ef1051b85",
+		"data": [
+			{
+				"text": "go to the start of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "72a793b8-ebe0-4b80-aa4f-543059c26cf2",
+		"data": [
+			{
+				"text": "go to the start of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "01a33f9f-ce94-4944-b720-2b6eadbc858b",
+		"data": [
+			{
+				"text": "go to the start of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "aec6c70e-c769-4dd7-a8a0-3424208f6cf5",
+		"data": [
+			{
+				"text": "go to the start of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "8ae6b3c3-f915-4c2c-8db6-461427a775a2",
+		"data": [
+			{
+				"text": "restart",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "2f54527f-d7c4-4328-b7a6-04a58d338c73",
+		"data": [
+			{
+				"text": "restart of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "e18eded8-ef67-4c0e-80c7-9b04102ef27c",
+		"data": [
+			{
+				"text": "restart of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "5aeb9f0d-8754-404a-99f0-9c3ce696d296",
+		"data": [
+			{
+				"text": "restart of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "6d66bb9a-4de4-4216-9e86-b0a77df93262",
+		"data": [
+			{
+				"text": "restart of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "f8d980d6-9091-40b4-b3ec-43665a35eb6e",
+		"data": [
+			{
+				"text": "restart of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "bb969b23-6d3d-4f1e-9548-13d997a9788a",
+		"data": [
+			{
+				"text": "restart of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "b95e6de9-c045-40aa-8598-613c109ad579",
+		"data": [
+			{
+				"text": "restart of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "17e4d511-25b1-40b7-996a-b750207337f4",
+		"data": [
+			{
+				"text": "restart of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "83ac7f10-7e16-4b07-8821-41911c84f3e8",
+		"data": [
+			{
+				"text": "return to beginning",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "3f074d9d-a144-4448-9d26-f7d042fb4193",
+		"data": [
+			{
+				"text": "return to beginning of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "3ab7859f-6cca-4101-a8ca-38390699040e",
+		"data": [
+			{
+				"text": "return to beginning of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "ea9ee304-4f24-44c1-87a1-70ba0f649586",
+		"data": [
+			{
+				"text": "return to beginning of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "42304fac-9b70-444a-99e5-3a6007ea6cff",
+		"data": [
+			{
+				"text": "return to beginning of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "bbb90ef8-aea9-4bcd-8a7e-6e39567582e2",
+		"data": [
+			{
+				"text": "return to beginning of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "79e14c36-5387-4b18-8a6d-8398b5bf204a",
+		"data": [
+			{
+				"text": "return to beginning of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "969d9140-bb45-48bb-ad1c-c42224c64ed4",
+		"data": [
+			{
+				"text": "return to beginning of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "889ff944-0476-4e13-84d5-c21eb6550ac2",
+		"data": [
+			{
+				"text": "return to beginning of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "6ae352fc-6f33-4904-86c3-1d7f4092410f",
+		"data": [
+			{
+				"text": "return to restart",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "f1db2c3d-f512-46a3-8e36-576ae3cb436d",
+		"data": [
+			{
+				"text": "return to restart of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "b6212dde-e63e-44a4-ab2f-f4a834c8a7b6",
+		"data": [
+			{
+				"text": "return to restart of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "aa36d977-be5c-4c05-aaf1-5895571a30e2",
+		"data": [
+			{
+				"text": "return to restart of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "cc72a872-aec1-4964-b37f-2c8999a281c5",
+		"data": [
+			{
+				"text": "return to restart of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "a34b1cdd-3b7e-4930-b490-645e2b34b550",
+		"data": [
+			{
+				"text": "return to restart of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "4f0e23a7-b9e4-4b74-806a-0c7437a30851",
+		"data": [
+			{
+				"text": "return to restart of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "40450b00-77d4-4878-8cb0-8792823b047d",
+		"data": [
+			{
+				"text": "return to restart of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "a3a32de8-97aa-45aa-be9b-09a862345963",
+		"data": [
+			{
+				"text": "return to restart of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "0bae68d0-b0b0-4276-ac36-51ba91f786c7",
+		"data": [
+			{
+				"text": "return to start",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "499eb350-40c4-425b-965f-100a13c67070",
+		"data": [
+			{
+				"text": "return to start of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "a795bbc7-b86f-4825-9991-410443f5c750",
+		"data": [
+			{
+				"text": "return to start of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "9cc3e15d-8e77-43e4-9cfe-c533b5ca9abb",
+		"data": [
+			{
+				"text": "return to start of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "965f1ca5-35a8-437f-a517-fe11849834aa",
+		"data": [
+			{
+				"text": "return to start of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "2370b6af-8874-445e-a96f-72d7ccbbd026",
+		"data": [
+			{
+				"text": "return to start of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "edcc0de5-1e12-4bfc-9dc5-5c23781c0ac7",
+		"data": [
+			{
+				"text": "return to start of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "1d98b3ee-3ac9-43f2-9337-147a2922d02c",
+		"data": [
+			{
+				"text": "return to start of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "7522bd4e-9039-4143-b734-508f65f29863",
+		"data": [
+			{
+				"text": "return to start of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "0e83e4c0-bed0-4a55-9a4b-07f3841c56cb",
+		"data": [
+			{
+				"text": "return to the beginning",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "d2d8c344-345b-42df-a197-f0801a613239",
+		"data": [
+			{
+				"text": "return to the beginning of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "2f201ff6-9859-4d51-ad8d-3e340cec56ac",
+		"data": [
+			{
+				"text": "return to the beginning of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "313f3cd2-abeb-4d74-b187-64de1c2ae0cf",
+		"data": [
+			{
+				"text": "return to the beginning of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "57357306-70e4-4554-bef5-a9ab8a0b1d91",
+		"data": [
+			{
+				"text": "return to the beginning of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "a8a34a8c-db76-4c7f-8753-c8a8016a20cd",
+		"data": [
+			{
+				"text": "return to the beginning of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "fdbc3bd2-93c6-4ae4-8974-5ba56468d36c",
+		"data": [
+			{
+				"text": "return to the beginning of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "e8cf1ee6-ed48-4a5e-bd3f-dcbd77ccb3f2",
+		"data": [
+			{
+				"text": "return to the beginning of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "1ad67d8e-adef-4f1f-b040-305dd2cd5daa",
+		"data": [
+			{
+				"text": "return to the beginning of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "0e5e9af4-364c-462d-bae9-f36d3a07a194",
+		"data": [
+			{
+				"text": "return to the restart",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "e5c13c7d-487e-416c-9516-27ef385289ab",
+		"data": [
+			{
+				"text": "return to the restart of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "a6f0a7a0-9860-4f54-a0d3-94cedc6c09ee",
+		"data": [
+			{
+				"text": "return to the restart of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "f2b725f2-80d0-41e7-81e3-259a2eff7648",
+		"data": [
+			{
+				"text": "return to the restart of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "fc5eaf77-5dbe-4381-a4a8-401757ecf4c3",
+		"data": [
+			{
+				"text": "return to the restart of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "3fe3acba-57e9-4958-b8a6-5d69716b8040",
+		"data": [
+			{
+				"text": "return to the restart of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "24ba1598-8f06-409b-ad66-2dfb1aade679",
+		"data": [
+			{
+				"text": "return to the restart of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "097b524f-9ece-4f68-8334-ad4925be8019",
+		"data": [
+			{
+				"text": "return to the restart of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "1c3d7e96-f39c-4462-997e-3d732a7b2684",
+		"data": [
+			{
+				"text": "return to the restart of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "505aafde-79c5-48e2-8216-36e4aa3fd122",
+		"data": [
+			{
+				"text": "return to the start",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "58d3a72a-479f-4836-9dd6-62f6b28f90f0",
+		"data": [
+			{
+				"text": "return to the start of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "559e4de7-459e-4aad-9763-6cb3ee79ce6a",
+		"data": [
+			{
+				"text": "return to the start of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "ae8746eb-4926-44ea-baab-26b4a82c5f88",
+		"data": [
+			{
+				"text": "return to the start of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "658b71e6-0c01-415d-932b-b0930e7af857",
+		"data": [
+			{
+				"text": "return to the start of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "03800d52-bf82-42e2-ac7b-5d81c8f25cf8",
+		"data": [
+			{
+				"text": "return to the start of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "01b19936-ec85-4c30-a306-4787cfc67765",
+		"data": [
+			{
+				"text": "return to the start of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "462c8537-c865-4c40-8a99-d0996785fb30",
+		"data": [
+			{
+				"text": "return to the start of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "c7dbc7d8-22e1-4e5e-86db-237dde50aead",
+		"data": [
+			{
+				"text": "return to the start of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "8e5d9df7-d0af-4bed-b882-ca9bd717deb3",
+		"data": [
+			{
+				"text": "rewind to beginning",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "9841000f-06b9-4713-8f3b-7a0a74859df7",
+		"data": [
+			{
+				"text": "rewind to beginning of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "b52a2d89-08d0-419d-93c8-7bb239292e00",
+		"data": [
+			{
+				"text": "rewind to beginning of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "3a532e0c-0fe2-49e5-906e-ecb06fe69ccf",
+		"data": [
+			{
+				"text": "rewind to beginning of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "a7d5244d-da96-4021-b573-37139059c76e",
+		"data": [
+			{
+				"text": "rewind to beginning of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "e0f144e2-225b-4428-915e-a64326fc8d7a",
+		"data": [
+			{
+				"text": "rewind to beginning of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "b013974c-e7f1-4b77-9274-bf679a9c5ec1",
+		"data": [
+			{
+				"text": "rewind to beginning of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "6a9abc28-3c67-47d1-b42d-c81d764120d8",
+		"data": [
+			{
+				"text": "rewind to beginning of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "5b5b8ff6-386f-4fc2-86eb-64ffadc9bff5",
+		"data": [
+			{
+				"text": "rewind to beginning of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "cdf082cb-647e-461d-bf11-59ef7699dc1b",
+		"data": [
+			{
+				"text": "rewind to restart",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "84b354d3-85cb-4afd-a265-dfa6ce02a18f",
+		"data": [
+			{
+				"text": "rewind to restart of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "48811cc0-a07d-40f1-89aa-8837754664e1",
+		"data": [
+			{
+				"text": "rewind to restart of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "66762d35-fc5e-4bd2-8376-43295fe3d4e0",
+		"data": [
+			{
+				"text": "rewind to restart of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "bbc94812-95d7-43ab-8d17-f8c1878cd935",
+		"data": [
+			{
+				"text": "rewind to restart of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "cf348ad7-c805-4283-bb08-0f586b95b923",
+		"data": [
+			{
+				"text": "rewind to restart of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "f00e4693-b9bc-4797-9ee3-ee7cc782a648",
+		"data": [
+			{
+				"text": "rewind to restart of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "35ded034-8b03-496a-8dc5-1e76b90db6aa",
+		"data": [
+			{
+				"text": "rewind to restart of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "ac88017d-b44f-4459-b8be-b40082033a3e",
+		"data": [
+			{
+				"text": "rewind to restart of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "d2c35937-d422-49fc-b425-5a086f6f80c9",
+		"data": [
+			{
+				"text": "rewind to start",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "b196bf4f-20ff-4650-a13a-0bbfa219016f",
+		"data": [
+			{
+				"text": "rewind to start of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "449bd4be-ba05-4a5d-986c-aeeced5addcc",
+		"data": [
+			{
+				"text": "rewind to start of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "961503f6-5881-41ff-ae03-ba9e0c22b9cf",
+		"data": [
+			{
+				"text": "rewind to start of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "95e0aadf-a387-4e13-8bdc-e6f7de69feba",
+		"data": [
+			{
+				"text": "rewind to start of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "28501c8a-46fd-4342-8c8b-9813e86afb5b",
+		"data": [
+			{
+				"text": "rewind to start of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "475f1248-5c13-440c-b684-4c840be419ea",
+		"data": [
+			{
+				"text": "rewind to start of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "b2374577-e437-4447-9130-94c477ffa240",
+		"data": [
+			{
+				"text": "rewind to start of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "6f38e2df-28b6-4f6d-968e-35c8b608fd22",
+		"data": [
+			{
+				"text": "rewind to start of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "4e1e6ca9-6dfd-4370-b92d-d8d6affdbaa4",
+		"data": [
+			{
+				"text": "rewind to the beginning",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "ea45b404-ef89-4c72-9c74-4dc72ab3bf6c",
+		"data": [
+			{
+				"text": "rewind to the beginning of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "4c7188c9-0e63-4db9-8ca9-8b2cb681fa17",
+		"data": [
+			{
+				"text": "rewind to the beginning of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "122fc6d1-5202-407d-a947-308afa118a9e",
+		"data": [
+			{
+				"text": "rewind to the beginning of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "1f7aa764-a4c6-4830-904a-f40eff794aca",
+		"data": [
+			{
+				"text": "rewind to the beginning of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "51b8b71f-7428-49e8-949f-4f1da3acc154",
+		"data": [
+			{
+				"text": "rewind to the beginning of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "0e704cdd-8123-4dd2-8ea4-7c6406effb19",
+		"data": [
+			{
+				"text": "rewind to the beginning of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "9356ee31-6e86-457c-a508-c12a935be275",
+		"data": [
+			{
+				"text": "rewind to the beginning of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "d6967664-d900-401b-a3ac-3423cb8d495a",
+		"data": [
+			{
+				"text": "rewind to the beginning of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "7fbc5130-4d0f-4605-b349-1ce085ae21e4",
+		"data": [
+			{
+				"text": "rewind to the restart",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "2b39bbb8-3bab-462e-9144-a36afe51ea6f",
+		"data": [
+			{
+				"text": "rewind to the restart of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "9676795e-67f3-4ca1-b395-0a05c13fcaf1",
+		"data": [
+			{
+				"text": "rewind to the restart of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "b0cad8a6-820a-42e8-b326-d366c15899e2",
+		"data": [
+			{
+				"text": "rewind to the restart of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "cae221fe-f501-475e-bf9e-17c9db04f5ad",
+		"data": [
+			{
+				"text": "rewind to the restart of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "acea09b1-2e3e-4527-8e53-c7610741c108",
+		"data": [
+			{
+				"text": "rewind to the restart of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "f41a797b-a0d0-4245-bc9b-df6e5680d9c4",
+		"data": [
+			{
+				"text": "rewind to the restart of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "c2621752-1dc9-4abd-a993-e7a6f8a1607f",
+		"data": [
+			{
+				"text": "rewind to the restart of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "8ea7d0c6-cdd4-4574-b060-10706ee0d238",
+		"data": [
+			{
+				"text": "rewind to the restart of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "3c17b03d-b488-4f60-a474-9400c6d24e4e",
+		"data": [
+			{
+				"text": "rewind to the start",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "9ee56892-431b-4be3-945b-d9a81cf4d449",
+		"data": [
+			{
+				"text": "rewind to the start of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "b537c0b4-708a-4ce5-a1ea-6e2177577f9e",
+		"data": [
+			{
+				"text": "rewind to the start of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "31304cb4-e3af-46a3-bc7e-be9e8a7f7364",
+		"data": [
+			{
+				"text": "rewind to the start of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "8a6f1257-3fd5-4c18-8abe-29b59fc45ff8",
+		"data": [
+			{
+				"text": "rewind to the start of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "6a9d1d0b-1116-49d6-b948-5ba86cb4fc6d",
+		"data": [
+			{
+				"text": "rewind to the start of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "53c15f57-cf1d-4174-ac14-722b95a4832d",
+		"data": [
+			{
+				"text": "rewind to the start of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "ab93602c-0efd-4974-863a-3e3c80df7001",
+		"data": [
+			{
+				"text": "rewind to the start of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "221f92a3-2e81-4081-9bf7-d7cbc413bb94",
+		"data": [
+			{
+				"text": "rewind to the start of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "1ecbf728-2da2-40a2-8366-053a1bf6c7b2",
+		"data": [
+			{
+				"text": "start of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "05a44222-7b8c-4108-a470-76fc00d02422",
+		"data": [
+			{
+				"text": "start of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "2c4197bd-f8af-42ff-8838-9da0c3d45de2",
+		"data": [
+			{
+				"text": "start of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "6fe85061-b09a-4d0f-97c0-92c20d2d2da3",
+		"data": [
+			{
+				"text": "start of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "e15162af-f84c-4d97-bf1c-6fdb709e1a02",
+		"data": [
+			{
+				"text": "start of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "79b76e73-3248-459d-88a7-fa9f62f9fa9d",
+		"data": [
+			{
+				"text": "start of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "c87a05c7-467c-43e2-8aa9-ab9fea676437",
+		"data": [
+			{
+				"text": "start of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "78520c9f-a0cc-41d3-b97e-d57fa3cdd3a7",
+		"data": [
+			{
+				"text": "start of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "d2bced95-4e6a-403a-b5ce-6ceb60d664a9",
+		"data": [
+			{
+				"text": "the beginning of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "50d54794-160b-49b7-93a6-032a8806e700",
+		"data": [
+			{
+				"text": "the beginning of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "d01834b3-ca95-468b-86d1-13992336268d",
+		"data": [
+			{
+				"text": "the beginning of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "569ee760-b391-4f53-a48d-44057ced385b",
+		"data": [
+			{
+				"text": "the beginning of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "416b0a24-9035-4838-aff6-4bf91a877b65",
+		"data": [
+			{
+				"text": "the beginning of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "93a9ab07-3101-4be9-84ee-a41146a1d510",
+		"data": [
+			{
+				"text": "the beginning of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "a1089f83-4a52-46c1-addf-80556a15beee",
+		"data": [
+			{
+				"text": "the beginning of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "85de66ae-4977-4201-833f-880d677fccfa",
+		"data": [
+			{
+				"text": "the beginning of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "9be71a71-4def-4d87-8424-17919f8af299",
+		"data": [
+			{
+				"text": "the restart",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "91dc7381-c495-49ce-82f2-993a942b7b74",
+		"data": [
+			{
+				"text": "the restart of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "90d6555d-2d0b-4f64-a4e9-879c876ab4d9",
+		"data": [
+			{
+				"text": "the restart of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "1b73ec42-f8b6-4723-9da2-be239a6fcc22",
+		"data": [
+			{
+				"text": "the restart of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "d6eac7b2-6868-41d3-bcc5-890f296b75cb",
+		"data": [
+			{
+				"text": "the restart of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "0fcf9339-f9e6-4e48-910e-affe3329433d",
+		"data": [
+			{
+				"text": "the restart of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "1f27debe-5677-4965-be18-8f2788a9d374",
+		"data": [
+			{
+				"text": "the restart of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "de2e8e35-adf1-4e75-86ea-661fba864f98",
+		"data": [
+			{
+				"text": "the restart of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "3ced526a-760d-475d-af74-e084e75b9d8d",
+		"data": [
+			{
+				"text": "the restart of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "6ed99687-35f7-4aa7-bdf2-9728281114c0",
+		"data": [
+			{
+				"text": "the start",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "b586228d-b553-45ed-948e-757405ad13da",
+		"data": [
+			{
+				"text": "the start of broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "113c5001-fc46-4d57-8a55-9e942ed8e1ae",
+		"data": [
+			{
+				"text": "the start of episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "48f14180-57c0-469d-8db5-802006bf3fc7",
+		"data": [
+			{
+				"text": "the start of new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "b012c541-1191-40b9-adb3-0e9980bcb4dc",
+		"data": [
+			{
+				"text": "the start of show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "391dd0b6-a0d5-4877-89b0-18f24a194084",
+		"data": [
+			{
+				"text": "the start of the broadcast",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "189d08ff-7d09-4087-8df3-878371478d5b",
+		"data": [
+			{
+				"text": "the start of the episode",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "b9bc13cc-5993-4197-af72-03c1c24f81ba",
+		"data": [
+			{
+				"text": "the start of the new sounds",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	},
+	{
+		"id": "72a65a45-2ca5-461f-b35c-3262d9f03bb9",
+		"data": [
+			{
+				"text": "the start of the show",
+				"userDefined": false
+			}
+		],
+		"isTemplate": false,
+		"count": 0,
+		"lang": "en-us"
+	}
+]
