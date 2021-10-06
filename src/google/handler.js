@@ -6,11 +6,11 @@ const Player = require('../player.js');
 module.exports = {
     AUDIOPLAYER: {
         'GoogleAction.Finished'() {
-            let index = this.$user.$data.currentIndex;
-	    let newIndex=Player.getNextIndex(index);
-            let episode = Player.getEpisodeByIndex(newIndex);
+            let index = this.$user.$data.currentDate;
+	    let newDate=Player.getNextDate(index);
+            let episode = Player.getEpisodeByDate(newDate);
             if (episode) {
-                this.$user.$data.currentIndex = newIndex
+                this.$user.$data.currentDate = newDate
                 this.$googleAction.$mediaResponse.play(episode.url, episode.title);
                 this.$googleAction.showSuggestionChips(['pause', 'start over']);
                 this.ask('Enjoy');

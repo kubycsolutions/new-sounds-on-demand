@@ -190,13 +190,17 @@ function firstBroadcastDateMS(epNumber) {
 // Player logic: mechanisms for navigating and extracting our tables
 // of episodes (by date and/or by episode number).
 //
-// The "index" calls are where we switched from prototype(using
-// episode number as index) to production (using date as index). If we
-// want to support both, this might serve as the switching layer,
-// though we really should encapsulate index more so it can clearly
-// distinguish the two cases. (Of course, the other solution is to
-// keep it as integer and declare any int smaller than 100,000 must be
-// an episode number -- ugly lazy approach.)
+// The "index" calls are backward-compatibility residue of a change
+// from prototype (using episode number as index) to production (using
+// date as index).
+// 
+// If we want to support both playing sequences, we may need to
+// recreate a routing layer, so I'm retaining these stubs for
+// now. Proper way to do that would be to better encapsulate the
+// concept of current-episode, possibly tracking both but knowing
+// which is currently in use. (Of course, the really ugly solution is
+// to keep it as integer and declare any int smaller than 100,000 must
+// be an episode number.)
 
 module.exports = {
     getLiveStreamURI: function() { return LiveStreamURI },

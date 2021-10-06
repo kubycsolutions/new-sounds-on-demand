@@ -254,6 +254,10 @@ app.setHandler({
                 .play(addUriUsage(episode.url), `${currentDate}`)
                 .tell(this.$speech)
         } else if (this.isGoogleAction()) {
+	    // NOTE: this.ask(), not this.tell(), because we want the
+	    // playback-completed callback, which requires it not be a
+	    // Final Response. However, that forces including
+	    // Suggestion Chips.
             this.$googleAction.$mediaResponse.play(addUriUsage(episode.url), episode.title);
             this.$googleAction.showSuggestionChips(['pause', 'start over']);
             this.ask(this.$speech);
@@ -273,6 +277,10 @@ app.setHandler({
                 .play(addUriUsage(episode.url), `${currentDate}`)
                 .tell(this.$speech)
         } else if (this.isGoogleAction()) {
+	    // NOTE: this.ask(), not this.tell(), because we want the
+	    // playback-completed callback, which requires it not be a
+	    // Final Response. However, that forces including
+	    // Suggestion Chips.
             this.$googleAction.$mediaResponse.play(addUriUsage(episode.url), episode.title);
             this.$googleAction.showSuggestionChips(['pause', 'start over']);
             this.ask(this.$speech);
@@ -325,6 +333,10 @@ app.setHandler({
                 .play(addUriUsage(episode.url), `${currentDate}`)
                 .tell(this.$speech);
         } else if (this.isGoogleAction()) {
+	    // NOTE: this.ask(), not this.tell(), because we want the
+	    // playback-completed callback, which requires it not be a
+	    // Final Response. However, that forces including
+	    // Suggestion Chips.
 	    this.$googleAction.$mediaResponse.play(addUriUsage(episode.url), episode.title);
 	    this.$googleAction.showSuggestionChips(['pause', 'start over']);
 	    this.ask(this.$speech);
@@ -353,9 +365,13 @@ app.setHandler({
 		.setOffsetInMilliseconds(0)
 		.play(addUriUsage(nextEpisode.url), `${currentDate}`)
         } else if (this.isGoogleAction()) {
+	    // NOTE: this.ask(), not this.tell(), because we want the
+	    // playback-completed callback, which requires it not be a
+	    // Final Response. However, that forces including
+	    // Suggestion Chips.
             this.$googleAction.$mediaResponse.play(addUriUsage(nextEpisode.url), nextEpisode.title);
             this.$googleAction.showSuggestionChips(['pause', 'start over']);
-            this.ask('Enjoy');
+	    this.ask(this.$speech);
         }
     },
 
@@ -381,9 +397,13 @@ app.setHandler({
 		.setOffsetInMilliseconds(0)
 		.play(addUriUsage(previousEpisode.url), `${currentDate}`)
         } else if (this.isGoogleAction()) {
+	    // NOTE: this.ask(), not this.tell(), because we want the
+	    // playback-completed callback, which requires it not be a
+	    // Final Response. However, that forces including
+	    // Suggestion Chips.
             this.$googleAction.$mediaResponse.play(addUriUsage(previousEpisode.url), previousEpisode.title);
             this.$googleAction.showSuggestionChips(['pause', 'start over']);
-            this.ask('Enjoy');
+            this.ask(this.$speech);
         }
     },
 
@@ -417,9 +437,13 @@ app.setHandler({
 		.setOffsetInMilliseconds(0)
 		.play(addUriUsage(randomEpisode.url), `${currentDate}`)
         } else if (this.isGoogleAction()) {
+	    // NOTE: this.ask(), not this.tell(), because we want the
+	    // playback-completed callback, which requires it not be a
+	    // Final Response. However, that forces including
+	    // Suggestion Chips.
             this.$googleAction.$mediaResponse.play(addUriUsage(randomEpisode.url), randomEpisode.title);
             this.$googleAction.showSuggestionChips(['pause', 'start over']);
-            this.ask('Enjoy');
+            this.ask(this.$speech)
         }
     },
 
@@ -469,9 +493,13 @@ app.setHandler({
 		    .setOffsetInMilliseconds(0)
 		    .play(addUriUsage(episode.url), `${currentDate}`)
             } else if (this.isGoogleAction()) {
+		// NOTE: this.ask(), not this.tell(), because we want the
+		// playback-completed callback, which requires it not be a
+		// Final Response. However, that forces including
+		// Suggestion Chips.
 		this.$googleAction.$mediaResponse.play(addUriUsage(episode.url), episode.title);
 		this.$googleAction.showSuggestionChips(['pause', 'start over']);
-		this.ask('Enjoy');
+		this.ask(this.$speech)
             }
 	}
 	else {
@@ -495,9 +523,13 @@ app.setHandler({
 		    .setOffsetInMilliseconds(0)
 		    .play(addUriUsage(episode.url), `${currentDate}`)
             } else if (this.isGoogleAction()) {
+		// NOTE: this.ask(), not this.tell(), because we want the
+		// playback-completed callback, which requires it not be a
+		// Final Response. However, that forces including
+		// Suggestion Chips.
 		this.$googleAction.$mediaResponse.play(addUriUsage(episode.url), episode.title);
 		this.$googleAction.showSuggestionChips(['pause', 'start over']);
-		this.ask('Enjoy');
+		this.ask(this.$speech)
             }
 	}
 	else {
@@ -531,9 +563,13 @@ app.setHandler({
 		.play(streamURI, `${currentDate}`)
 	        .tell(this.$speech)
             } else if (this.isGoogleAction()) {
-		this.$googleAction.$mediaResponse.play(addUriUsage(episode.url), episode.title);
+		// NOTE: this.ask(), not this.tell(), because we want the
+		// playback-completed callback, which requires it not be a
+		// Final Response. However, that forces including
+		// Suggestion Chips.
+		this.$googleAction.$mediaResponse.play(streamURI,"New Sounds On Demand Live Stream");
 		this.$googleAction.showSuggestionChips(['pause']);
-		this.ask('Enjoy');
+		this.ask(this.$speech)
             }
     },
 
