@@ -20,6 +20,13 @@ On Alexa/Echo devices, most of the usual music-player navigation commands are av
 
 For other commands, you will either have to Open the skill first, or explicitly say "**{wake-word}, ask New Sounds On Demand ...**" followed by what you want to do. In addition to the above commands, we support many synonyms of **Play the most recent broadcast**, **Play the oldest episode**, **Play episode {episode-number}**, **Play the show from {date}**, **Play the live stream**, and **Surprise me**. You can also ask it to **play the credits**. 
 
+**Somewhat-Expected Error Message*
+If the alpha release responds to a voice command with
+**Connection error. Your Jovo webhook endpoint is not running. Please run Jovo Run.**
+that usually means a developer has shut down the semantics server (the code checked in here) for debugging or to bring up a new release, though a crash is not completely impossible. Try again in an hour or so, to give us time to work on it.
+
+Yes, this can interfere with the **Stop** and **Pause** commands. If that happens, the simplest workaround is usually to ask the smartspeaker to begin doing something else, then issue **Stop** to that.
+
 **What's New**
 
 This skill is a skunkworks project, still in Alpha testing -- it's brand new, the back-end code is running on the developer's account and may be down at times, and we are still actively refining its capabilities and implementation. Alpha testing is in progress now, by invitation; I hope to submit it for approval as an official Alexa skill before the end of 2021.
