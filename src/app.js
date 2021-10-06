@@ -135,7 +135,7 @@
 
 ////////////////////////////////////////////////////////////////
 const ShowCredits="New Sounds is produced by New York Public Radio, W N Y C and W Q X R. The host and creator of the show is John Schaefer. His team includes Helga Davis, Rosa Gollan, Caryn Havlik, Justin Sergi, and Irene Trudel. More information about these folks, and about the show, can be found on the web at New Sounds dot org."
-const AppCredits="The New Sounds On Demand player for smart speakers is being developed by Joe Kesselman and Cubic Solutions, K u b y c dot solutions. Source code will be made available on Git."
+const AppCredits="The New Sounds On Demand player for smart speakers is being developed by Joe Kesselman and Cubic Solutions, K u b y c dot solutions. Source code is available on github."
 ////////////////////////////////////////////////////////////////
 // DEBUGGING
 function objToString(obj, ndeep) {
