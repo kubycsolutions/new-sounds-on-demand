@@ -20,12 +20,15 @@ On Alexa/Echo devices, most of the usual music-player navigation commands are av
 
 For other commands, you will either have to Open the skill first, or explicitly say "**{wake-word}, ask New Sounds On Demand ...**" followed by what you want to do. In addition to the above commands, we support many synonyms of **Play the most recent broadcast**, **Play the oldest episode**, **Play episode {episode-number}**, **Play the show from {date}**, **Play the live stream**, and **Surprise me**. You can also ask it to **play the credits**. 
 
+Known limitation: Alexa's default handling of numbers understands "twenty-nine oh three" and similar constructions, and its default handling of dates can accept things like "last Tuesday". Google Dialogflow may not be quite that clever, but we hope to make those work on Google at some point.
+
 **Somewhat-Expected Error Message*
+
 If the alpha release responds to a voice command with
 **Connection error. Your Jovo webhook endpoint is not running. Please run Jovo Run.**
 that usually means a developer has shut down the semantics server (the code checked in here) for debugging or to bring up a new release, though a crash is not completely impossible. Try again in an hour or so, to give us time to work on it.
 
-Yes, this can interfere with the **Stop** and **Pause** commands. If that happens, the simplest workaround is usually to ask the smartspeaker to begin doing something else, then issue **Stop** to that.
+Yes, this error can interfere with the **Stop** and **Pause** commands. If that happens, the simplest workaround is usually to ask the smartspeaker to begin doing something else, then issue **Stop** to that.
 
 **What's New**
 
