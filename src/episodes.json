@@ -49397,6 +49397,24 @@
         " snowdrops "
       ],
       "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds100621.mp3"
+    },
+    {
+      "number": 4547,
+      "title": "#4547, The Folk Influence",
+      "tease": "Hear the influence of folk music associated with Appalachia and the British Isles, in music from Ireland's Dave Flynn, Michigander Laurel Premo, and New York-based bassist Devin Hoff.",
+      "broadcastDatesMsec": [
+        1633665600000
+      ],
+      "tags": [
+        " bonny light horseman ",
+        " briars of north america ",
+        " dave flynn ",
+        " devin hoff ",
+        " jake blount ",
+        " laurel premo ",
+        " music "
+      ],
+      "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds100821.mp3"
     }
   ],
   "episodeNumbersByDateMsec": {
@@ -55322,6 +55340,7 @@
     "1633320000000": 4545,
     "1633406400000": 4404,
     "1633492800000": 4546,
-    "1633579200000": 4406
+    "1633579200000": 4406,
+    "1633665600000": 4547
   }
 }

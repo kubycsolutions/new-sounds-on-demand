@@ -5,17 +5,31 @@ const Player = require('../player.js');
 
 module.exports = {
     AUDIOPLAYER: {
-        'GoogleAction.Finished'() {
-            let index = this.$user.$data.currentDate;
-	    let newDate=Player.getNextDate(index);
-            let episode = Player.getEpisodeByDate(newDate);
+	// ISSUE: Does this get called as side effect of navigation?
+        'GoogleAction.Finished': async function() {
+            let currentDate = this.$user.$data.currentDate;
+	    if (currentDate==null) {
+		return // Livestream never ends; no enqueued next.
+	    }
+	    await Player.updateEpisodes(-1) // Incremental load, in case new appeared.
+            let nextDate = Player.getNextEpisodeDate(currentDate);
+	    let episode=Player.getEpisodeByDate(nextDate)
             if (episode) {
-                this.$user.$data.currentDate = newDate
-                this.$googleAction.$mediaResponse.play(episode.url, episode.title);
+		{
+		    // TODO: Finalize these and refactor to a single place
+		    const keshlam_uri_parameters="user=joe.kesselman&purpose=research.for.smartspeaker.app"
+		    if (uri.includes("?")) // Might already have params, though usually shouldn't.
+			uri=uri+"&"+keshlam_uri_parameters
+		    else
+			uri=uri+"?"+keshlam_uri_parameters
+		}
+                this.$user.$data.currentDate = nextDate
+                this.$googleAction.$mediaResponse.play(uri, episode.title);
                 this.$googleAction.showSuggestionChips(['pause', 'start over']);
-                this.ask('Enjoy');
+		this.$speech.addText('Loading and resuming episode '+episode.title+".")
+                this.ask(this.$speech);
             } else {
-                this.tell('');
+                this.tell(''); // No next
             }
         }
     },
