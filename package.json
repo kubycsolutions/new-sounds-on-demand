@@ -28,12 +28,12 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/kubyc.solutions/new-sounds-on-demand.git"
+        "url": "git+https://github.com/kubycsolutions/new-sounds-on-demand.git"
     },
     "author": "Joe Kesselman, Kubyc Solutions (heavily adapted from a Jovo example)",
     "license": "Apache-2.0",
     "bugs": {
-        "url": "https://github.com/kubyc.solutions/new-sounds-on-demand/issues"
+        "url": "https://github.com/kubycsolutions/new-sounds-on-demand/issues"
     },
-    "homepage": "https://github.com/kubyc.solutions/new-sounds-on-demand#readme"
+    "homepage": "https://github.com/kubycsolutions/new-sounds-on-demand#readme"
 }
