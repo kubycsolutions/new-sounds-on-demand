@@ -587,7 +587,33 @@ app.setHandler({
 
     // Hook for testing, normally inactive
     DebugIntent() {
-        this.$speech.addText('Void where prohibited. Or mandatory.')
+        this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	return this.tell(this.$speech)
+    },
+
+    // Amazon's "who sings this song"
+    "AMAZON.SearchAction<object@MusicRecording[byArtist.musicGroupMember]>"() {
+        this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	return this.tell(this.$speech)
+    },
+    // Amazon's "who is playing this song"
+    "AMAZON.SearchAction<object@MusicRecording[byArtist]>"() {
+        this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	return this.tell(this.$speech)
+    },
+    // Amazon's "how long is this song"
+    "AMAZON.SearchAction<object@MusicRecording[duration]>"() {
+        this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	return this.tell(this.$speech)
+    },
+    // Amazon's "what album is this song on"
+    "AMAZON.SearchAction<object@MusicRecording[inAlbum]>"() {
+        this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	return this.tell(this.$speech)
+    },
+    // Amazon's "who produced this song"
+    "AMAZON.SearchAction<object@MusicRecording[producer]>"() {
+        this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
 	return this.tell(this.$speech)
     }
 

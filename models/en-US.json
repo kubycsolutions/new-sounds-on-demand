@@ -4670,6 +4670,26 @@
                     {
                         "name": "AMAZON.CancelIntent",
                         "samples": []
+                    },
+                    {
+			"name": "AMAZON.SearchAction<object@MusicRecording[byArtist.musicGroupMember]>",
+			"samples": []
+                    },
+                    {
+			"name": "AMAZON.SearchAction<object@MusicRecording[byArtist]>",
+			"samples": []
+                    },
+                    {
+			"name": "AMAZON.SearchAction<object@MusicRecording[duration]>",
+			"samples": []
+                    },
+                    {
+			"name": "AMAZON.SearchAction<object@MusicRecording[inAlbum]>",
+			"samples": []
+                    },
+                    {
+			"name": "AMAZON.SearchAction<object@MusicRecording[producer]>",
+			"samples": []
                     }
                 ]
             }

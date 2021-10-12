@@ -49418,6 +49418,26 @@
         " music "
       ],
       "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds100821.mp3"
+    },
+    {
+      "number": 4548,
+      "title": "#4548, The Other Georgia",
+      "tease": "There's music by polyphonic choir Zedashe Ensemble, microtonal jazz by Giorgi Mikadze with Georgian choir Ensemble Basiani, and Georgian songs arranged by Evan Ziporyn and Kate Bush.",
+      "broadcastDatesMsec": [
+        1634011200000
+      ],
+      "tags": [
+        " evan ziporyn ",
+        " georgian music ",
+        " giorgi mikadze ",
+        " hamlet gonashvili ",
+        " kate bush ",
+        " kitka ",
+        " music ",
+        " rustavi choir ",
+        " zedashe "
+      ],
+      "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds101221.mp3"
     }
   ],
   "episodeNumbersByDateMsec": {
@@ -55347,6 +55367,7 @@
     "1633665600000": 4547,
     "1633752000000": 4262,
     "1633924800000": 4249,
-    "1633838400000": 4261
+    "1633838400000": 4261,
+    "1634011200000": 4548
   }
 }
