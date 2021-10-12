@@ -359,8 +359,8 @@ app.setHandler({
         currentDate = nextEpisodeDate;
         this.$user.$data.currentDate = currentDate;
         this.$speech.addText('Fetching episode '+nextEpisode.title+".");
-	this.tell(this.$speech)
         if (this.isAlexaSkill()) {
+	    this.tell(this.$speech)
             this.$alexaSkill.$audioPlayer
 		.setOffsetInMilliseconds(0)
 		.play(addUriUsage(nextEpisode.url), `${currentDate}`)
