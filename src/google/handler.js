@@ -7,6 +7,7 @@ module.exports = {
     AUDIOPLAYER: {
 	// ISSUE: Does this get called as side effect of navigation?
         'GoogleAction.Finished': async function() {
+	    console.log("GOOGLE: Finished")
             let currentDate = this.$user.$data.currentDate;
 	    if (currentDate==null) {
 		return // Livestream never ends; no enqueued next.
@@ -15,6 +16,8 @@ module.exports = {
             let nextDate = Player.getNextEpisodeDate(currentDate);
 	    let episode=Player.getEpisodeByDate(nextDate)
             if (episode) {
+		let uri=episode.url
+		console.log("GOOGLE: episode.url=",episode.url)
 		{
 		    // TODO: Finalize these and refactor to a single place
 		    const keshlam_uri_parameters="user=joe.kesselman&purpose=research.for.smartspeaker.app"
@@ -23,13 +26,15 @@ module.exports = {
 		    else
 			uri=uri+"?"+keshlam_uri_parameters
 		}
+		console.log("GOOGLE: uri=",uri)
                 this.$user.$data.currentDate = nextDate
                 this.$googleAction.$mediaResponse.play(uri, episode.title);
                 this.$googleAction.showSuggestionChips(['pause', 'start over']);
-		this.$speech.addText('Loading and resuming episode '+episode.title+".")
+		this.$speech.addText('Loading episode '+episode.title+".")
                 this.ask(this.$speech);
             } else {
-                this.tell(''); // No next
+		// GONK: Should this be ask or tell?
+                this.tell('That was the most recent episode.'); // No next
             }
         }
     },

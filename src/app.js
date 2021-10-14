@@ -337,6 +337,7 @@ app.setHandler({
 	    // playback-completed callback, which requires it not be a
 	    // Final Response. However, that forces including
 	    // Suggestion Chips.
+	    console.log("GOOGLE: Resume,",addUriUsage(episode.url))
 	    this.$googleAction.$mediaResponse.play(addUriUsage(episode.url), episode.title);
 	    this.$googleAction.showSuggestionChips(['pause', 'start over']);
 	    this.ask(this.$speech);
@@ -369,6 +370,7 @@ app.setHandler({
 	    // playback-completed callback, which requires it not be a
 	    // Final Response. However, that forces including
 	    // Suggestion Chips.
+	    console.log("GOOGLE: Next,",addUriUsage(nextEpisode.url))
             this.$googleAction.$mediaResponse.play(addUriUsage(nextEpisode.url), nextEpisode.title);
             this.$googleAction.showSuggestionChips(['pause', 'start over']);
 	    this.ask(this.$speech);

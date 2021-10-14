@@ -1,3 +1,5 @@
+'use strict;'
+
 // Sounds-like processing, for tag searches eventually
 // NOTE: These require the code be a Module, apparently...?
 //import {metaphone} from 'metaphone'
