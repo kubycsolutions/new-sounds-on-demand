@@ -83,11 +83,11 @@ module.exports = {
 		let uri=episode.url
 		{
 		    // TODO: Finalize these and refactor to a single place
-		    const keshlam_uri_parameters="user=joe.kesselman&purpose=research.for.smartspeaker.app"
+		    const app_uri_parameters="user=keshlam@kubyc.solutions&nyprBrowserId=NewSoundsOnDemand.smartspeaker.player"
 		    if (uri.includes("?")) // Might already have params, though usually shouldn't.
-			uri=uri+"&"+keshlam_uri_parameters
+			uri=uri+"&"+app_uri_parameters
 		    else
-			uri=uri+"?"+keshlam_uri_parameters
+			uri=uri+"?"+app_uri_parameters
 		}
                 this.$alexaSkill.$audioPlayer
 		    .setOffsetInMilliseconds(0) // Do not retain offset, if any

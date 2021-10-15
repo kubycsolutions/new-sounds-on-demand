@@ -49439,6 +49439,30 @@
         " zedashe "
       ],
       "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds101221.mp3"
+    },
+    {
+      "number": 4549,
+      "title": "#4549, Music For Prepared Instruments ",
+      "tease": "Hear prepared piano, prepared guitar and prepared trumpet from Maurice Louca, prepared Sardinian guitar by Paolo Angeli, and prepared kantele (Finnish folk harp) by Pauliina Syrj&auml;l&auml;.",
+      "broadcastDatesMsec": [
+        1634184000000
+      ],
+      "tags": [
+        " anna thorvaldsdottir ",
+        " david krakauer ",
+        " ieva jokubaviciute ",
+        " john cage ",
+        " joshua white ",
+        " kantele ",
+        " kathleen tagg ",
+        " maurice louca ",
+        " music ",
+        " pauliina syrjala ",
+        " prepared piano ",
+        " sardinian prepared guitar ",
+        " steph richards "
+      ],
+      "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds101421.mp3"
     }
   ],
   "episodeNumbersByDateMsec": {
@@ -55370,6 +55394,7 @@
     "1633924800000": 4249,
     "1633838400000": 4261,
     "1634011200000": 4548,
-    "1634097600000": 4405
+    "1634097600000": 4405,
+    "1634184000000": 4549
   }
 }
