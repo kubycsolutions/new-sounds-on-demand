@@ -453,9 +453,18 @@ app.setHandler({
 	// GONK: UTC VERSUS LOCALTIME JUGGLING.
 	// Do all date parsing in UTC?
 	// Would require a full reload from database to fix timestamps.
-        let whichdate = this.getInput("date").value
+	var whichdate;
+	console.log("DateIntent:",this.getInput("date"))
+        if (this.isAlexaSkill()) {
+            whichdate = this.getInput("date").value
+        } else if (this.isGoogleAction()) {
+	    // May include timestamp; trim that off.
+	    // (This is a bit inefficient but robust against missing T.)
+	    whichdate=this.getInput("date").key.split("T")[0]
+	}
+	console.log("DateIntent:",whichdate)
 	let splitdate=whichdate.split("-")
-	// Remember that  Month is 0-indexed, gratuitously...
+	// Remember that JS Month is 0-indexed, gratuitously...
 	let spokendate=new Date(splitdate[0],splitdate[1]-1,splitdate[2]) // interpreted as UTC
 
 	let date=new Date() // in local timezone
@@ -467,14 +476,19 @@ app.setHandler({
 	date.setSeconds(0)
 	date.setMilliseconds(0)
 	
-	// Alexa seems to take "Monday" as "coming monday". 
-	// And the user *could* say "tomorrow". So roll back...
 	let datestamp=date.getTime()
+
+	// GONK: Alexa seems to take "Monday" as "coming monday".
+	// Google takes "The second" as "the coming second of
+	// whatever".  And the user *could* say "tomorrow".  To fix
+	// this properly seems to require that we take the TEXT (words
+	// as spoken) rather than the parsed date and idiomatically
+	// interpret it ourselves, or find a library function which
+	// understands we always want today or earlier.
 	if(datestamp>Date.now())
 	{
 	    const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]
 	    this.$speech.addText("That came through as a future date, so I'm assuming you meant last "+days[date.getDay()]+".")
-	    // TODO: There are better ways to handle this.
 	    while(datestamp>Date.now())
 	    {
 		date.setDate(date.getDate()-7) // Back up a week

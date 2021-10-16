@@ -49463,6 +49463,22 @@
         " steph richards "
       ],
       "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds101421.mp3"
+    },
+    {
+      "number": 4550,
+      "title": "#4550, Music Based on Century-Old Tragedies",
+      "tease": "Hear works based on three catastrophes in the 1910's: Julia Wolfe's Fire in My Mouth, Gavin Bryars' The Sinking of the Titanic, and Jacob Cooper and Steven Bradshaw's Sunrise.",
+      "broadcastDatesMsec": [
+        1634270400000
+      ],
+      "tags": [
+        " gavin bryars ",
+        " jacob cooper ",
+        " julia wolfe ",
+        " music ",
+        " steven bradshaw "
+      ],
+      "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds101521.mp3"
     }
   ],
   "episodeNumbersByDateMsec": {
@@ -55395,6 +55411,7 @@
     "1633838400000": 4261,
     "1634011200000": 4548,
     "1634097600000": 4405,
-    "1634184000000": 4549
+    "1634184000000": 4549,
+    "1634270400000": 4550
   }
 }

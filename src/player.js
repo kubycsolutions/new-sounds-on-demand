@@ -25,6 +25,9 @@ const fs = require('fs')
 // needs to special-case it since we can't navigate to/from/within it.
 const LiveStreamURI="https://q2stream.wqxr.org/q2-web?nyprBrowserId=NewSoundsOnDemand.smartspeaker.player"
 const LiveStreamDate=null // Make sure we don't try to navigate it!
+const LiveStreamMetadataURI="http://api.wnyc.org/api/v1/whats_on/q2"
+
+// TODO: Should probably have a constant for the DB query format
 
 
 // Politeness: Tell the station's servers (and any tracking system
