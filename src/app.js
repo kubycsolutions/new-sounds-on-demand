@@ -609,27 +609,52 @@ app.setHandler({
 
     // Amazon's "who sings this song"
     "AMAZON.SearchAction<object@MusicRecording[byArtist.musicGroupMember]>"() {
-        this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+        var currentDate = this.$user.$data.currentDate;
+	if (currentDate==Player.getLiveStreamDate()) {
+            this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	} else {
+            this.$speech.addText("I'm afraid I can only get that metadata for the livestream.")
+	}
 	return this.tell(this.$speech)
     },
     // Amazon's "who is playing this song"
     "AMAZON.SearchAction<object@MusicRecording[byArtist]>"() {
-        this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+        var currentDate = this.$user.$data.currentDate;
+	if (currentDate==Player.getLiveStreamDate()) {
+            this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	} else {
+            this.$speech.addText("I'm afraid I can only get that metadata for the livestream.")
+	}
 	return this.tell(this.$speech)
     },
     // Amazon's "how long is this song"
     "AMAZON.SearchAction<object@MusicRecording[duration]>"() {
-        this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+        var currentDate = this.$user.$data.currentDate;
+	if (currentDate==Player.getLiveStreamDate()) {
+            this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	} else {
+            this.$speech.addText("I'm afraid I can only get that metadata for the livestream.")
+	}
 	return this.tell(this.$speech)
     },
     // Amazon's "what album is this song on"
     "AMAZON.SearchAction<object@MusicRecording[inAlbum]>"() {
-        this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+        var currentDate = this.$user.$data.currentDate;
+	if (currentDate==Player.getLiveStreamDate()) {
+            this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	} else {
+            this.$speech.addText("I'm afraid I can only get that metadata for the livestream.")
+	}
 	return this.tell(this.$speech)
     },
     // Amazon's "who produced this song"
     "AMAZON.SearchAction<object@MusicRecording[producer]>"() {
-        this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+        var currentDate = this.$user.$data.currentDate;
+	if (currentDate==Player.getLiveStreamDate()) {
+            this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	} else {
+            this.$speech.addText("I'm afraid I can only get that metadata for the livestream.")
+	}
 	return this.tell(this.$speech)
     }
 
