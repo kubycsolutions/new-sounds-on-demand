@@ -43655,7 +43655,8 @@
       "tease": "Listen to traditional Japanese instruments in music from shakuhachi player Goro Yamaguchi, jazz clarinetist Tony Scott, and guitarist Pete M. Wyer with shakuhachi player Ralph Samuelson.",
       "broadcastDatesMsec": [
         1593057600000,
-        1565841600000
+        1565841600000,
+        1634356800000
       ],
       "tags": [
         " goro yamaguchi ",
@@ -43676,7 +43677,8 @@
       "tease": "Hear music by composer, drummer, and modular synth experimenter Qasim Naqvi, created live in-studio, and from his recent record, Teenages and from his work with Dawn of Midi.",
       "broadcastDatesMsec": [
         1593144000000,
-        1565928000000
+        1565928000000,
+        1634443200000
       ],
       "tags": [
         " dawn of midi ",
@@ -43691,7 +43693,8 @@
       "tease": "Hear music made with the Armenian oboe called the duduk as used by musicians from Poland, Germany, Lithuania, the Republic of Georgia, and from England &ndash; Peter Gabriel.",
       "broadcastDatesMsec": [
         1594267200000,
-        1566273600000
+        1566273600000,
+        1634961600000
       ],
       "tags": [
         " apricots ",
@@ -46630,7 +46633,8 @@
       "title": "#4407, Tributes to Pete Seeger, Woody Guthrie, and Leadbelly",
       "tease": "Hear contemporary takes on songs associated with American folk singers Pete Seeger, Woody Guthrie, and Leadbelly as performed by Kronos Quartet, Wenzel, and Last Forever.",
       "broadcastDatesMsec": [
-        1600056000000
+        1600056000000,
+        1634529600000
       ],
       "tags": [
         " jacob garchik ",
@@ -46649,7 +46653,8 @@
       "title": "#4408: With or Without Electronics: Piano Edition",
       "tease": "Hear piano etudes by Philip Glass, as played by Simone Dinnerstein, and piano with electronics by Irish composer Linda Buckley, London-based Theo Alexander, and Icelandic duo Hugar.",
       "broadcastDatesMsec": [
-        1600228800000
+        1600228800000,
+        1634875200000
       ],
       "tags": [
         " hugar ",
@@ -49479,6 +49484,71 @@
         " steven bradshaw "
       ],
       "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds101521.mp3"
+    },
+    {
+      "number": 4551,
+      "title": "#4551, A Sense of Place",
+      "tease": "Hear works specific to their place, like the National Concert Hall in Dublin, the Taj Mahal, the Abbey of Pope Clement VI in France, and the Winter Garden atrium at Brookfield Place.",
+      "broadcastDatesMsec": [
+        1634616000000
+      ],
+      "tags": [
+        " adrian crowley ",
+        " bridget mae power ",
+        " brookfield place ",
+        " crash ensemble ",
+        " donald nally ",
+        " dublin ",
+        " ergodos ",
+        " lisa hannigan ",
+        " music ",
+        " paul horn ",
+        " pete m wyer ",
+        " stuart dempster ",
+        " taj mahal ",
+        " the crossing "
+      ],
+      "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds101921.mp3"
+    },
+    {
+      "number": 4552,
+      "title": "#4552, The Laraaji Connection",
+      "tease": "Sample music by zither player, pianist, and composer Laraaji, and from his collaborations with guitarist Vernon Reid, Toronto jazzers BADBADNOTGOOD, and with London production duo BON.",
+      "broadcastDatesMsec": [
+        1634702400000
+      ],
+      "tags": [
+        " badbadnotgood ",
+        " big bend ",
+        " blues control ",
+        " bon ",
+        " laraaji ",
+        " music ",
+        " vernon reid "
+      ],
+      "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds102021.mp3"
+    },
+    {
+      "number": 4553,
+      "title": "#4553, From the Soundcheck Archives",
+      "tease": "From Mexico City-based Mabe Fratti's cello-scapes to Ben Harper's bluesy-instrumental music, to the dance jazz of Sons of Kemet from London, hear remote performances from quarantine.",
+      "broadcastDatesMsec": [
+        1634788800000
+      ],
+      "tags": [
+        " amythyst kiah ",
+        " ben harper ",
+        " buffalo nichols ",
+        " cj camerieri ",
+        " mabe fratti ",
+        " music ",
+        " neil cowley ",
+        " rachika nayar ",
+        " sam amidon ",
+        " sons of kemet ",
+        " vijay iyer "
+      ],
+      "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds102121.mp3"
     }
   ],
   "episodeNumbersByDateMsec": {
@@ -55412,6 +55482,14 @@
     "1634011200000": 4548,
     "1634097600000": 4405,
     "1634184000000": 4549,
-    "1634270400000": 4550
+    "1634270400000": 4550,
+    "1634356800000": 4263,
+    "1634443200000": 4264,
+    "1634529600000": 4407,
+    "1634616000000": 4551,
+    "1634702400000": 4552,
+    "1634788800000": 4553,
+    "1634875200000": 4408,
+    "1634961600000": 4265
   }
 }

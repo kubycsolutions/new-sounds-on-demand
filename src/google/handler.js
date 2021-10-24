@@ -1,11 +1,17 @@
-// TODO: MAKE SURE WE REPLICATE THE LOGIC BURIED IN THE ALEXA HANDLER.
+// TODO: TRY TO REPLICATE THE LOGIC BURIED IN THE ALEXA HANDLER.
 // Cancel? Pause? Start Over? Stopped (logging index/offset)?
+// Heck, Previous doesn't seem to work without "ask new sounds" prefix...
 
 const Player = require('../player.js');
 
 module.exports = {
     AUDIOPLAYER: {
-	// ISSUE: Does this get called as side effect of navigation?
+	// GONK ISSUE: Prefixless "Next" is winding up here, with
+	// no sign of a NextIntent. Sort-of okay since I happen to have
+	// implemented automatic play-next-when-this-ends, but in general
+	// not a flexible solution. And I haven't yet figured out if
+	// and how Google Assistant implements "Previous" -- it accepts
+	// the word, but I'm not seeing any event come in.
         'GoogleAction.Finished': async function() {
 	    console.log("GOOGLE: Finished")
             let currentDate = this.$user.$data.currentDate;
@@ -33,9 +39,21 @@ module.exports = {
 		this.$speech.addText('Loading episode '+episode.title+".")
                 this.ask(this.$speech);
             } else {
-		// GONK: Should this be ask or tell?
-                this.tell('That was the most recent episode.'); // No next
+                this.ask('That was the most recent episode.'); // No next
             }
-        }
+        },
+
+	// GONK: Does Jovo let us catch these? If not, why not?
+        'GoogleAction.Paused': async function() {
+	    this.ask("New Sounds paused.")
+	},
+        'GoogleAction.Stopped': async function() {
+	    this.ask("New Sounds stopped.")
+	},
+        'GoogleAction.Failed': async function() {
+	    // GONK: Can we do something more usefully diagnostic?
+	    this.ask("New Sounds had a playback failure.")
+	},
+
     },
 }
