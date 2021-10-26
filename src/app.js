@@ -162,8 +162,9 @@ const { App } = require('jovo-framework');
 const { Alexa } = require('jovo-platform-alexa');
 const { GoogleAssistant } = require('jovo-platform-googleassistant');
 const { JovoDebugger } = require('jovo-plugin-debugger');
-const { FileDb } = require('jovo-db-filedb');
 const { format } = require('date-fns');
+const { FileDb } = require('jovo-db-filedb'); // for debugging
+// const { DynamoDb } = require('jovo-db-dynamodb'); // for Lambda environments
 
 const app = new App();
 
@@ -171,7 +172,8 @@ app.use(
     new Alexa(),
     new GoogleAssistant(),
     new JovoDebugger(),
-    new FileDb()
+    new FileDb(), // for debugging
+//    new DynamoDb() // for production Lambda environments
 );
 
 const Player = require('./player.js');

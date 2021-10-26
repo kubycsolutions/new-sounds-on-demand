@@ -43712,7 +43712,8 @@
       "tease": "Listen to works by composers Ambrose Field, Bora Yoon and Alejandro Vi&ntilde;ao who transform music from the Medieval and Renaissance eras into sweeping vistas of electronic sounds.  ",
       "broadcastDatesMsec": [
         1594612800000,
-        1566360000000
+        1566360000000,
+        1635048000000
       ],
       "tags": [
         " ambrose field ",
@@ -46673,7 +46674,8 @@
       "title": "#4409: Music Bridging Conflict and Cultures",
       "tease": "Hear music bringing together Greek and Turkish musicians from SYNERGIA, a new record curated by Dmitri Psonis. Also, music by Norwegian improvisers, baroque players and North Africans.  ",
       "broadcastDatesMsec": [
-        1600315200000
+        1600315200000,
+        1635220800000
       ],
       "tags": [
         " amina alaoui ",
@@ -49549,6 +49551,26 @@
         " vijay iyer "
       ],
       "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds102121.mp3"
+    },
+    {
+      "number": 4554,
+      "title": "#4554, Hybrid Choral Music",
+      "tease": "There's hybrid choral music meets art-rock in work by New York-based German-born sax player Charlotte Greve, German pianist Martin Kohstedt, and composer/guitarist Andrew McKenna Lee.",
+      "broadcastDatesMsec": [
+        1635134400000
+      ],
+      "tags": [
+        " andrew mckenna lee ",
+        " cantus domus ",
+        " charlotte greve ",
+        " gewandhaus chor ",
+        " justin vernon ",
+        " martin kohlstedt ",
+        " music ",
+        " the knells ",
+        " wood river "
+      ],
+      "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds102521.mp3"
     }
   ],
   "episodeNumbersByDateMsec": {
@@ -55490,6 +55512,9 @@
     "1634702400000": 4552,
     "1634788800000": 4553,
     "1634875200000": 4408,
-    "1634961600000": 4265
+    "1634961600000": 4265,
+    "1635048000000": 4266,
+    "1635134400000": 4554,
+    "1635220800000": 4409
   }
 }

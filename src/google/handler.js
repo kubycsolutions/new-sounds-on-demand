@@ -43,16 +43,25 @@ module.exports = {
             }
         },
 
-	// GONK: Does Jovo let us catch these? If not, why not?
-        'GoogleAction.Paused': async function() {
-	    this.ask("New Sounds paused.")
+	///////////////////////////////////////////////////////////////
+	// We *should* get notification for Paused, Stopped, and Failed
+	// even though Google doesn't expect us to do much in response.
+	// I'm not seeing any evidence, either from 
+	'GoogleAction.Paused'() {
+	    const progress = this.$googleAction.$audioPlayer.getProgress();
+	    // this will close the session
+	    this.ask('Playback paused');
+	    console.log("Google paused at", progress)
 	},
-        'GoogleAction.Stopped': async function() {
-	    this.ask("New Sounds stopped.")
+	'GoogleAction.Stopped'() {
+	    const progress = this.$googleAction.$audioPlayer.getProgress();
+	    this.ask('Playback stopped');
+	    console.log("Google stopped at", progress)
+	    // no response possible
 	},
-        'GoogleAction.Failed': async function() {
-	    // GONK: Can we do something more usefully diagnostic?
-	    this.ask("New Sounds had a playback failure.")
+	'GoogleAction.Failed'() {
+	    this.ask('Playback failed. I\'m not sure why. Try again?');
+	    console.log("Google failed")
 	},
 
     },
