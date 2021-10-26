@@ -380,6 +380,9 @@ app.setHandler({
     },
 
     PreviousIntent() {
+	// GONK: Tells may need to be Asks for this to run as intended
+	// in Google. More multiple-path coding. Really wish Jovo
+	// encapsulated that.
         let currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
             return this.tell("You can't move forward or back in the livestream. That kind of control is only available when playing episodes.");
@@ -395,8 +398,8 @@ app.setHandler({
         this.$user.$data.currentDate = currentDate;
 	// TODO: Can we get this to announce episode title?
         this.$speech.addText('Fetching episode '+previousEpisode.title+".");
-	this.tell(this.$speech)
         if (this.isAlexaSkill()) {
+	    this.tell(this.$speech)
             this.$alexaSkill.$audioPlayer
 		.setOffsetInMilliseconds(0)
 		.play(addUriUsage(previousEpisode.url), `${currentDate}`)
@@ -413,6 +416,9 @@ app.setHandler({
 
     RewindIntent() {
 	// GONK: This one is being surprisingly problematic...
+	// GONK: Tells may need to be Asks for this to run as intended
+	// in Google. More multiple-path coding. Really wish Jovo
+	// encapsulated that.
         var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
             return this.tell("You can't move forward or back in the livestream. That kind of control is only available when playing episodes.");
@@ -435,8 +441,8 @@ app.setHandler({
         let currentDate = randomEpisodeDate;
         this.$user.$data.currentDate = currentDate;
         this.$speech.addText('Fetching episode '+randomEpisode.title+".");
-	this.tell(this.$speech)
         if (this.isAlexaSkill()) {
+	    this.tell(this.$speech)
             this.$alexaSkill.$audioPlayer
 		.setOffsetInMilliseconds(0)
 		.play(addUriUsage(randomEpisode.url), `${currentDate}`)
@@ -505,8 +511,8 @@ app.setHandler({
 	    let currentDate=Player.getEpisodeDate(episode) // gonk -- clean up
             this.$user.$data.currentDate = currentDate;
             this.$speech.addText("Fetching the show from "+format(date,"PPPP")+": episode "+episode.title+".");
-	    this.tell(this.$speech)
             if (this.isAlexaSkill()) {
+		this.tell(this.$speech)
 		this.$alexaSkill.$audioPlayer
 		    .setOffsetInMilliseconds(0)
 		    .play(addUriUsage(episode.url), `${currentDate}`)
@@ -535,8 +541,8 @@ app.setHandler({
 	    const currentDate=Player.getEpisodeDate(episode) // Gonk: Clean up
             this.$user.$data.currentDate = currentDate;
             this.$speech.addText('Fetching episode '+episode.title+".");
-	    this.tell(this.$speech)
             if (this.isAlexaSkill()) {
+		this.tell(this.$speech)
 		this.$alexaSkill.$audioPlayer
 		    .setOffsetInMilliseconds(0)
 		    .play(addUriUsage(episode.url), `${currentDate}`)
@@ -598,6 +604,9 @@ app.setHandler({
     },
 
     CreditsIntent() {
+	// GONK: Tells may need to be Asks for this to run as intended
+	// in Google. More multiple-path coding. Really wish Jovo
+	// encapsulated that.
         this.$speech.addText(ShowCredits)
         this.$speech.addText(AppCredits)
 	return this.tell(this.$speech)
@@ -605,6 +614,9 @@ app.setHandler({
 
     // Hook for testing, normally inactive
     DebugIntent() {
+	// GONK: Tells may need to be Asks for this to run as intended
+	// in Google. More multiple-path coding. Really wish Jovo
+	// encapsulated that.
         this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
 	return this.tell(this.$speech)
     },
