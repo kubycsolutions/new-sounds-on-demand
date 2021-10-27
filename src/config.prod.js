@@ -11,7 +11,6 @@
 module.exports = {
     db: {
         DynamoDb: {
-            // tableName: process.env.DB_TABLE_NAME,
 	    tableName: "NewSoundsUserStates",
         }
     }

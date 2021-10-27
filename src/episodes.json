@@ -49571,6 +49571,27 @@
         " wood river "
       ],
       "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds102521.mp3"
+    },
+    {
+      "number": 4555,
+      "title": "#4555, Invented Instruments",
+      "tease": "There's music for invented instruments in works by American maverick composer Harry Partch, Brazilian instrument-building team Uakti, Canadian Gayle Young, and the late Elodie Lauten. ",
+      "broadcastDatesMsec": [
+        1635307200000
+      ],
+      "tags": [
+        " elodie lauten ",
+        " gayle young ",
+        " harry partch ",
+        " john schneider ",
+        " microtonal ",
+        " music ",
+        " partch instruments ",
+        " philip glass ",
+        " uakti ",
+        " yas kaz "
+      ],
+      "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds102721.mp3"
     }
   ],
   "episodeNumbersByDateMsec": {
@@ -55515,6 +55536,7 @@
     "1634961600000": 4265,
     "1635048000000": 4266,
     "1635134400000": 4554,
-    "1635220800000": 4409
+    "1635220800000": 4409,
+    "1635307200000": 4555
   }
 }

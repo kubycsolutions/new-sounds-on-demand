@@ -5,6 +5,9 @@
 //import {metaphone} from 'metaphone'
 //import {stemmer} from 'stemmer'
 
+// GONK GONK: Should the episodes and dates tables be moved into the
+// database? First we need to resolve how to set database per environment;
+// see GONK in app.js.
 const fs = require('fs')
 
 ////////////////////////////////////////////////////////////////
