@@ -457,6 +457,16 @@ app.setHandler({
         }
     },
 
+    IncompleteDateIntent() {
+	this.$speech.addText("OK, which date do you want to select?")
+	this.ask(this.$speech)
+    },
+
+    IncompleteEpisodeNumberIntent() {
+	this.$speech.addText("OK, which episode number do you want to select?")
+	this.ask(this.$speech)
+    },
+
     async DateIntent() {
 	// GONK: UTC VERSUS LOCALTIME JUGGLING.
 	// Do all date parsing in UTC?
@@ -679,4 +689,4 @@ app.setHandler({
 app.setAlexaHandler(AlexaHandler);
 app.setGoogleAssistantHandler(GoogleHandler);
 
-module.exports.app = app;
+module.exports.app = app
