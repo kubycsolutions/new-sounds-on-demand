@@ -171,8 +171,6 @@ const { format } = require('date-fns');
 // to show this phase-based selection does _not_ have a conditional in the
 // code, and I'm trying to find out if that's a typo or if I'm doing something
 // wrong.
-const { FileDb } = require('jovo-db-filedb'); // for debugging
-//const { DynamoDb } = require('jovo-db-dynamodb'); // for Lambda environments
 
 const app = new App();
 
@@ -180,10 +178,28 @@ app.use(
     new Alexa(),
     new GoogleAssistant(),
     new JovoDebugger(),
-    // GONK: See above re phase-specific selection of database
-    new FileDb(), // for debugging
-//    new DynamoDb() // for production and Lambda environments
 );
+
+// Select database depending on operating environment. When running as
+// Amazon lambda, we want to use DynamoDB; in development, FileDB is
+// easier to set up and debug.
+//
+// GONK: Right pattern, but where do I get Project?
+/*
+if (Project.getStage() === 'prod') {
+  const { DynamoDb } = require('jovo-db-dynamodb')
+  app.use(
+    new DynamoDb({
+      tableName: process.env.DATABASE_USER // In Typescript, add "as string"
+    }),
+  );
+} else {
+*/
+const { FileDb } = require('jovo-db-filedb')
+app.use(new FileDb());
+/*
+}
+*/
 
 const Player = require('./player.js');
 
