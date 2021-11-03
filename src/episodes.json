@@ -43734,7 +43734,8 @@
       "tease": "Hear all kinds of keyboard music in works by percussionist/producer Julian Loida, pianist/producer Kelly Moran, Canadian pianist Lubomyr Melnyk, and German pianist/producer Nils Frahm.",
       "broadcastDatesMsec": [
         1594785600000,
-        1566446400000
+        1566446400000,
+        1635566400000
       ],
       "tags": [
         " benny gebert ",
@@ -43754,7 +43755,8 @@
       "tease": "For this New Sounds, listen to three works with social or political ideas in mind. There's music by the gifted composer Julius Eastman, along with music by Rzewski and Andriessen.",
       "broadcastDatesMsec": [
         1595304000000,
-        1566792000000
+        1566792000000,
+        1635652800000
       ],
       "tags": [
         " alan pierson ",
@@ -46693,7 +46695,8 @@
       "title": "#4410, Good Vibes (and Other Mallet Percussion)",
       "tease": "Hear music with good vibes -erm, for vibraphone - and music based around other mallet percussion by Australian band Tangents, London-based Vula Viel, and Ethiojazz legend Mulatu Astatke.",
       "broadcastDatesMsec": [
-        1600747200000
+        1600747200000,
+        1635393600000
       ],
       "tags": [
         " alejandro coello ",
@@ -46715,7 +46718,8 @@
       "title": "#4411, Alt-Latinx Music from South America",
       "tease": "Hear works combining old and new, where traditional folk and environmental sounds of South America come together with electronics, in music by Monte, Chancha via Circuito, and La Yegros.",
       "broadcastDatesMsec": [
-        1600833600000
+        1600833600000,
+        1635739200000
       ],
       "tags": [
         " aukai ",
@@ -49592,6 +49596,32 @@
         " yas kaz "
       ],
       "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds102721.mp3"
+    },
+    {
+      "number": 4556,
+      "title": "#4556, New Releases, Oct. 2021 ",
+      "tease": "Hear new works by Polish duo of pianist Hania Rani and cellist Dobrawa Czocher, Algerian Tuareg group Imarhan, and duduk-like music by fretless guitarist Gabriel Akhmad Marin of Queens.",
+      "broadcastDatesMsec": [
+        1635480000000
+      ],
+      "tags": [
+        " berk icli ",
+        " bon ",
+        " clarice jensen ",
+        " dobrawa czocher ",
+        " duduk ",
+        " gabriel akhmad marin ",
+        " hania rani ",
+        " imarhan ",
+        " jerusalem in my heart ",
+        " lucinda chua ",
+        " music ",
+        " oren marshall ",
+        " portico quartet ",
+        " theon cross ",
+        " tuba "
+      ],
+      "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds102921.mp3"
     }
   ],
   "episodeNumbersByDateMsec": {
@@ -55537,6 +55567,11 @@
     "1635048000000": 4266,
     "1635134400000": 4554,
     "1635220800000": 4409,
-    "1635307200000": 4555
+    "1635307200000": 4555,
+    "1635393600000": 4410,
+    "1635739200000": 4411,
+    "1635652800000": 4268,
+    "1635566400000": 4267,
+    "1635480000000": 4556
   }
 }

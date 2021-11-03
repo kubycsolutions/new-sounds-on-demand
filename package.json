@@ -6,7 +6,7 @@
     "dependencies": {
         "axios": "^0.21.4",
         "date-fns": "^2.24.0",
-        "jovo-db-dynamodb": "^3.5.2",
+        "jovo-db-dynamodb": "^3.5.3",
         "jovo-db-filedb": "^3.5.1",
         "jovo-framework": "^3.5.2",
         "jovo-platform-alexa": "^3.5.5",

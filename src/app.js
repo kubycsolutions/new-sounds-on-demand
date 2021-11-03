@@ -158,7 +158,7 @@ function objToString(obj, ndeep) {
 // APP INITIALIZATION
 // ------------------------------------------------------------------
 
-const { App } = require('jovo-framework');
+const { App,Project } = require('jovo-framework');
 const { Alexa } = require('jovo-platform-alexa');
 const { GoogleAssistant } = require('jovo-platform-googleassistant');
 const { JovoDebugger } = require('jovo-plugin-debugger');
@@ -183,23 +183,20 @@ app.use(
 // Select database depending on operating environment. When running as
 // Amazon lambda, we want to use DynamoDB; in development, FileDB is
 // easier to set up and debug.
-//
-// GONK: Right pattern, but where do I get Project?
-/*
+// "Project.getStage() is a shortcut for process.env.JOVO_STAGE."
 if (Project.getStage() === 'prod') {
   const { DynamoDb } = require('jovo-db-dynamodb')
   app.use(
     new DynamoDb({
-      tableName: process.env.DATABASE_USER // In Typescript, add "as string"
+	// GONK: Set this up as process.env.DATABASE_USER or default;
+	// in Typescript, add "as string"
+	tableName: "UserState"
     }),
   );
-} else {
-*/
-const { FileDb } = require('jovo-db-filedb')
-app.use(new FileDb());
-/*
+} else { // stage assumed to be dev, running locally
+  const { FileDb } = require('jovo-db-filedb')
+  app.use(new FileDb());
 }
-*/
 
 const Player = require('./player.js');
 
