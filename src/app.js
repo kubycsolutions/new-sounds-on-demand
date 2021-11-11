@@ -563,12 +563,12 @@ app.setHandler({
 		whichdate = this.getInput("date").value
             } else if (this.isGoogleAction()) {
 		// May include timestamp; trim that off.
-		// (This is a bit inefficient but robust against missing T.)
+		// (This is a bit inefficient but robust against missing Time.)
 		whichdate=this.getInput("date").key.split("T")[0]
 	    }
 	    console.log("DateIntent:",whichdate)
 	    let splitdate=whichdate.split("-")
-	    // Remember that JS Month is 0-indexed, gratuitously...
+	    // Remember that JS Month is 0-indexed
 	    let spokendate=new Date(splitdate[0],splitdate[1]-1,splitdate[2]) // interpreted as UTC
 
 	    let date=new Date() // in local timezone
@@ -582,22 +582,17 @@ app.setHandler({
 	    
 	    let datestamp=date.getTime()
 
-	    // GONK: Alexa seems to take "Monday" as "coming monday".
+	    // Alexa seems to take "Monday" as "coming monday".
 	    // Google takes "The second" as "the coming second of
-	    // whatever".  And the user *could* say "tomorrow".  To fix
-	    // this properly seems to require that we take the TEXT (words
-	    // as spoken) rather than the parsed date and idiomatically
-	    // interpret it ourselves, or find a library function which
-	    // understands we always want today or earlier.
+	    // whatever". It isn't clear whether "last Monday" means
+	    // this week or last week. And the user could actually ask
+	    // for a future date. Simplest recovery is to ask them to
+	    // rephrase. That avoids the risk of our guessing
+	    // differently from other apps.
 	    if(datestamp>Date.now())
 	    {
-		const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]
-		this.$speech.addText("That came through as a future date, so I'm assuming you meant last "+days[date.getDay()]+".")
-		while(datestamp>Date.now())
-		{
-		    date.setDate(date.getDate()-7) // Back up a week
-		    datestamp=date.getTime()
-		}
+		this.$speech.addText("That came through as a future date. Could you rephrase your request?")
+		return this.ask(this.$speech)
 	    }
 
 	    await Player.updateEpisodes(-1) // Incremental load, in case new appeared.
