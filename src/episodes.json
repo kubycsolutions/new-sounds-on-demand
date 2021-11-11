@@ -43778,7 +43778,8 @@
       "tease": "Hear music from song cycles - by Christopher Cerrone and wild up, a collaboration between Will Oldham, Bryce Dessner, and eighth blackbird, and by Richard Einhorn with Anonymous 4.",
       "broadcastDatesMsec": [
         1595563200000,
-        1567051200000
+        1567051200000,
+        1636171200000
       ],
       "tags": [
         " anonymous 4 ",
@@ -43822,7 +43823,8 @@
       "tease": "Listen to works that look to the skies in music by Terry Riley for Kronos Quartet and sounds collected by NASA, a piece by Annie Gosfield, and computer music by Morton Subotnick.",
       "broadcastDatesMsec": [
         1595908800000,
-        1567569600000
+        1567569600000,
+        1636257600000
       ],
       "tags": [
         " annie gosfield ",
@@ -46737,7 +46739,8 @@
       "title": "#4412, Mystical Music",
       "tease": "Hear mystical works inspired by the Sufi tradition and/or by the Abrahamic faiths of Judaism, Christianity and Islam by Sarathy Korwar, Jozef van Wissem, and the Soundwalk Collective.",
       "broadcastDatesMsec": [
-        1601006400000
+        1601006400000,
+        1635912000000
       ],
       "tags": [
         " david hykes ",
@@ -46757,7 +46760,8 @@
       "title": "#4413, Music About Climate Change ",
       "tease": "Hear climate crisis-inspired music by Kazakh-British Galya Bisengalieva, along with music from Montreal's Saltland, Norway's Marja Mortensson and Daniel Herskedal, and John Luther Adams.",
       "broadcastDatesMsec": [
-        1601265600000
+        1601265600000,
+        1636084800000
       ],
       "tags": [
         " daniel herskedal ",
@@ -46796,7 +46800,8 @@
       "title": "#4415: Anna Clyne, Irene Buckley, Linda Buckley",
       "tease": "Hear two unconventional violin concertos, music for film, and a sound installation for this New Sounds by London-born Anna Clyne, and Irish sibling composers Irene and Linda Buckley.",
       "broadcastDatesMsec": [
-        1601524800000
+        1601524800000,
+        1636434000000
       ],
       "tags": [
         " anna clyne ",
@@ -49622,6 +49627,83 @@
         " tuba "
       ],
       "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds102921.mp3"
+    },
+    {
+      "number": 4557,
+      "title": "#4557, Ritual Choral Music",
+      "tease": "Hear ritual-sounding choral music from the women of Trondheim Voices from Norway, by Latvian composer Eriks Esenvalds, and New York composer Richard Einhorn, writing for Anonymous 4.",
+      "broadcastDatesMsec": [
+        1635825600000
+      ],
+      "tags": [
+        " anonymous 4 ",
+        " choral music ",
+        " eriks esenvalds ",
+        " music ",
+        " richard einhorn ",
+        " trondheim voices ",
+        " veljo tormis "
+      ],
+      "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds110221.mp3"
+    },
+    {
+      "number": 4558,
+      "title": "#4558, My Tongue-Tied Muse - Music About Stuttering",
+      "tease": "Listen to works by poet and composer JJJJJerome Ellis, American composer Alvin Lucier, and composer and educator Andrew Norman that deal with disfluent speech -specifically, stuttering.",
+      "broadcastDatesMsec": [
+        1635998400000
+      ],
+      "tags": [
+        " alvin lucier ",
+        " andrew norman ",
+        " anne leilehua lanzilotti ",
+        " david lang ",
+        " jjjjjerome ellis ",
+        " music ",
+        " nick photinos ",
+        " olafur arnalds ",
+        " stuttering "
+      ],
+      "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds110421.mp3"
+    },
+    {
+      "number": 4559,
+      "title": "#4559, Piano and \"Orchestrations\" ",
+      "tease": "Hear small groups with big sounds: French duo Snowdrops, Polish duo Hania Rani and Dobrawa Czocher, German outfit Secret of Elements, and American duo A Winged Victory for the Sullen.",
+      "broadcastDatesMsec": [
+        1636347600000
+      ],
+      "tags": [
+        " a winged victory for the sullen ",
+        " brian eno ",
+        " christine ott ",
+        " dobrawa czocher ",
+        " hania rani ",
+        " music ",
+        " secret of elements ",
+        " snowdrops "
+      ],
+      "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds110821.mp3"
+    },
+    {
+      "number": 4560,
+      "title": "#4560, Music About Nature",
+      "tease": "There's music dealing with nature from vocalist/composer Meredith Monk, Taiwanese-German composer Floating Spectrum, composer/clarinetist David Rothenberg, and Polish cellist Resina.",
+      "broadcastDatesMsec": [
+        1636520400000
+      ],
+      "tags": [
+        " daniel herskedal ",
+        " david rothenberg ",
+        " floating spectrum ",
+        " marja mortensson ",
+        " meredith monk ",
+        " music ",
+        " natural world ",
+        " nature ",
+        " resina "
+      ],
+      "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds111021.mp3"
     }
   ],
   "episodeNumbersByDateMsec": {
@@ -55572,6 +55654,15 @@
     "1635739200000": 4411,
     "1635652800000": 4268,
     "1635566400000": 4267,
-    "1635480000000": 4556
+    "1635480000000": 4556,
+    "1635825600000": 4557,
+    "1635912000000": 4412,
+    "1635998400000": 4558,
+    "1636084800000": 4413,
+    "1636171200000": 4269,
+    "1636257600000": 4271,
+    "1636347600000": 4559,
+    "1636434000000": 4415,
+    "1636520400000": 4560
   }
 }
