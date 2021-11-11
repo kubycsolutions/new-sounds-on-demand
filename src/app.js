@@ -164,14 +164,6 @@ const { GoogleAssistant } = require('jovo-platform-googleassistant');
 const { JovoDebugger } = require('jovo-plugin-debugger');
 const { format } = require('date-fns');
 
-// GONK: Trying to figure out how to initialize the appropriate database
-// based on test vs. prod environments. Current evidence is that we'd
-// need a conditional, since DynamoDb apparently has requirements that
-// prevent it from being run locally...? The Jovo tutorial which purports
-// to show this phase-based selection does _not_ have a conditional in the
-// code, and I'm trying to find out if that's a typo or if I'm doing something
-// wrong.
-
 const app = new App();
 
 app.use(
