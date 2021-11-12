@@ -195,7 +195,9 @@ const Player = require('./player.js');
 // Launch asynchronous startup refresh, to help keep later refreshes short.
 // (Can't use await here, but if episodes/update is safely reeentrant that
 // would be OK. In any case, this will generally run well before user requests.)
-Player.updateEpisodes(-1) // Incremental load (usually preferred)
+//
+// Running as lambda, startup is slow. Try deferring this.
+// Player.updateEpisodes(-1) // Incremental load (usually preferred)
 
 ////////////////////////////////////////////////////////////////
 
