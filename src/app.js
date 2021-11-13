@@ -173,14 +173,16 @@ app.use(
 );
 
 // Select database depending on operating environment. When running as
-// Amazon lambda, we want to use DynamoDB; in development, FileDB is
-// easier to set up and debug.
+// Amazon lambda, we want to use DynamoDB. In development, FileDB may be
+// easier to set up and debug but you can run DynamoDB locally; see
+// https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GettingStarted.NodeJs.html
+//
 // "Project.getStage() is a shortcut for process.env.JOVO_STAGE."
 if (Project.getStage() === 'prod') {
     const { DynamoDb } = require('jovo-db-dynamodb')
     app.use(
 	new DynamoDb({
-	    // GONK: Set this up as eg process.env.DATABASE_USER or default;
+	    // GONK: Get value as eg process.env.USER_TABLE with default;
 	    // in Typescript, add "as string"
 	    tableName: "UserState"
 	}),
@@ -192,11 +194,14 @@ if (Project.getStage() === 'prod') {
 
 const Player = require('./player.js');
 
-// Launch asynchronous startup refresh, to help keep later refreshes short.
-// (Can't use await here, but if episodes/update is safely reeentrant that
-// would be OK. In any case, this will generally run well before user requests.)
+// When running locally, we could launch asynchronous startup refresh,
+// to help keep later refreshes short. In Lambda or similar
+// environment, where user request may cause service to be started, we
+// want to defer that until we need it.
 //
-// Running as lambda, startup is slow. Try deferring this.
+// Can't use await here, but if episodes/update is safely reeentrant that
+// would be OK. 
+//
 // Player.updateEpisodes(-1) // Incremental load (usually preferred)
 
 ////////////////////////////////////////////////////////////////
@@ -241,10 +246,11 @@ function parseISO8601Duration (iso8601Duration) {
 };
 
 // ------------------------------------------------------------------
-// APP LOGIC
+// ------------------------------------------------------------------
+// APP LOGIC FOLLOWS
 //
-// Javascript default exception handling does no report stack trace.
-// It appears that if I want that logged, I need a
+// Note: Javascript default exception handling does not report stack
+// trace.  It appears that if I want that logged, I need a
 // try/catch/print/rethrow in every entry point (and possibly every
 // async).
 // ------------------------------------------------------------------

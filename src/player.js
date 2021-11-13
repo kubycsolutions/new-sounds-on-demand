@@ -5,9 +5,9 @@
 //import {metaphone} from 'metaphone'
 //import {stemmer} from 'stemmer'
 
-// GONK GONK: Should the episodes and dates tables be moved into the
-// database? First we need to resolve how to set database per environment;
-// see GONK in app.js.
+// GONK GONK: Episodes and dates tables should be moved into a
+// database when running on lambda. Which DB depends on environment,
+// as we saw in the jovo initialization.
 const fs = require('fs')
 
 ////////////////////////////////////////////////////////////////
