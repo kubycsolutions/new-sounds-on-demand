@@ -1703,7 +1703,9 @@
                     "name": "duration",
                     "type": {
                         "alexa": "AMAZON.DURATION",
-                        "dialogflow": "@sys.duration"
+                        "dialogflow": "@sys.duration",
+			"googleAssistantGONK": "UNCLEAR WHAT TYPE TO USE.",
+			"googleAssistant": "actions.type.Time"
                     }
                 }
             ]
@@ -4227,7 +4229,8 @@
                     "name": "date",
                     "type": {
                         "alexa": "AMAZON.DATE",
-                        "dialogflow": "@sys.date"
+                        "dialogflow": "@sys.date",
+			"googleAssistant": "actions.type.Date"
                     }
                 }
             ]
@@ -4413,7 +4416,8 @@
                     "name": "number",
                     "type": {
                         "alexa": "AMAZON.NUMBER",
-                        "dialogflow": "@sys.number"
+                        "dialogflow": "@sys.number",
+			"googleAssistant": "actions.type.Number"
                     }
                 }
             ]
