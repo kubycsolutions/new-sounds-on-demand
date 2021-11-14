@@ -1705,7 +1705,7 @@
                         "alexa": "AMAZON.DURATION",
                         "dialogflow": "@sys.duration",
 			"googleAssistantGONK": "UNCLEAR WHAT TYPE TO USE.",
-			"googleAssistant": "actions.type.Time"
+			"googleAssistant": "actions.type.Number"
                     }
                 }
             ]

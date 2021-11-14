@@ -18,7 +18,7 @@ module.exports = {
       },
    },
    googleAction: {
-       // nlu: 'dialogflow',
+       nlu: 'dialogflow', // Disable this to try using Conversational Actions
        projectId: `new-sounds-on-demand`,
    },
    // endpoint: '${JOVO_WEBHOOK_URL}', // talk to 'jovo run' instance
