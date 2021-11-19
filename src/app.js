@@ -194,12 +194,11 @@ if (Project.getStage() === 'prod') {
 
 const Player = require('./player.js');
 
-// GONK: Right now, when running as Lambda, _await_ on updateEpisodes,
-// even incremental, may take long enough to mess up cold-(re)start.
-// I'm guessing that moving the episode tables into a database might
-// solve that, avoiding the error when we try to write updates to
-// lambda's local filesystem. We *may* also need to move from
-// demand-triggered update to scheduled, fully asynchronous.
+// GONK: Right now, when running as Lambda, cold (re)start is running
+// slow enough to time out. The delay might be updateEpisode, esp. since
+// that's currently trying/failing to write to the lambda's local filesystem.
+// (Need to rework episode tables as DB, I guess.) Running updates on schedule
+// might be another step in the right direction.
 //
 // Player.updateEpisodes(-1) // Incremental load (usually preferred)
 
@@ -312,7 +311,7 @@ app.setHandler({
 
     async LatestEpisodeIntent() {
 	try {
-	    /*await*/ Player.updateEpisodes(-1) // Incremental load, in case new appeared.
+	    await Player.updateEpisodes(-1) // Incremental load, in case new appeared.
             let currentDate = Player.getMostRecentBroadcastDate();
             let episode = Player.getEpisodeByDate(currentDate);
             this.$user.$data.currentDate = currentDate;
@@ -351,7 +350,7 @@ app.setHandler({
 		return this.LiveStreamIntent()
 	    }
 	    else if(currentOffset<0) { // Stopped at last known ep; is there newer?
-		/*await*/ Player.updateEpisodes(-1) // Pick up any late additions
+		await Player.updateEpisodes(-1) // Pick up any late additions
 		currentDate=Player.getNextEpisodeDate(currentDate)
 		episode = Player.getEpisodeByDate(currentDate);
 		if(!episode) {
@@ -408,7 +407,7 @@ app.setHandler({
 	    if (currentDate==Player.getLiveStreamDate()) {
 		return this.tell("You can't move forward or back in the livestream. That kind of control is only available when playing episodes.");
 	    }
-	    /*await*/ Player.updateEpisodes(-1) // Incremental load, in case new appeared.
+	    await Player.updateEpisodes(-1) // Incremental load, in case new appeared.
             let nextEpisodeDate = Player.getNextEpisodeDate(currentDate);
             let nextEpisode = Player.getEpisodeByDate(nextEpisodeDate);
             if (!nextEpisode) {
@@ -602,7 +601,7 @@ app.setHandler({
 		return this.ask(this.$speech)
 	    }
 
-	    /*await*/ Player.updateEpisodes(-1) // Incremental load, in case new appeared.
+	    await Player.updateEpisodes(-1) // Incremental load, in case new appeared.
 	    let episode=Player.getEpisodeByDate(datestamp)
 	    if(episode!=null && episode !=undefined)
 	    {
@@ -638,7 +637,7 @@ app.setHandler({
     async EpisodeNumberIntent() {
 	try {
 	    const number=parseInt(this.getInput('number').value) // comes back as string
-	    /*await*/ Player.updateEpisodes(-1) // Incremental load, in case new appeared.
+	    await Player.updateEpisodes(-1) // Incremental load, in case new appeared.
 	    const episode=Player.getEpisodeByNumber(number)
 	    if(episode!=null && episode !=undefined)
 	    {
