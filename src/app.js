@@ -194,13 +194,12 @@ if (Project.getStage() === 'prod') {
 
 const Player = require('./player.js');
 
-// When running locally, we could launch asynchronous startup refresh,
-// to help keep later refreshes short. In Lambda or similar
-// environment, where user request may cause service to be started, we
-// want to defer that until we need it.
-//
-// Can't use await here, but if episodes/update is safely reeentrant that
-// would be OK. 
+// GONK: Right now, when running as Lambda, _await_ on updateEpisodes,
+// even incremental, may take long enough to mess up cold-(re)start.
+// I'm guessing that moving the episode tables into a database might
+// solve that, avoiding the error when we try to write updates to
+// lambda's local filesystem. We *may* also need to move from
+// demand-triggered update to scheduled, fully asynchronous.
 //
 // Player.updateEpisodes(-1) // Incremental load (usually preferred)
 
@@ -313,7 +312,7 @@ app.setHandler({
 
     async LatestEpisodeIntent() {
 	try {
-	    await Player.updateEpisodes(-1) // Incremental load, in case new appeared.
+	    /*await*/ Player.updateEpisodes(-1) // Incremental load, in case new appeared.
             let currentDate = Player.getMostRecentBroadcastDate();
             let episode = Player.getEpisodeByDate(currentDate);
             this.$user.$data.currentDate = currentDate;
@@ -352,7 +351,7 @@ app.setHandler({
 		return this.LiveStreamIntent()
 	    }
 	    else if(currentOffset<0) { // Stopped at last known ep; is there newer?
-		await Player.updateEpisodes(-1) // Pick up any late additions
+		/*await*/ Player.updateEpisodes(-1) // Pick up any late additions
 		currentDate=Player.getNextEpisodeDate(currentDate)
 		episode = Player.getEpisodeByDate(currentDate);
 		if(!episode) {
@@ -409,7 +408,7 @@ app.setHandler({
 	    if (currentDate==Player.getLiveStreamDate()) {
 		return this.tell("You can't move forward or back in the livestream. That kind of control is only available when playing episodes.");
 	    }
-	    await Player.updateEpisodes(-1) // Incremental load, in case new appeared.
+	    /*await*/ Player.updateEpisodes(-1) // Incremental load, in case new appeared.
             let nextEpisodeDate = Player.getNextEpisodeDate(currentDate);
             let nextEpisode = Player.getEpisodeByDate(nextEpisodeDate);
             if (!nextEpisode) {
@@ -603,7 +602,7 @@ app.setHandler({
 		return this.ask(this.$speech)
 	    }
 
-	    await Player.updateEpisodes(-1) // Incremental load, in case new appeared.
+	    /*await*/ Player.updateEpisodes(-1) // Incremental load, in case new appeared.
 	    let episode=Player.getEpisodeByDate(datestamp)
 	    if(episode!=null && episode !=undefined)
 	    {
@@ -639,7 +638,7 @@ app.setHandler({
     async EpisodeNumberIntent() {
 	try {
 	    const number=parseInt(this.getInput('number').value) // comes back as string
-	    await Player.updateEpisodes(-1) // Incremental load, in case new appeared.
+	    /*await*/ Player.updateEpisodes(-1) // Incremental load, in case new appeared.
 	    const episode=Player.getEpisodeByNumber(number)
 	    if(episode!=null && episode !=undefined)
 	    {
@@ -743,13 +742,15 @@ app.setHandler({
     // Hook for testing, normally inactive
     DebugIntent() {
 	try {
+	    Player.updateEpisodes(0) // Asynchronous full (re)load
+
 	    // GONK: Tells may need to be Asks for this to run as intended
 	    // in Google. More multiple-path coding. Really wish Jovo
 	    // encapsulated that.
-            this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
-	    return this.tell(this.$speech)
+            this.$speech.addText("Debug hook baited. Here, fishie fishie fishie...")
+	    return this.ask(this.$speech)
 	} catch(e) {
-	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
+	    this.ask("Sorry, but I am having trouble doing that right now. Please try again later.")
 	    console.log(e.stack)
 	    throw e;
 	}
