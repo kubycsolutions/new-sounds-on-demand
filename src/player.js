@@ -110,20 +110,17 @@ function deHTMLify(text) {
     // handle them.
 }
 
-// Javascript Date.setDate() handles day-number overflow/underflow,
-// and (importantly) avoids questions of timezone change, treating
-// everything as local datestamps. Alternative would be to treat
-// everything as UTC dates and just add/subtract (1000*60*60*24 msec
-// in a day)... TODO: REVIEW
+// Javascript Date.setDate() handles day-number overflow/underflow.
+// For clarity, I'm handling everything as UTC.
 //
 // TODO: Functional sanity-check against dates as I've parsed and
 // recorded them.
-function todayMS() { // round off to day, handling leapyear, timezone shift...
+function todayMS() { // round off UTC to day. Handles leapyears.
     let d=new Date(Date.now());
-    d.setHours(0)
-    d.setMinutes(0)
-    d.setSeconds(0)
-    d.setMilliseconds(0)
+    d.setUTCHours(0)
+    d.setUTCMinutes(0)
+    d.setUTCSeconds(0)
+    d.setUTCMilliseconds(0)
     return d.getTime()
 }
 // TODO REFACTOR: JSON serializes key ms as strings; Date ctor from
@@ -133,11 +130,11 @@ function nextDayMS(datestamp) {
     if(typeof datestamp=="string")
 	datestamp=parseInt(datestamp)
     let d=new Date(datestamp);
-    d.setHours(0) // redundant?
-    d.setMinutes(0)
-    d.setSeconds(0)
-    d.setMilliseconds(0)
-    d.setDate(d.getDate()+1)
+    d.setUTCHours(0) // redundant?
+    d.setUTCMinutes(0)
+    d.setUTCSeconds(0)
+    d.setUTCMilliseconds(0)
+    d.setUTCDate(d.getUTCDate()+1)
     return d.getTime()
 }
 
@@ -152,7 +149,7 @@ function nextEpisodeDateMS(datestamp) {
 	    return dateMS
 	}
     }
-    console.log("No nextEpisodeDateMS after",new Date(datestamp))
+    console.log("No nextEpisodeDateMS after",new Date(datestamp).toUTCString())
     return -1
 }
 
@@ -163,11 +160,11 @@ function previousDayMS(datestamp) {
     if (typeof datestamp === 'string') 
 	datestamp=parseInt(datestamp)
     let d=new Date(datestamp);
-    d.setHours(0) // redundant?
-    d.setMinutes(0)
-    d.setSeconds(0)
-    d.setMilliseconds(0)
-    d.setDate(d.getDate()-1)
+    d.setUTCHours(0) // redundant?
+    d.setUTCMinutes(0)
+    d.setUTCSeconds(0)
+    d.setUTCMilliseconds(0)
+    d.setUTCDate(d.getUTCDate()-1)
     return d.getTime()
 }
 
@@ -179,7 +176,7 @@ function previousEpisodeDateMS(datestamp) {
 	    return dateMS
 	}
     }
-    console.log("No previousEpisodeDateMS before",new Date(datestamp))
+    console.log("No previousEpisodeDateMS before",new Date(datestamp).toUTCString())
     return -1
 }
 
@@ -358,6 +355,7 @@ module.exports = {
 
 	// Run Axios query, returning a Promise
 	const getEpisodeData = (page) => {
+	    console.log("  Fetch index page",page)
 	    const page_size=10 // Number of results per fetch
 	    return new Promise((resolve, reject) => {
 		// Fetch a page from the list of episodes,
@@ -466,13 +464,16 @@ module.exports = {
 				urlDateFields=mp3url
 				    .replace(/.*\/newsounds([0-9]+)/i,"$1")
 				    .match(/.{1,2}/g)
+				// Sloppy mapping of 2-digit year to 4-digit
 				var year=parseInt(urlDateFields[2])+2000
-				if(year > now.getFullYear())
+				if(year > now.getUTCFullYear())
 				    year=year-100
 				broadcastDate=new Date(
-				    year,
-				    parseInt(urlDateFields[0])-1, // 0-based!
-				    parseInt(urlDateFields[1])
+				    Date.UTC(
+					year,
+					parseInt(urlDateFields[0])-1, // 0-based
+					parseInt(urlDateFields[1])
+				    )
 				)
 
 				// For Echo View and the like, long
@@ -596,7 +597,7 @@ module.exports = {
 	    console.log("Highest numbered:",episodesByNumber[numberOfEpisodes-1].title)
 	    let mostRecentDate=this.getMostRecentBroadcastDate()
 	    let mostRecentNumber=episodeNumbersByDateMsec[mostRecentDate]
-	    console.log("Most recent daily:",episodesByNumber[mostRecentNumber].title,"at",new Date(mostRecentDate))
+	    console.log("Most recent daily:",episodesByNumber[mostRecentNumber].title,"at",new Date(mostRecentDate).toUTCString())
 
 	    // Cache to local file
 	    fs.writeFile(episodesfile,

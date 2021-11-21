@@ -200,7 +200,7 @@ const Player = require('./player.js');
 // (Need to rework episode tables as DB, I guess.) Running updates on schedule
 // might be another step in the right direction.
 //
-// Player.updateEpisodes(-1) // Incremental load (usually preferred)
+Player.updateEpisodes(-1) // Incremental load (usually preferred)
 
 ////////////////////////////////////////////////////////////////
 
@@ -560,9 +560,10 @@ app.setHandler({
 
     async DateIntent() {
 	try {
-	    // GONK: UTC VERSUS LOCALTIME JUGGLING.
-	    // Do all date parsing in UTC?
-	    // Would require a full reload from database to fix timestamps.
+	    // Note: For clarity, it's best to treat all dates as UTC,
+	    // avoiding server-specific zone adjustments.  That may
+	    // occasionally cause confusion about "today", but I think
+	    // that's Mostly Harmless.
 	    var whichdate;
 	    console.log("DateIntent:",this.getInput("date"))
             if (this.isAlexaSkill()) {
@@ -575,16 +576,19 @@ app.setHandler({
 	    console.log("DateIntent:",whichdate)
 	    let splitdate=whichdate.split("-")
 	    // Remember that JS Month is 0-indexed
-	    let spokendate=new Date(splitdate[0],splitdate[1]-1,splitdate[2]) // interpreted as UTC
+	    // Year will be provided in 4-digit form.
+	    let spokendate=new Date(Date.UTC(splitdate[0],splitdate[1]-1,splitdate[2]))
 
-	    let date=new Date() // in local timezone
-	    date.setFullYear(spokendate.getFullYear())
-	    date.setMonth(spokendate.getMonth())
-	    date.setDate(spokendate.getDate())
-	    date.setHours(-spokendate.getHours()) // GONK: UTC offset fix
-	    date.setMinutes(0)
-	    date.setSeconds(0)
-	    date.setMilliseconds(0)
+	    // GONK: Redundant if we don't have to juggle UTC
+	    // let date=new Date()
+	    // date.setUTCFullYear(spokendate.getUTCFullYear())
+	    // date.setUTCMonth(spokendate.getUTCMonth())
+	    // date.setUTCDate(spokendate.getUTCDate())
+	    // date.setUTCHours(spokendate.getUTCHours())
+	    // date.setUTCMinutes(0)
+	    // date.setUTCSeconds(0)
+	    // date.setUTCMilliseconds(0)
+	    let date=spokendate
 	    
 	    let datestamp=date.getTime()
 
