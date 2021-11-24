@@ -11,8 +11,7 @@
         "jovo-framework": "^3.6.0",
         "jovo-platform-alexa": "^3.6.0",
         "jovo-platform-googleassistant": "^3.6.0",
-        "jovo-plugin-debugger": "^3.6.0",
-        "socket.io-client": "^4.4.0"
+        "jovo-plugin-debugger": "^3.6.0"
     },
     "devDependencies": {
         "@types/node": "^16.11.9",

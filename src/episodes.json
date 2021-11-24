@@ -43872,7 +43872,8 @@
       "tease": "Hear music written for the Dublin new music group Crash Ensemble by Donnacha Dennehy, Irish composer Amanda Feerey, as well as Bang on a Can's Michael Gordon and Julia Wolfe. ",
       "broadcastDatesMsec": [
         1597881600000,
-        1568678400000
+        1568678400000,
+        1637452800000
       ],
       "tags": [
         " amanda feery ",
@@ -46845,7 +46846,8 @@
       "title": "#4420, Three Influential American Composers: Cage, Harrison, Feldman",
       "tease": "Hear works from 20th Century American \"maverick\" composers John Cage, Morton Feldman and Lou Harrison, on this show for piano, violin and piano, and violin, piano, and percussion.",
       "broadcastDatesMsec": [
-        1602633600000
+        1602633600000,
+        1637539200000
       ],
       "tags": [
         " darragh morgan ",
@@ -49710,6 +49712,24 @@
         " ojai festival "
       ],
       "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds111821.mp3"
+    },
+    {
+      "number": 4564,
+      "title": "#4564, From Soundcheck, With Paolo Angeli ",
+      "tease": "Paolo Angeli plays prepared Sardinian guitar, a versatile electro-acoustic custom-build. Angeli bows, hammers, strums, and vocalizes, performing remotely from the shores of Sardinia.",
+      "broadcastDatesMsec": [
+        1637625600000
+      ],
+      "tags": [
+        " baritone guitar ",
+        " cello ",
+        " drone music ",
+        " music ",
+        " paolo angeli ",
+        " prepared guitar ",
+        " sardinia "
+      ],
+      "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds112321.mp3"
     }
   ],
   "episodeNumbersByDateMsec": {
@@ -55678,6 +55698,9 @@
     "517363200000": 10,
     "516153600000": 8,
     "514944000000": 6,
-    "511920000000": 1
+    "511920000000": 1,
+    "1637625600000": 4564,
+    "1637539200000": 4420,
+    "1637452800000": 4276
   }
 }

@@ -356,7 +356,7 @@ app.setHandler({
 		if(!episode) {
 		    // TODO: This language may need to change depending on whether
 		    // we are playing in date or ep# sequence.
-		    return this.tell("You have already heard all of the most recent episode, so we can't resume right now. You can try again after a new episode gets released, or make a different selection.");
+		    return this.tell("You have already heard all of the most recent episode, so we can't resume right now. You can try again after a new episode gets released, or make a different request.");
 		    return
 		}
 		currentOffset=0;
@@ -370,15 +370,16 @@ app.setHandler({
 		let offset = this.$user.$data.offset;
 		let offsetMin=offset/60/1000;
 		if (offsetMin > 30) {
-		    // BUG TODO: If we need to reload Alexa cache before playing,
-		    // resume may have a long delay as it decompresses
-		    // up to the offset point. I haven't thought of a reliable
-		    // way to advise the user of this without unnecessary
-		    // warnings (when already in cache, it's fast).
-		    // Check whether Alexa has a solution, though short of
-		    // breaking into smaller MP3's so there are more frequent
-		    // decompression synch points I don't know what one could do.
-		    // GONK?
+		    // BUG TODO: If we need to reload Alexa cache
+		    // before playing, resume may have a long delay as
+		    // it decompresses up to the offset point. I
+		    // haven't thought of a reliable way to advise the
+		    // user of this without unnecessary warnings (when
+		    // already in cache, it's fast).  Check whether
+		    // Alexa has a solution, though short of breaking
+		    // into smaller MP3's so there are more frequent
+		    // decompression synch points I don't know what
+		    // one could do.  GONK?
 		}
 		this.$alexaSkill.$audioPlayer
                     .setOffsetInMilliseconds(offset)
@@ -481,7 +482,7 @@ app.setHandler({
 	}
     },
 
-    RewindIntent() {
+    FastForwardIntent() {
 	try {
 	    // GONK: This one is being surprisingly problematic...
 	    // GONK: Tells may need to be Asks for this to run as intended
@@ -496,7 +497,7 @@ app.setHandler({
 	    let dd=parseISO8601Duration(duration)
 	    console.log(">>> RewindIntent:",dd)
 
-	    return this.tell("Rewinding isn't supported yet. You could ask us to restart the episode instead.")
+	    return this.tell("Fast forward isn't supported yet. You could ask us to skip to the next episode instead.")
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	    console.log(e.stack)
