@@ -43894,7 +43894,8 @@
       "tease": "Hear Western music built on field recordings from Java, Ethiopia, Australia and Jamaica by Gregory Taylor, Patti Smith and the Soundwalk Collective, Steve Roach, and K. Leimer. ",
       "broadcastDatesMsec": [
         1598227200000,
-        1568764800000
+        1568764800000,
+        1637798400000
       ],
       "tags": [
         " gregory taylor ",
@@ -46865,7 +46866,8 @@
       "title": "#4421, Music Made During Quarantine",
       "tease": "Hear some music made in quarantine by Anglo-Polish musician Alice Zawadzki, Anglo-Indian composer/drummer Sarathy Korwar, and London-based Syrian kanun player and composer Maya Youssef.",
       "broadcastDatesMsec": [
-        1603238400000
+        1603238400000,
+        1637884800000
       ],
       "tags": [
         " alice zawadzki ",
@@ -49730,6 +49732,34 @@
         " sardinia "
       ],
       "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds112321.mp3"
+    },
+    {
+      "number": 4565,
+      "title": "#4565, Reimagined, Remixed, and Recomposed",
+      "tease": "Hear re-imaginings, remixes, and re-compositions of existing works by Lyra Pramuk and Glenn Copeland, along with reworks of much older music by Vivaldi, Bach, and William Byrd.",
+      "broadcastDatesMsec": [
+        1637712000000
+      ],
+      "tags": [
+        " ana roxanne ",
+        " beverly glenn copeland ",
+        " christian svarfvar ",
+        " colin self ",
+        " daniel hope ",
+        " johan ullen ",
+        " js bach ",
+        " london philharmonic orchestra ",
+        " lyra pramuk ",
+        " max richter ",
+        " music ",
+        " nailah hunter ",
+        " ny polyphony ",
+        " ora singers ",
+        " roderick williams ",
+        " vivaldi ",
+        " william byrd "
+      ],
+      "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds112421.mp3"
     }
   ],
   "episodeNumbersByDateMsec": {
@@ -55701,6 +55731,9 @@
     "511920000000": 1,
     "1637625600000": 4564,
     "1637539200000": 4420,
-    "1637452800000": 4276
+    "1637452800000": 4276,
+    "1637884800000": 4421,
+    "1637798400000": 4277,
+    "1637712000000": 4565
   }
 }

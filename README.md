@@ -8,9 +8,11 @@ There have been over 4500 unique episodes since the early 1980s, with new ones s
 
 **Platform**
 
-Currently Alexa support is being alpha-tested, with Google in development. Since this code is based on the Jovo Framework (https://www.jovo.tech), we should be able to bring it up on some of the other smartspeaker platforms with a minimum of rewriting.
+Currently Alexa support is being alpha-tested, with Google in development. Since this code is based on the Jovo Version 3 Framework (https://www.jovo.tech), we should be able to bring it up on some of the other smartspeaker platforms with a minimum of rewriting. 
 
-Jovo prefers JavaScript (or TypeScript) as its development language, and the examples I used while learning it were JavaScript based. I was learning both Jovo and JavaScript as I went, so this is far from the cleanest or most idiomatic code I've ever written. Also, Jovo is in the processs of releasing a new set of APIs and a new preferred architecture for Jovo applications. Major restructuring and rewriting is likely before it settles down.
+Jovo Version 4 has been released since I started this project, and I expect to have a minimally-migrated version of my code Any Day Now (preferably before 2022). Restructuring to Jovo v4's new preferred structure (which does look promising) may be delayed.
+
+Jovo prefers JavaScript (or TypeScript) as its development language, and the examples I used while learning it were JavaScript based. I was learning both Jovo and JavaScript as I went, so this is far from the cleanest or most idiomatic code I've ever written. 
 
 **Usage**
 
