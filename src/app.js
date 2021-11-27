@@ -4,12 +4,12 @@
 
    That db appears to record most broadcast dates, though some dates
    and some episode numbers are missing. Some are known to have been
-   pre-empted; I would have expected the episode number (ep#) to still
+   pre-empted; I would have expected the episodeNumber (ep#) to still
    exist even if the date was empty, but apparently not.
 
-   Rebroadcasts appear as additional entries with the same episode
-   number but different dates. I maintain one record per episode, with
-   cross-references for date access.
+   Rebroadcasts appear as additional entries with the same
+   episodeNumber but different dates. I maintain one record per
+   episode, with cross-references for date access.
 
    NOTE: Dates are being stored in JSON as msec-since-epoch
    because that round-trips more predictably. When used as a hash key,
@@ -33,8 +33,9 @@
    speech-synth inflection.
 
    TODO: "Highest Numbered Episode" is currently (mis)interpreted as
-   EpisodeNumberIntent with "number" having confirmationStatus="NONE".
-   I'm not sure anyone but me will want that operation, but... add an Intent?
+   EpisodeNumberIntent with "episodeNumber" having
+   confirmationStatus="NONE".  I'm not sure anyone but me will want
+   that operation, but... add an Intent?
 
    TODO: "Who/what are we listening to" and "who/what is this" can't
    be precise for episodes with currently available data, but should
@@ -230,8 +231,9 @@ var iso8601DurationRegex = /(-)?P(?:([.,\d]+)Y)?(?:([.,\d]+)M)?(?:([.,\d]+)W)?(?
 
 function parseISO8601Duration (iso8601Duration) {
     var matches = iso8601DurationRegex.exec(iso8601Duration);
-
-    return {
+    if(matches===null) 
+	return null
+    else return {
         sign: matches[1] === undefined ? '+' : '-',
         years: matches[2] === undefined ? 0 : matches[2],
         months: matches[3] === undefined ? 0 : matches[3],
@@ -357,7 +359,6 @@ app.setHandler({
 		    // TODO: This language may need to change depending on whether
 		    // we are playing in date or ep# sequence.
 		    return this.tell("You have already heard all of the most recent episode, so we can't resume right now. You can try again after a new episode gets released, or make a different request.");
-		    return
 		}
 		currentOffset=0;
 	    }
@@ -463,7 +464,7 @@ app.setHandler({
             this.$speech.addText('Fetching episode '+previousEpisode.title+".");
             if (this.isAlexaSkill()) {
 		this.tell(this.$speech)
-		this.$alexaSkill.$audioPlayer
+		return this.$alexaSkill.$audioPlayer
 		    .setOffsetInMilliseconds(0)
 		    .play(addUriUsage(previousEpisode.url), `${currentDate}`)
             } else if (this.isGoogleAction()) {
@@ -473,7 +474,7 @@ app.setHandler({
 		// Suggestion Chips.
 		this.$googleAction.$mediaResponse.play(addUriUsage(previousEpisode.url), previousEpisode.title);
 		this.$googleAction.showSuggestionChips(['pause', 'start over']);
-		this.ask(this.$speech);
+		return this.ask(this.$speech);
             }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
@@ -641,9 +642,9 @@ app.setHandler({
 
     async EpisodeNumberIntent() {
 	try {
-	    const number=parseInt(this.getInput('number').value) // comes back as string
+	    const episodeNumber=parseInt(this.getInput('episodeNumber').value) // comes back as string
 	    await Player.updateEpisodes(-1) // Incremental load, in case new appeared.
-	    const episode=Player.getEpisodeByNumber(number)
+	    const episode=Player.getEpisodeByNumber(episodeNumber)
 	    if(episode!=null && episode !=undefined)
 	    {
 		const currentDate=Player.getEpisodeDate(episode) // Gonk: Clean up
@@ -665,7 +666,7 @@ app.setHandler({
 		}
 	    }
 	    else {
-		this.$speech.addText("Episode number "+number+" does not seem to be available in the vault. What would you like me to do instead?")
+		this.$speech.addText("Episode number "+episodeNumber+" does not seem to be available in the vault. What would you like me to do instead?")
 		this.ask(this.$speech)
 	    }
 	} catch(e) {

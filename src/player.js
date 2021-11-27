@@ -23,7 +23,7 @@ const fs = require('fs')
 // app.addUriUsage? Would require refactoring that down here.
 //
 // TODO REVIEW: We could cheat the livestream into our normal tables,
-// treating it as an Episode with null date and episode number
+// treating it as an Episode with null date and episodeNumber
 // zero. Unclear that would actually be much cleaner; app.js still
 // needs to special-case it since we can't navigate to/from/within it.
 const LiveStreamURI="https://q2stream.wqxr.org/q2-web?nyprBrowserId=NewSoundsOnDemand.smartspeaker.player"
@@ -143,7 +143,7 @@ function nextDayMS(datestamp) {
 // msec value wants int. Arguably that should be being normalized at
 // the time we retrieve the datestamp rather than here.
 function nextEpisodeDateMS(datestamp) {
-    for(dateMS=nextDayMS(datestamp);dateMS<=todayMS();dateMS=nextDayMS(dateMS)) {
+    for(var dateMS=nextDayMS(datestamp);dateMS<=todayMS();dateMS=nextDayMS(dateMS)) {
 	let ep=episodeNumbersByDateMsec[dateMS]
 	if(ep!=null && ep!=undefined) { // JS novice paranoia
 	    return dateMS
@@ -169,8 +169,8 @@ function previousDayMS(datestamp) {
 }
 
 function previousEpisodeDateMS(datestamp) {
-    showEpoch=firstBroadcastDateMS(1) // Guaranteed to return number, not str.
-    for(dateMS=previousDayMS(datestamp);dateMS>=showEpoch;dateMS=previousDayMS(dateMS)) {
+    const showEpoch=firstBroadcastDateMS(1) // Guaranteed to return number, not str.
+    for(var dateMS=previousDayMS(datestamp);dateMS>=showEpoch;dateMS=previousDayMS(dateMS)) {
 	let ep=episodeNumbersByDateMsec[dateMS]
 	if(ep!=null && ep!=undefined) { // JS novice paranoia
 	    return dateMS
@@ -214,7 +214,7 @@ module.exports = {
     getMostRecentBroadcastDate: function() {
 	let newSoundsEpochMS=this.getOldestEpisodeDate()
 	// Loop should terminate quickly; this is overkill for robustness.
-	for(date=todayMS(); date>=newSoundsEpochMS; date=previousDayMS(date)) {
+	for(var date=todayMS(); date>=newSoundsEpochMS; date=previousDayMS(date)) {
 	    let ep=episodeNumbersByDateMsec[date]
 	    if(ep!=null && ep!=undefined) { // JS novice paranoia
 		return date
@@ -287,7 +287,7 @@ module.exports = {
     getEpisodeDate: function(episode) {
 	if(episode==null || episode==undefined)
 	    return -1
-	episodeDateMS=firstBroadcastDateMS(episode.number)
+	let episodeDateMS=firstBroadcastDateMS(episode.number)
 	return episodeDateMS
     },
     getEpisodeIndex: function(episode) {
@@ -311,8 +311,8 @@ module.exports = {
     getRandomEpisodeNumber: function() {
 	// ep# are sparse, but if we have a date we know the episode exists,
 	// so random-select in that space and then map.
-	randate=this.getRandomEpisodeDate()
-	return episodesByDateMS[randate].number
+	let randate=this.getRandomEpisodeDate()
+	return episodeNumbersByDateMsec[randate].number
     },
     getRandomEpisodeDate: function() {
 	// Hashtable keyed by dateMS, so pick from existing keys.
@@ -362,7 +362,7 @@ module.exports = {
 		// date-descending order This uses a function variable
 		// because I think I want to move it out to a per-show
 		// initialization file.
-		uri=formatEpisodeDatabaseQueryURI(page,page_size)
+		var uri=formatEpisodeDatabaseQueryURI(page,page_size)
 		axios.get(uri)
 		    .then(response => {
 			return resolve(response.data);
@@ -371,7 +371,7 @@ module.exports = {
 			return reject(error.message)
 		    })
 	    })
-	}
+	};
 
 	const handlePage = async() => {
 	    var hasMore=true
@@ -387,11 +387,11 @@ module.exports = {
 			// gets preallocated during the first pass
 			// through this list.
 			
-			episodes=data.data
+			var episodes=data.data
 			// PROCESS EPISODES IN THIS CHUNK
 			// TODO: Incrementality
 			for (const ep of episodes) {
-			    attributes=ep.attributes;
+			    var attributes=ep.attributes;
 			    // Shows may be in database before release;
 			    // skip if not playable. (TODO: Someday we
 			    // might have a "what's coming soon" feature,
@@ -423,7 +423,7 @@ module.exports = {
 				// and title processing should ensure it's at
 				// the start of that string (after '#').
 				// Exception: pre-empted 
-				number=parseInt(title.slice(1))
+				var episodeNumber=parseInt(title.slice(1))
 
 				// New Sounds prefers to route these
 				// as podtrac URIs, though the direct
@@ -443,7 +443,7 @@ module.exports = {
 				// in odd format,
 				// ['https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds050610apod.mp3?awCollectionId=385&awEpisodeId=66200']
 				// Be prepared to unpack that.
-				mp3url=attributes.audio
+				var mp3url=attributes.audio
 				if(Array.isArray(mp3url)) {
 				    mp3url=mp3url[0]
 				}
@@ -461,14 +461,14 @@ module.exports = {
 				// URI ending with
 				// .../newsounds050610apod.mp3?awCollectionId=385&awEpisodeId=66200
 				// so be prepared to truncate after datestamp
-				urlDateFields=mp3url
+				var urlDateFields=mp3url
 				    .replace(/.*\/newsounds([0-9]+)/i,"$1")
 				    .match(/.{1,2}/g)
 				// Sloppy mapping of 2-digit year to 4-digit
 				var year=parseInt(urlDateFields[2])+2000
 				if(year > now.getUTCFullYear())
 				    year=year-100
-				broadcastDate=new Date(
+				var broadcastDate=new Date(
 				    Date.UTC(
 					year,
 					parseInt(urlDateFields[0])-1, // 0-based
@@ -491,7 +491,7 @@ module.exports = {
 				// humans. Workaround: If that is
 				// seen, take the first sentence of
 				// body instead.
-				tease=deHTMLify(attributes.tease)
+				var tease=deHTMLify(attributes.tease)
 				if (tease.endsWith("..."))
 				    tease=deHTMLify(attributes.body+" ")
 					.split(". ")[0]+"."
@@ -513,16 +513,16 @@ module.exports = {
 				// Martha Redbone, and distinguish
 				// Kronos Quartet from
 				// Mivos Quartet.
-				tags=[]
-				for(tag of attributes.tags) {
+				var tags=[]
+				for(var tag of attributes.tags) {
 				    // TODO: Should we make this array
 				    // for direct matching, or reconcatentate
 				    // into a string for contains matching?
 				    // Unclear which is more robust given
 				    // possibly fuzzy matching. String is
 				    // more human-readable in JSON.
-				    tagset=" " // For ease of exact-matching
-				    for(token of tag.split("_")) {
+				    var tagset=" " // For ease of exact-matching
+				    for(var token of tag.split("_")) {
 					// TODO: Match on sounds-like.
 					// token=metaphone(stemmer(token))
 					tagset=tagset+token+" "
@@ -538,43 +538,43 @@ module.exports = {
 				//
 				// NOTE: Episodes are broadcast out of order
 				// and repeated so incremental can't just stop
-				// scanning when [number] is already filled.
+				// scanning when [episodeNumber] is already filled.
 				// It will need to look at broadcast
 				// dates. Which is TODO anyway.
 				//
-				// NOTE: There is at least one un-numbered
+				// NOTE: There is at least one un-episodeNumbered
 				// episode (deep archive, with Ravi Shankar).
 				// 
 
-				if(number > 0) { // we lose the pre-numbering ep
-				    if(episodesByNumber[number]==null) {
-					tempObject=new Object()
-					tempObject.number=number
+				if(episodeNumber > 0) { // we lose the pre-numbering ep
+				    if(episodesByNumber[episodeNumber]==null) {
+					var tempObject=new Object()
+					tempObject.episodeNumber=episodeNumber
 					tempObject.title=title
 					tempObject.tease=tease
 					tempObject.broadcastDatesMsec=[broadcastDate.getTime()]
 					tempObject.tags=tags
 					tempObject.url=mp3url
-					episodesByNumber[number]=tempObject
+					episodesByNumber[episodeNumber]=tempObject
 					// maintain broadcast dates index
-					episodeNumbersByDateMsec[broadcastDate.getTime()]=number
+					episodeNumbersByDateMsec[broadcastDate.getTime()]=episodeNumber
 				    }
-				    else if (episodesByNumber[number]
+				    else if (episodesByNumber[episodeNumber]
 					     .broadcastDatesMsec
 					     .includes(broadcastDate.getTime())
 					    ) {
 					if(maxdepth<0 && hasMore) {
-					    console.log("Scan found known episode ",number,"with known date",broadcastDate)
+					    console.log("Scan found known episode ",episodeNumber,"with known date",broadcastDate)
 					    console.log("Stopping incremental database update.")
 					    hasMore=false
 					}
 				    }					
 				    else {
-					episodesByNumber[number]
+					episodesByNumber[episodeNumber]
 					    .broadcastDatesMsec
 					    .push(broadcastDate.getTime())
 					// maintain broadcast dates index
-					episodeNumbersByDateMsec[broadcastDate.getTime()]=number
+					episodeNumbersByDateMsec[broadcastDate.getTime()]=episodeNumber
 				    }
 				} // end if numbered
 			    } // end if released audio exists.
@@ -618,6 +618,6 @@ module.exports = {
 	// Soundcheck etc. Just a matter of setting the show name, I think,
 	// and having the app run against the right index files.
 	await handlePage()
-    }, // end update
+    } // end update
 
 } // end exported module functions
