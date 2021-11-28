@@ -26,9 +26,9 @@ const fs = require('fs')
 // treating it as an Episode with null date and episodeNumber
 // zero. Unclear that would actually be much cleaner; app.js still
 // needs to special-case it since we can't navigate to/from/within it.
-const LiveStreamURI="https://q2stream.wqxr.org/q2-web?nyprBrowserId=NewSoundsOnDemand.smartspeaker.player"
-const LiveStreamDate=null // Make sure we don't try to navigate it!
-const LiveStreamMetadataURI="http://api.wnyc.org/api/v1/whats_on/q2"
+const LIVE_STREAM_URI="https://q2stream.wqxr.org/q2-web?nyprBrowserId=NewSoundsOnDemand.smartspeaker.player"
+const LIVE_STREAM_DATE=null // Make sure we don't try to navigate it!
+const LIVE_STREAM_METADATA_URI="http://api.wnyc.org/api/v1/whats_on/q2"
 
 // TODO: Should probably have a constant for the DB query format
 
@@ -39,7 +39,7 @@ const LiveStreamMetadataURI="http://api.wnyc.org/api/v1/whats_on/q2"
 //
 // TODO REVIEW: refactor addUriUsage from app into Player? And/or into
 // per-show config?
-const app_uri_parameters="user=keshlam@kubyc.solutions&nyprBrowserId=NewSoundsOnDemand.smartspeaker.player"
+const APP_URI_PARAMETERS="user=keshlam@kubyc.solutions&nyprBrowserId=NewSoundsOnDemand.smartspeaker.player"
 
 // URI to query the station's episode database. Pages start from 1, ordered
 // newest-first. Page size can be up to 100 episodes per query. NOTE that this
@@ -48,8 +48,8 @@ const app_uri_parameters="user=keshlam@kubyc.solutions&nyprBrowserId=NewSoundsOn
 // This is currently an anonymous function/function-pointer because I
 // think we want to refactor it into the per-show configuration, and
 // that *may* be a clean way to do it. Or may not.
-const formatEpisodeDatabaseQueryURI=function(page,page_size,app_uri_parameters) {
-    return "https://api.wnyc.org/api/v3/story/?item_type=episode&ordering=-newsdate&show=newsounds&"+app_uri_parameters+"&page="+page+"&page_size="+page_size
+const formatEpisodeDatabaseQueryURI=function(page,page_size) {
+    return "https://api.wnyc.org/api/v3/story/?item_type=episode&ordering=-newsdate&show=newsounds&"+APP_URI_PARAMETERS+"&page="+page+"&page_size="+page_size
 }
 
 ////////////////////////////////////////////////////////////////
@@ -58,11 +58,20 @@ const formatEpisodeDatabaseQueryURI=function(page,page_size,app_uri_parameters) 
 // Performance of incremental update is important if we're calling it
 // on every forward/get-latest request; might want to reduce chunk
 // size of update.
-const episodesfile='./episodes.json'
+const EPISODES_FILE='./episodes.json'
 
-var episodesCache = require(episodesfile); // Initialize from local cache
+function Episode(number,title,tease,timestamps,tags,url) {
+    this.episodeNumber=number;
+    this.title=title
+    this.tease=tease
+    this.broadcastDatesMsec=timestamps
+    this.tags=tags
+    this.url=url
+}
+
+var episodesCache = require(EPISODES_FILE); // Initialize from local cache
 var episodesByNumber = episodesCache.episodesByNumber
-var episodeNumbersByDateMsec=episodesCache.episodeNumbersByDateMsec
+var episodeNumbersByDateMsec = episodesCache.episodeNumbersByDateMsec
 
 ///////////////////////////////////////////////////////////////////////////
 // Utility functions
@@ -80,7 +89,7 @@ function objToString(obj, ndeep) {
     case "string": return '"'+obj+'"';
     case "function": return obj.name || obj.toString();
     case "object":
-	var indent = Array(ndeep||1).join('  '), isArray = Array.isArray(obj);
+	let indent = Array(ndeep||1).join('  '), isArray = Array.isArray(obj);
 	return '{['[+isArray] 
 	    + Object.keys(obj).map(
 		function(key){
@@ -143,7 +152,7 @@ function nextDayMS(datestamp) {
 // msec value wants int. Arguably that should be being normalized at
 // the time we retrieve the datestamp rather than here.
 function nextEpisodeDateMS(datestamp) {
-    for(var dateMS=nextDayMS(datestamp);dateMS<=todayMS();dateMS=nextDayMS(dateMS)) {
+    for(let dateMS=nextDayMS(datestamp);dateMS<=todayMS();dateMS=nextDayMS(dateMS)) {
 	let ep=episodeNumbersByDateMsec[dateMS]
 	if(ep!=null && ep!=undefined) { // JS novice paranoia
 	    return dateMS
@@ -169,8 +178,8 @@ function previousDayMS(datestamp) {
 }
 
 function previousEpisodeDateMS(datestamp) {
-    const showEpoch=firstBroadcastDateMS(1) // Guaranteed to return number, not str.
-    for(var dateMS=previousDayMS(datestamp);dateMS>=showEpoch;dateMS=previousDayMS(dateMS)) {
+    var showEpoch=firstBroadcastDateMS(1) // Guaranteed to return number, not str.
+    for(let dateMS=previousDayMS(datestamp);dateMS>=showEpoch;dateMS=previousDayMS(dateMS)) {
 	let ep=episodeNumbersByDateMsec[dateMS]
 	if(ep!=null && ep!=undefined) { // JS novice paranoia
 	    return dateMS
@@ -208,13 +217,13 @@ function firstBroadcastDateMS(epNumber) {
 // be an episode number.)
 
 module.exports = {
-    getLiveStreamURI: function() { return LiveStreamURI },
-    getLiveStreamDate: function() { return LiveStreamDate },
+    getLiveStreamURI: function() { return LIVE_STREAM_URI },
+    getLiveStreamDate: function() { return LIVE_STREAM_DATE },
 
     getMostRecentBroadcastDate: function() {
 	let newSoundsEpochMS=this.getOldestEpisodeDate()
 	// Loop should terminate quickly; this is overkill for robustness.
-	for(var date=todayMS(); date>=newSoundsEpochMS; date=previousDayMS(date)) {
+	for(let date=todayMS(); date>=newSoundsEpochMS; date=previousDayMS(date)) {
 	    let ep=episodeNumbersByDateMsec[date]
 	    if(ep!=null && ep!=undefined) { // JS novice paranoia
 		return date
@@ -279,19 +288,19 @@ module.exports = {
 	return this.getPreviousEpisodeDate(index)
     },
 
-    getEpisodeNumber: function(episode) {
-	if(episode==null || episode==undefined)
+    getEpisodeNumber: function(episodeRecord) {
+	if(episodeRecord==null || episodeRecord==undefined)
 	    return -1
-        return episode.number
+        return episodeRecord.number
     },
-    getEpisodeDate: function(episode) {
-	if(episode==null || episode==undefined)
+    getEpisodeDate: function(episodeRecord) {
+	if(episodeRecord==null || episodeRecord==undefined)
 	    return -1
-	let episodeDateMS=firstBroadcastDateMS(episode.number)
+	let episodeDateMS=firstBroadcastDateMS(episodeRecord.number)
 	return episodeDateMS
     },
-    getEpisodeIndex: function(episode) {
-	return this.getEpisodeDate(episode)
+    getEpisodeIndex: function(episodeRecord) {
+	return this.getEpisodeDate(episodeRecord)
     },
 
     getEpisodeByNumber: function(index) {
@@ -390,7 +399,7 @@ module.exports = {
 			var episodes=data.data
 			// PROCESS EPISODES IN THIS CHUNK
 			// TODO: Incrementality
-			for (const ep of episodes) {
+			for (let ep of episodes) {
 			    var attributes=ep.attributes;
 			    // Shows may be in database before release;
 			    // skip if not playable. (TODO: Someday we
@@ -456,7 +465,7 @@ module.exports = {
 				// published=attributes["publish-at"].replace(/T.*/,'')
 				// publishedDate=new Date(published)
 
-				const now=new Date()
+				var now=new Date()
 				// In at least one case the database reports a
 				// URI ending with
 				// .../newsounds050610apod.mp3?awCollectionId=385&awEpisodeId=66200
@@ -514,7 +523,7 @@ module.exports = {
 				// Kronos Quartet from
 				// Mivos Quartet.
 				var tags=[]
-				for(var tag of attributes.tags) {
+				for(let tag of attributes.tags) {
 				    // TODO: Should we make this array
 				    // for direct matching, or reconcatentate
 				    // into a string for contains matching?
@@ -522,7 +531,7 @@ module.exports = {
 				    // possibly fuzzy matching. String is
 				    // more human-readable in JSON.
 				    var tagset=" " // For ease of exact-matching
-				    for(var token of tag.split("_")) {
+				    for(let token of tag.split("_")) {
 					// TODO: Match on sounds-like.
 					// token=metaphone(stemmer(token))
 					tagset=tagset+token+" "
@@ -548,13 +557,14 @@ module.exports = {
 
 				if(episodeNumber > 0) { // we lose the pre-numbering ep
 				    if(episodesByNumber[episodeNumber]==null) {
-					var tempObject=new Object()
-					tempObject.episodeNumber=episodeNumber
-					tempObject.title=title
-					tempObject.tease=tease
-					tempObject.broadcastDatesMsec=[broadcastDate.getTime()]
-					tempObject.tags=tags
-					tempObject.url=mp3url
+					var tempObject=new Episode(
+					    episodeNumber,
+					    title,
+					    tease,
+					    [broadcastDate.getTime()],
+					    tags,
+					    mp3url
+					)
 					episodesByNumber[episodeNumber]=tempObject
 					// maintain broadcast dates index
 					episodeNumbersByDateMsec[broadcastDate.getTime()]=episodeNumber
@@ -570,6 +580,12 @@ module.exports = {
 					}
 				    }					
 				    else {
+					// GONK: As we move to database
+					// there is the question of whether
+					// broadcastDatesMsec remains an
+					// array of values (more compact), or
+					// if we wind up with a row per date
+					// (fewer transactions?)
 					episodesByNumber[episodeNumber]
 					    .broadcastDatesMsec
 					    .push(broadcastDate.getTime())
@@ -600,12 +616,12 @@ module.exports = {
 	    console.log("Most recent daily:",episodesByNumber[mostRecentNumber].title,"at",new Date(mostRecentDate).toUTCString())
 
 	    // Cache to local file
-	    fs.writeFile(episodesfile,
+	    fs.writeFile(EPISODES_FILE,
 			 JSON.stringify(episodesCache,null,2), // prettyprint
 			 "utf8",
 			 function (err) {
 			     if (err) {
-				 console.error("An error occured while writing updates to",episodesfile);
+				 console.error("An error occured while writing updates to",EPISODES_FILE);
 				 console.error(err);
 			     }
 			 }

@@ -532,9 +532,8 @@ app.setHandler({
 		this.ask(this.$speech)
             }
 	} catch(e) {
-	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	    console.log(e.stack)
-	    throw e;
+	    return this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	}
     },
 
@@ -543,20 +542,18 @@ app.setHandler({
 	    this.$speech.addText("OK, which date do you want to select?")
 	    this.ask(this.$speech)
 	} catch(e) {
-	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	    console.log(e.stack)
-	    throw e;
+	    return this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	}
     },
 
     IncompleteEpisodeNumberIntent() {
 	try {
 	    this.$speech.addText("OK, which episode number do you want to select?")
-	    this.ask(this.$speech)
+	    return this.ask(this.$speech)
 	} catch(e) {
-	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	    console.log(e.stack)
-	    throw e;
+	    return this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	}
     },
 
