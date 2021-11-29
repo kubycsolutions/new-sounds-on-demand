@@ -199,9 +199,10 @@ const Player = require('./player.js');
 // slow enough to time out. The delay might be updateEpisode, esp. since
 // that's currently trying/failing to write to the lambda's local filesystem.
 // (Need to rework episode tables as DB, I guess.) Running updates on schedule
-// might be another step in the right direction.
+// might be another step in the right direction. Skipping the preload here
+// might also help, since ramp-up now occurs on user's time.
 //
-Player.updateEpisodes(-1) // Incremental load (usually preferred)
+// Player.updateEpisodes(-1) // Incremental load (usually preferred)
 
 ////////////////////////////////////////////////////////////////
 
@@ -263,13 +264,13 @@ app.setHandler({
             return this.ask(this.$speech);
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.log(e.stack)
+	    console.error("NEW_USER caught: ",e,e.stack)
 	    throw e;
 	}
     },
 
     LAUNCH() {
-	return this.DialogIntent()
+	return this.toIntent('DialogIntent')
     },
 
     DialogIntent() {
@@ -278,7 +279,7 @@ app.setHandler({
             this.ask(this.$speech);
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.log(e.stack)
+	    console.error("DialogIntent caught: ",e.stack)
 	    throw e;
 	}
     },
@@ -306,7 +307,7 @@ app.setHandler({
             }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.log(e.stack)
+	    console.error("FirstEpisodeIntent caught: ",e.stack)
 	    throw e;
 	}
     },
@@ -335,7 +336,7 @@ app.setHandler({
             }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.log(e.stack)
+	    console.error("LastEpisodeIntent caught: ",e.stack)
 	    throw e;
 	}
     },
@@ -349,7 +350,7 @@ app.setHandler({
             var currentDate = this.$user.$data.currentDate;
 	    var episode=null
 	    if (currentDate==Player.getLiveStreamDate()) {
-		return this.LiveStreamIntent()
+		return this.toIntent('LiveStreamIntent')
 	    }
 	    else if(currentOffset<0) { // Stopped at last known ep; is there newer?
 		await Player.updateEpisodes(-1) // Pick up any late additions
@@ -398,7 +399,7 @@ app.setHandler({
             }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.log(e.stack)
+	    console.error("ResumeIntent caught: ",e.stack)
 	    throw e;
 	}
     },
@@ -422,7 +423,7 @@ app.setHandler({
             this.$speech.addText('Fetching episode '+nextEpisode.title+".");
             if (this.isAlexaSkill()) {
 		this.tell(this.$speech)
-		this.$alexaSkill.$audioPlayer
+		return this.$alexaSkill.$audioPlayer
 		    .setOffsetInMilliseconds(0)
 		    .play(addUriUsage(nextEpisode.url), `${currentDate}`)
             } else if (this.isGoogleAction()) {
@@ -433,11 +434,11 @@ app.setHandler({
 		console.log("GOOGLE: Next,",addUriUsage(nextEpisode.url))
 		this.$googleAction.$mediaResponse.play(addUriUsage(nextEpisode.url), nextEpisode.title);
 		this.$googleAction.showSuggestionChips(['pause', 'start over']);
-		this.ask(this.$speech);
+		return this.ask(this.$speech);
             }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.log(e.stack)
+	    console.error("NextIntent caught: ",e.stack)
 	    throw e;
 	}
     },
@@ -478,7 +479,7 @@ app.setHandler({
             }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.log(e.stack)
+	    console.error("PreviousIntent caught: ",e.stack)
 	    throw e;
 	}
     },
@@ -494,14 +495,14 @@ app.setHandler({
 		return this.tell("You can't move forward or back in the livestream. That kind of control is only available when playing episodes.");
 	    }
             let duration = this.getInput("duration").value
-	    console.log(">>> RewindIntent:",duration, typeof(duration))
+	    console.log(">>> FastForwardIntent:",duration, typeof(duration))
 	    let dd=parseISO8601Duration(duration)
-	    console.log(">>> RewindIntent:",dd)
+	    console.log(">>> FastForwardIntentIntent:",dd)
 
 	    return this.tell("Fast forward isn't supported yet. You could ask us to skip to the next episode instead.")
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.log(e.stack)
+	    console.error("FastForwardIntent caught: ",e.stack)
 	    throw e;
 	}
     },
@@ -532,7 +533,7 @@ app.setHandler({
 		this.ask(this.$speech)
             }
 	} catch(e) {
-	    console.log(e.stack)
+	    console.error("RandomIntent caught: ",e.stack)
 	    return this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	}
     },
@@ -542,7 +543,7 @@ app.setHandler({
 	    this.$speech.addText("OK, which date do you want to select?")
 	    this.ask(this.$speech)
 	} catch(e) {
-	    console.log(e.stack)
+	    console.error("IncompleteDateIntent caught: ",e.stack)
 	    return this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	}
     },
@@ -552,8 +553,8 @@ app.setHandler({
 	    this.$speech.addText("OK, which episode number do you want to select?")
 	    return this.ask(this.$speech)
 	} catch(e) {
-	    console.log(e.stack)
-	    return this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
+	    console.error("IncompleteEpisodeNumberIntent caught: ",e.stack)
+	    throw e
 	}
     },
 
@@ -613,7 +614,7 @@ app.setHandler({
 		this.$speech.addText("Fetching the show from "+format(date,"PPPP")+": episode "+episode.title+".");
 		if (this.isAlexaSkill()) {
 		    this.tell(this.$speech)
-		    this.$alexaSkill.$audioPlayer
+		    return this.$alexaSkill.$audioPlayer
 			.setOffsetInMilliseconds(0)
 			.play(addUriUsage(episode.url), `${currentDate}`)
 		} else if (this.isGoogleAction()) {
@@ -623,16 +624,16 @@ app.setHandler({
 		    // Suggestion Chips.
 		    this.$googleAction.$mediaResponse.play(addUriUsage(episode.url), episode.title);
 		    this.$googleAction.showSuggestionChips(['pause', 'start over']);
-		    this.ask(this.$speech)
+		    return this.ask(this.$speech)
 		}
 	    }
 	    else {
 		this.$speech.addText("An episode broadcast on "+format(date,"PPPP")+" does not seem to be available in the vault. What would you like me to do instead?")
-		this.ask(this.$speech)
+		return this.ask(this.$speech)
 	    }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.log(e.stack)
+	    console.error("DateIntent caught: ",e.stack)
 	    throw e;
 	}
     },
@@ -668,7 +669,7 @@ app.setHandler({
 	    }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.log(e.stack)
+	    console.error("EpisodeNumberIntent caught: ",e.stack)
 	    throw e;
 	}
     },
@@ -709,7 +710,7 @@ app.setHandler({
             }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.log(e.stack)
+	    console.error("LiveStreamIntent caught: ",e.stack)
 	    throw e;
 	}
     },
@@ -721,7 +722,7 @@ app.setHandler({
             this.ask(this.$speech);
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.log(e.stack)
+	    console.error("HelpIntent caught: ",e.stack)
 	    throw e;
 	}
     },
@@ -736,7 +737,7 @@ app.setHandler({
 	    return this.tell(this.$speech)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.log(e.stack)
+	    console.error("CreditsIntent caught: ",e.stack)
 	    throw e;
 	}
     },
@@ -753,7 +754,7 @@ app.setHandler({
 	    return this.ask(this.$speech)
 	} catch(e) {
 	    this.ask("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.log(e.stack)
+	    console.error("DebugIntent caught: ",e.stack)
 	    throw e;
 	}
     },
@@ -770,7 +771,7 @@ app.setHandler({
 	    return this.tell(this.$speech)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.log(e.stack)
+	    console.error("Who Sings caught: ",e.stack)
 	    throw e;
 	}
     },
@@ -786,7 +787,7 @@ app.setHandler({
 	    return this.tell(this.$speech)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.log(e.stack)
+	    console.error("Who Is Playing caught: ",e.stack)
 	    throw e;
 	}
     },
@@ -802,7 +803,7 @@ app.setHandler({
 	    return this.tell(this.$speech)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.log(e.stack)
+	    console.error("How Long caught: ",e.stack)
 	    throw e;
 	}
     },
@@ -818,7 +819,7 @@ app.setHandler({
 	    return this.tell(this.$speech)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.log(e.stack)
+	    console.error("What Album caught: ",e.stack)
 	    throw e;
 	}
     },
@@ -834,7 +835,7 @@ app.setHandler({
 	    return this.tell(this.$speech)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.log(e.stack)
+	    console.error("Who Produced caught: ",e.stack)
 	    throw e;
 	}
     }
