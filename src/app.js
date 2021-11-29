@@ -200,9 +200,9 @@ const Player = require('./player.js');
 // that's currently trying/failing to write to the lambda's local filesystem.
 // (Need to rework episode tables as DB, I guess.) Running updates on schedule
 // might be another step in the right direction. Skipping the preload here
-// might also help, since ramp-up now occurs on user's time.
+// might be a first step, since ramp-up now occurs on user's time.
 //
-// Player.updateEpisodes(-1) // Incremental load (usually preferred)
+// Player.updateEpisodes(-1)
 
 ////////////////////////////////////////////////////////////////
 
