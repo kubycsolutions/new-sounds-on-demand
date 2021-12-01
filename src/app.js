@@ -155,6 +155,22 @@ function objToString(obj, ndeep) {
     }
 }
 
+// Trying to make sure we report stacks when we catch an exception.
+// Apparently the way one does a downcast in Javascript is to do an
+// instanceof conditional; it's at least clever enough to realize that
+// in the true case the object implements the named in. Making it a
+// function that returns the stack or null was the easiest way for me
+// to global-replace this into my console.log calls.
+//
+// Yes, it could have a better name. It's a stopgap that should be
+// unnecessary if I can move to Typescript.
+function trystack(obj) {
+    if (obj instanceof Error) {
+	return obj.stack
+    }
+    else return ""
+}
+
 // ------------------------------------------------------------------
 // APP INITIALIZATION
 // ------------------------------------------------------------------
@@ -264,7 +280,7 @@ app.setHandler({
             return this.ask(this.$speech);
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("NEW_USER caught: ",e,e.stack)
+	    console.error("NEW_USER caught: ",e,e,trystack(e))
 	    throw e;
 	}
     },
@@ -279,7 +295,7 @@ app.setHandler({
             this.ask(this.$speech);
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("DialogIntent caught: ",e.stack)
+	    console.error("DialogIntent caught: ",e,trystack(e))
 	    throw e;
 	}
     },
@@ -307,7 +323,7 @@ app.setHandler({
             }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("FirstEpisodeIntent caught: ",e.stack)
+	    console.error("FirstEpisodeIntent caught: ",e,trystack(e))
 	    throw e;
 	}
     },
@@ -336,7 +352,7 @@ app.setHandler({
             }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("LastEpisodeIntent caught: ",e.stack)
+	    console.error("LastEpisodeIntent caught: ",e,trystack(e))
 	    throw e;
 	}
     },
@@ -399,7 +415,7 @@ app.setHandler({
             }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("ResumeIntent caught: ",e.stack)
+	    console.error("ResumeIntent caught: ",e,trystack(e))
 	    throw e;
 	}
     },
@@ -438,7 +454,7 @@ app.setHandler({
             }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("NextIntent caught: ",e.stack)
+	    console.error("NextIntent caught: ",e,trystack(e))
 	    throw e;
 	}
     },
@@ -479,7 +495,7 @@ app.setHandler({
             }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("PreviousIntent caught: ",e.stack)
+	    console.error("PreviousIntent caught: ",e,trystack(e))
 	    throw e;
 	}
     },
@@ -502,7 +518,7 @@ app.setHandler({
 	    return this.tell("Fast forward isn't supported yet. You could ask us to skip to the next episode instead.")
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("FastForwardIntent caught: ",e.stack)
+	    console.error("FastForwardIntent caught: ",e,trystack(e))
 	    throw e;
 	}
     },
@@ -533,7 +549,7 @@ app.setHandler({
 		this.ask(this.$speech)
             }
 	} catch(e) {
-	    console.error("RandomIntent caught: ",e.stack)
+	    console.error("RandomIntent caught: ",e,trystack(e))
 	    return this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	}
     },
@@ -543,7 +559,7 @@ app.setHandler({
 	    this.$speech.addText("OK, which date do you want to select?")
 	    this.ask(this.$speech)
 	} catch(e) {
-	    console.error("IncompleteDateIntent caught: ",e.stack)
+	    console.error("IncompleteDateIntent caught: ",e,trystack(e))
 	    return this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	}
     },
@@ -553,7 +569,7 @@ app.setHandler({
 	    this.$speech.addText("OK, which episode number do you want to select?")
 	    return this.ask(this.$speech)
 	} catch(e) {
-	    console.error("IncompleteEpisodeNumberIntent caught: ",e.stack)
+	    console.error("IncompleteEpisodeNumberIntent caught: ",e,trystack(e))
 	    throw e
 	}
     },
@@ -633,7 +649,7 @@ app.setHandler({
 	    }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("DateIntent caught: ",e.stack)
+	    console.error("DateIntent caught: ",e,trystack(e))
 	    throw e;
 	}
     },
@@ -669,7 +685,7 @@ app.setHandler({
 	    }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("EpisodeNumberIntent caught: ",e.stack)
+	    console.error("EpisodeNumberIntent caught: ",e,trystack(e))
 	    throw e;
 	}
     },
@@ -710,7 +726,7 @@ app.setHandler({
             }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("LiveStreamIntent caught: ",e.stack)
+	    console.error("LiveStreamIntent caught: ",e,trystack(e))
 	    throw e;
 	}
     },
@@ -722,7 +738,7 @@ app.setHandler({
             this.ask(this.$speech);
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("HelpIntent caught: ",e.stack)
+	    console.error("HelpIntent caught: ",e,trystack(e))
 	    throw e;
 	}
     },
@@ -737,7 +753,7 @@ app.setHandler({
 	    return this.tell(this.$speech)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("CreditsIntent caught: ",e.stack)
+	    console.error("CreditsIntent caught: ",e,trystack(e))
 	    throw e;
 	}
     },
@@ -754,7 +770,7 @@ app.setHandler({
 	    return this.ask(this.$speech)
 	} catch(e) {
 	    this.ask("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("DebugIntent caught: ",e.stack)
+	    console.error("DebugIntent caught: ",e,trystack(e))
 	    throw e;
 	}
     },
@@ -771,7 +787,7 @@ app.setHandler({
 	    return this.tell(this.$speech)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("Who Sings caught: ",e.stack)
+	    console.error("Who Sings caught: ",e,trystack(e))
 	    throw e;
 	}
     },
@@ -787,7 +803,7 @@ app.setHandler({
 	    return this.tell(this.$speech)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("Who Is Playing caught: ",e.stack)
+	    console.error("Who Is Playing caught: ",e,trystack(e))
 	    throw e;
 	}
     },
@@ -803,7 +819,7 @@ app.setHandler({
 	    return this.tell(this.$speech)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("How Long caught: ",e.stack)
+	    console.error("How Long caught: ",e,trystack(e))
 	    throw e;
 	}
     },
@@ -819,7 +835,7 @@ app.setHandler({
 	    return this.tell(this.$speech)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("What Album caught: ",e.stack)
+	    console.error("What Album caught: ",e,trystack(e))
 	    throw e;
 	}
     },
@@ -835,7 +851,7 @@ app.setHandler({
 	    return this.tell(this.$speech)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("Who Produced caught: ",e.stack)
+	    console.error("Who Produced caught: ",e,trystack(e))
 	    throw e;
 	}
     }
