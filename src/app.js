@@ -211,13 +211,10 @@ if (Project.getStage() === 'prod') {
 
 const Player = require('./player.js');
 
-// GONK: Right now, when running as Lambda, cold (re)start is running
-// slow enough to time out. The delay might be updateEpisode, esp. since
-// that's currently trying/failing to write to the lambda's local filesystem.
-// (Need to rework episode tables as DB, I guess.) Running updates on schedule
-// might be another step in the right direction. Skipping the preload here
-// might be a first step, since ramp-up now occurs on user's time.
-//
+// If running in lambda, we do NOT want to take the time to update the
+// database at startup. Let it happen in the Intent, if needed.
+// And I'm giving serious thought to making it a separate scheduled
+// process once we move to a real database.
 // Player.updateEpisodes(-1)
 
 ////////////////////////////////////////////////////////////////

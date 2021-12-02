@@ -360,7 +360,6 @@ module.exports = {
     // the cache database and player code...
     updateEpisodes: async function(maxdepth) {
 	console.log("Checking server for new episodes...")
-	const axios=require('axios')
 
 	// Run Axios query, returning a Promise
 	const getEpisodeData = (page) => {
@@ -372,11 +371,26 @@ module.exports = {
 		// because I think I want to move it out to a per-show
 		// initialization file.
 		var uri=formatEpisodeDatabaseQueryURI(page,page_size)
-		axios.get(uri)
+
+		// Axios is considered deprecated/unserviced
+		// Trying Got as an alternative; usage is fairly similar
+		
+		// const axios=require('axios')
+		// axios.get(uri)
+		//     .then(response => {
+		//     	return resolve(response.data);
+		//     })
+		//     .catch(error => {
+		//     	return reject(error.message)
+		//     })
+ 
+		const got = require('got');
+		got.get(uri, {responseType: 'json'}) // default resp is string
 		    .then(response => {
-			return resolve(response.data);
+			return resolve(response.body);
 		    })
 		    .catch(error => {
+			console.log(error)
 			return reject(error.message)
 		    })
 	    })
@@ -603,9 +617,9 @@ module.exports = {
 			++page
 		    }) // end await.then
 		    .catch(error => {
-			console.error("Update failed on Page",page,"\n",error)
-			// TODO: Diagnostics?
+			console.error("Update failed on Page",page,"\n",error,error.stack)
 			// Recovery: Run with what we've previously loaded
+			throw error
 		    }) 
 	    } // end while
 

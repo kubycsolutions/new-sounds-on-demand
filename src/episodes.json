@@ -46888,7 +46888,8 @@
       "title": "#4422, The Tale of Fair Margaret and Sweet William",
       "tease": "Listen to some of the many versions of the Tale of Fair Margaret and Sweet William &ndash; a doomed love affair &ndash;from Sam Amidon, Rhiannon Giddens, Robert Plant, and others.",
       "broadcastDatesMsec": [
-        1603670400000
+        1603670400000,
+        1638144000000
       ],
       "tags": [
         " fairport convention ",
@@ -46909,7 +46910,8 @@
       "title": "#4423, Ethiopian Music Around the World",
       "tease": "Sample Ethiopian music from around the world &ndash; from Addis Abbaba and the \"Golden Age\" of Ethiopop, and music from France, Belgium, the Netherlands, Israel, Australia, and the U.S.A.",
       "broadcastDatesMsec": [
-        1603843200000
+        1603843200000,
+        1638316800000
       ],
       "tags": [
         " black flower ",
@@ -49762,6 +49764,43 @@
         " william byrd "
       ],
       "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds112421.mp3"
+    },
+    {
+      "episodeNumber": 4566,
+      "title": "#4566, New Releases, Nov. 2021 and Stephen Sondheim Re-imagined",
+      "tease": "Hear samples of new music by Polish cellist/composer Resina, Russian pianist Anton Batagov, and Swedish-Iranian sound artist Shida Shahabi. Plus, a memorial tribute to Stephen Sondheim.",
+      "broadcastDatesMsec": [
+        1638230400000
+      ],
+      "tags": [
+        " anthony de mare ",
+        " anton batagov ",
+        " music ",
+        " resina ",
+        " rival consoles ",
+        " shida shahabi ",
+        " stephen sondheim "
+      ],
+      "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds113021.mp3"
+    },
+    {
+      "episodeNumber": 4567,
+      "title": "#4567, Seasonal Songs of December",
+      "tease": "As the nights get longer, hear music of the season by Jeremiah Lockwood and Hanukkah tunes arranged for solo guitar, and music from John Fahey's Christmas albums that inspired him.",
+      "broadcastDatesMsec": [
+        1638403200000
+      ],
+      "tags": [
+        " classical sundays ",
+        " hanukkah ",
+        " jeremiah lockwood ",
+        " john fahey ",
+        " music ",
+        " richard rushkin ",
+        " shane parish ",
+        " the knights "
+      ],
+      "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds120221.mp3"
     }
   ],
   "episodeNumbersByDateMsec": {
@@ -55738,6 +55777,10 @@
     "1637798400000": 4277,
     "1637712000000": 4565,
     "1637971200000": 4272,
-    "1638057600000": 4284
+    "1638057600000": 4284,
+    "1638316800000": 4423,
+    "1638230400000": 4566,
+    "1638144000000": 4422,
+    "1638403200000": 4567
   }
 }
