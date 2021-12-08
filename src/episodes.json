@@ -43915,7 +43915,8 @@
       "tease": "Hear mostly acoustic music from Africa: The Good Ones from Rwanda, Cameroonian guitarist Francis Bebey, Lazarus from Malawi, and Malian fingerstyle guitarist Boubacar \"Badian\" Diabat&eacute;.",
       "broadcastDatesMsec": [
         1598400000000,
-        1568851200000
+        1568851200000,
+        1638576000000
       ],
       "tags": [
         " ali farka toure ",
@@ -43935,7 +43936,8 @@
       "tease": "Hear the latest work by composer and inventor of the mutantrumpet, Ben Neill, along with new trumpet-based music from Laura Jurd/Dinosaur, Yazz Ahmed, and the band Sex Mob.",
       "broadcastDatesMsec": [
         1598486400000,
-        1569283200000
+        1569283200000,
+        1638662400000
       ],
       "tags": [
         " ben neill ",
@@ -46952,7 +46954,8 @@
       "title": "#4425, Hope ",
       "tease": "Lend thine ears to songs of hope in fingerstyling guitar by Yasmin Williams, chamber-jazz by Chicago pianist Ryan Cohan, and work by the Neil Cowley Trio. Plus, music by Tiny Leaves.",
       "broadcastDatesMsec": [
-        1604448000000
+        1604448000000,
+        1638748800000
       ],
       "tags": [
         " music ",
@@ -49801,6 +49804,64 @@
         " the knights "
       ],
       "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds120221.mp3"
+    },
+    {
+      "episodeNumber": 4568,
+      "title": "#4568, A Tribute to Alvin Lucier ",
+      "tease": "The late American composer and electroacoustic explorer Alvin Lucier challenged audiences and blurred the line between sound and music throughout his career. Sample some of his work.",
+      "broadcastDatesMsec": [
+        1638489600000
+      ],
+      "tags": [
+        " alvin lucier ",
+        " bang on a can allstars ",
+        " jeremiah cymerman ",
+        " music "
+      ],
+      "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds120321.mp3"
+    },
+    {
+      "episodeNumber": 4569,
+      "title": "#4569, Late Night Jazz",
+      "tease": "Hear music with a late night jazz feeling, infused with groove and electronics by UK-based harpist Nala Sinephro, South African trombonist Malcolm Jiyane, and Turkish composer Berk Icli.",
+      "broadcastDatesMsec": [
+        1638835200000
+      ],
+      "tags": [
+        " ben lamar gay ",
+        " berk icli ",
+        " georgia anne muldrow ",
+        " jon hassell ",
+        " malcolm jiyane ",
+        " millenial territory orchestra ",
+        " music ",
+        " nala sinephro ",
+        " steven bernstein "
+      ],
+      "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds120721.mp3"
+    },
+    {
+      "episodeNumber": 4570,
+      "title": "#4570, Music With Piano",
+      "tease": "Two is a crowd around the piano with music by Polish duo Hania Rani and Dobrawa Czocher, German sound pioneer Hans-Joachim Roedelius with Tim Story, and German-Swiss duo Grandbrothers.",
+      "broadcastDatesMsec": [
+        1638921600000
+      ],
+      "tags": [
+        " avawaves ",
+        " dobrawa czocher ",
+        " grandbrothers ",
+        " hania rani ",
+        " lubomyr melnyk ",
+        " music ",
+        " peter broderick ",
+        " poppy ackroyd ",
+        " rebecca foon ",
+        " roedelius ",
+        " tim story ",
+        " vikingur olafsson "
+      ],
+      "url": "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds120821.mp3"
     }
   ],
   "episodeNumbersByDateMsec": {
@@ -55781,6 +55842,12 @@
     "1638316800000": 4423,
     "1638230400000": 4566,
     "1638144000000": 4422,
-    "1638403200000": 4567
+    "1638403200000": 4567,
+    "1638921600000": 4570,
+    "1638835200000": 4569,
+    "1638748800000": 4425,
+    "1638662400000": 4279,
+    "1638576000000": 4278,
+    "1638489600000": 4568
   }
 }
