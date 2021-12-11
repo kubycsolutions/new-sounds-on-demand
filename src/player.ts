@@ -1,13 +1,20 @@
 'use strict;'
 
-// Sounds-like processing, for tag searches eventually
-// NOTE: These require the code be a Module, apparently...?
-//import {metaphone} from 'metaphone'
-//import {stemmer} from 'stemmer'
+import got from 'got'
 
+// TODO: Sounds-like processing, for tag searches, eventually.
+// ISSUE: TS is turning these imports into requires, and then
+// Jovo/JS complains that they needed to be imports. Some combination
+// of Typescript config options is needed to fix this, I assume.
+// import {metaphone} from 'metaphone'
+// import {stemmer} from 'stemmer'
+
+// Filesystem access, so we can write out updates to the "reload cache"
+// copy of the episode tables.
 // GONK GONK: Episodes and dates tables should be moved into a
-// database when running on lambda. Which DB depends on environment,
-// as we saw in the jovo initialization.
+// database when running on lambda. Which DB may depend on environment,
+// as we saw in the jovo initialization... or it may be simpler to just
+// require DominoDB, and launch it locally for development.
 const fs = require('fs')
 
 ////////////////////////////////////////////////////////////////
@@ -15,30 +22,29 @@ const fs = require('fs')
 //
 // TODO REVIEW: URI constants should probably be loaded from a config
 // file, since I *think* this code could handle the sibling shows too.
-// (One *could* have a unified skill for all of them. But there's
-// sufficient need to track state separately that I'm not sure it's
-// worth the complexity vs. firing up a skill for each.)
-//
-// TODO REVIEW: Add the application-ID parameters with
-// app.addUriUsage? Would require refactoring that down here.
+// (One *could* have a unified skill and/or database for all of
+// them. I'm not sure that makes sense for user navigation, but we'll
+// see.)
 //
 // TODO REVIEW: We could cheat the livestream into our normal tables,
 // treating it as an Episode with null date and episodeNumber
 // zero. Unclear that would actually be much cleaner; app.js still
 // needs to special-case it since we can't navigate to/from/within it.
 const LIVE_STREAM_URI="https://q2stream.wqxr.org/q2-web?nyprBrowserId=NewSoundsOnDemand.smartspeaker.player"
-const LIVE_STREAM_DATE=null // Make sure we don't try to navigate it!
+const LIVE_STREAM_DATE=0 // Reserved slot. Don't try to navigate it!
 const LIVE_STREAM_METADATA_URI="http://api.wnyc.org/api/v1/whats_on/q2"
 
 // TODO: Should probably have a constant for the DB query format
 
-
-// Politeness: Tell the station's servers (and any tracking system
+// Politeness: Tell the station's servers (and the tracking systems
 // they're using) where these HTTP(S) queries are coming from, for
-// debugging and statistics.
+// debugging and statistics. (And no, skipping the trackers does *not*
+// avoid the underwriting and identification boilerplate being
+// prepended to episode MP3s... and the length of those varies enough
+// that we can't get away with cheating the offset forward a known
+// amount.)
 //
-// TODO REVIEW: refactor addUriUsage from app into Player? And/or into
-// per-show config?
+// TODO REVIEW: export/import addUriUsage, refactor as needed?
 const APP_URI_PARAMETERS="user=keshlam@kubyc.solutions&nyprBrowserId=NewSoundsOnDemand.smartspeaker.player"
 
 // URI to query the station's episode database. Pages start from 1, ordered
@@ -48,7 +54,7 @@ const APP_URI_PARAMETERS="user=keshlam@kubyc.solutions&nyprBrowserId=NewSoundsOn
 // This is currently an anonymous function/function-pointer because I
 // think we want to refactor it into the per-show configuration, and
 // that *may* be a clean way to do it. Or may not.
-const formatEpisodeDatabaseQueryURI=function(page,page_size) {
+const formatEpisodeDatabaseQueryURI=function(page:number,page_size:number) {
     return "https://api.wnyc.org/api/v3/story/?item_type=episode&ordering=-newsdate&show=newsounds&"+APP_URI_PARAMETERS+"&page="+page+"&page_size="+page_size
 }
 
@@ -60,27 +66,56 @@ const formatEpisodeDatabaseQueryURI=function(page,page_size) {
 // size of update.
 const EPISODES_FILE='./episodes.json'
 
-function Episode(number,title,tease,timestamps,tags,url) {
-    this.episodeNumber=number;
-    this.title=title
-    this.tease=tease
-    this.broadcastDatesMsec=timestamps
-    this.tags=tags
-    this.url=url
+export interface EpisodeRecord {
+    number: number;
+    title: string;
+    tease: string;
+    broadcastDatesMsec: (number|null)[]; // Should never be null, but for type compatibility...
+    tags: string[];
+    url: string;
+}
+// Typescript representation of a hashtable
+// Could make it array of days-since-epoch, converting; that would still have nulls for missing episodes, though.
+export interface EpisodeNumbersByDateMsec {
+    [index: string]: number|null; // This will be null if datestamp not in keys
+}
+export interface EpisodesCache {
+    episodesByNumber: (EpisodeRecord|null)[]
+    episodeNumbersByDateMsec: EpisodeNumbersByDateMsec
 }
 
-var episodesCache = require(EPISODES_FILE); // Initialize from local cache
-var episodesByNumber = episodesCache.episodesByNumber
-var episodeNumbersByDateMsec = episodesCache.episodeNumbersByDateMsec
+// I keep forgetting js/ts instantiate struct objects with inline {} syntax,
+// rather than needing 'new' or c'tors. Those come back in with classes.
+// Which I could have used, but since I was learning the language as I went
+// I found it easier to work with basic structs.
+//
+// Meanwhile, just as a temporary conceptual bridge, I'm wrapping a
+// function around the inline constructor.
+function newEpisodeRecord(epNumber:number,title:string,tease:string,timestamps:number[],tags:string[],url:string):EpisodeRecord {
+    var er:EpisodeRecord={
+	number: epNumber,
+	title: title,
+	tease: tease,
+	broadcastDatesMsec: timestamps,
+	tags: tags,
+	url: url
+    }
+    return er
+}
+
+// TODO: Replace episodesCache and its file with database
+//var episodesCache = require(EPISODES_FILE); // Initialize from local cache
+import * as episodesCache from './episodes.json'
+var episodesByNumber:(EpisodeRecord|null)[] = episodesCache.episodesByNumber!
+var episodeNumbersByDateMsec:EpisodeNumbersByDateMsec = episodesCache.episodeNumbersByDateMsec!
 
 ///////////////////////////////////////////////////////////////////////////
 // Utility functions
 
 // Rough JSONification of object, useful when debugging
 //
-// REVIEW: Does JSON permit overloading or default args so
-// objToString(obj) could imply ndeep=0? Cleaner...
-function objToString(obj, ndeep) {
+// TODO: EXPOSE AND IMPORT
+function objToString(obj:any, ndeep:number=0):string {
     const MAX_OBJTOSTRING_DEPTH=10 // circular refs are possible
 
     if(obj == null){ return String(obj); }
@@ -106,7 +141,7 @@ function objToString(obj, ndeep) {
 }
 
 // Convert HTML escapes to speakable. Note RE syntax in .replace().
-function deHTMLify(text) {
+function deHTMLify(text:string):string {
     return text
 	.replace(/<.*>/gi," ")
 	.replace(/&nbsp;/gi," ")
@@ -124,7 +159,7 @@ function deHTMLify(text) {
 //
 // TODO: Functional sanity-check against dates as I've parsed and
 // recorded them.
-function todayMS() { // round off UTC to day. Handles leapyears.
+function todayMS():number { // round off UTC to day. Handles leapyears.
     let d=new Date(Date.now());
     d.setUTCHours(0)
     d.setUTCMinutes(0)
@@ -135,7 +170,7 @@ function todayMS() { // round off UTC to day. Handles leapyears.
 // TODO REFACTOR: JSON serializes key ms as strings; Date ctor from
 // msec value wants int. Arguably that should be being normalized at
 // the time we retrieve the datestamp rather than here.
-function nextDayMS(datestamp) {
+function nextDayMS(datestamp:number):number {
     if(typeof datestamp=="string")
 	datestamp=parseInt(datestamp)
     let d=new Date(datestamp);
@@ -151,9 +186,9 @@ function nextDayMS(datestamp) {
 // TODO REFACTOR: JSON serializes key ms as strings; Date ctor from
 // msec value wants int. Arguably that should be being normalized at
 // the time we retrieve the datestamp rather than here.
-function nextEpisodeDateMS(datestamp) {
+function nextEpisodeDateMS(datestamp:number):number {
     for(let dateMS=nextDayMS(datestamp);dateMS<=todayMS();dateMS=nextDayMS(dateMS)) {
-	let ep=episodeNumbersByDateMsec[dateMS]
+	let ep=episodeNumbersByDateMsec[dateMS.toString()]
 	if(ep!=null && ep!=undefined) { // JS novice paranoia
 	    return dateMS
 	}
@@ -165,7 +200,7 @@ function nextEpisodeDateMS(datestamp) {
 // TODO REFACTOR: JSON serializes key ms as strings; Date ctor from
 // msec value wants int. Arguably that should be being normalized at
 // the time we retrieve the datestamp rather than here.
-function previousDayMS(datestamp) {
+function previousDayMS(datestamp:number):number {
     if (typeof datestamp === 'string') 
 	datestamp=parseInt(datestamp)
     let d=new Date(datestamp);
@@ -177,10 +212,10 @@ function previousDayMS(datestamp) {
     return d.getTime()
 }
 
-function previousEpisodeDateMS(datestamp) {
+function previousEpisodeDateMS(datestamp:number):number {
     var showEpoch=firstBroadcastDateMS(1) // Guaranteed to return number, not str.
     for(let dateMS=previousDayMS(datestamp);dateMS>=showEpoch;dateMS=previousDayMS(dateMS)) {
-	let ep=episodeNumbersByDateMsec[dateMS]
+	let ep=episodeNumbersByDateMsec[dateMS.toString()]
 	if(ep!=null && ep!=undefined) { // JS novice paranoia
 	    return dateMS
 	}
@@ -196,8 +231,13 @@ function previousEpisodeDateMS(datestamp) {
 // TODO GONK: Risk of confusion about expected parameter here. Does
 // Javascript/typescript allow overloading, or would I have to do
 // instanceof/typeof to support both (for robustness)?
-function firstBroadcastDateMS(epNumber) {
-    return Math.min.apply(null,episodesByNumber[epNumber].broadcastDatesMsec)
+function firstBroadcastDateMS(epNumber:number):number {
+    let ep=episodesByNumber[epNumber]!
+    return Math.min.apply(null,
+			  ep.broadcastDatesMsec.filter( // drop nulls
+			      (x): x is number => x !== null)
+			 )
+
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -216,15 +256,15 @@ function firstBroadcastDateMS(epNumber) {
 // to keep it as integer and declare any int smaller than 100,000 must
 // be an episode number.)
 
-module.exports = {
-    getLiveStreamURI: function() { return LIVE_STREAM_URI },
-    getLiveStreamDate: function() { return LIVE_STREAM_DATE },
+export class Player {
+    static getLiveStreamURI():string { return LIVE_STREAM_URI };
+    static getLiveStreamDate():number { return LIVE_STREAM_DATE };
 
-    getMostRecentBroadcastDate: function() {
+    static getMostRecentBroadcastDate():number {
 	let newSoundsEpochMS=this.getOldestEpisodeDate()
 	// Loop should terminate quickly; this is overkill for robustness.
 	for(let date=todayMS(); date>=newSoundsEpochMS; date=previousDayMS(date)) {
-	    let ep=episodeNumbersByDateMsec[date]
+	    let ep=episodeNumbersByDateMsec[date.toString()]
 	    if(ep!=null && ep!=undefined) { // JS novice paranoia
 		return date
 	    }
@@ -232,106 +272,113 @@ module.exports = {
 	// Should never fall out of that loop
 	console.error("ERROR in getMostRecentBroadcastDate: date not found")
 	return -1;
-    },
-    getHighestEpisodeNumber: function() {
+    };
+    static getHighestEpisodeNumber():number {
 	// Relies on the fact that our auto-expanding array will always
 	// have top index non-empty, unless we step on that.
 	// TODO: Review periodically.
         return episodesByNumber.length-1;
-    },
-    getLatestEpisodeIndex: function() {
+    };
+    static getLatestEpisodeIndex():number {
         return this.getMostRecentBroadcastDate()
-    },
+    };
     
-    getFirstEpisodeNumber: function() {
+    static getFirstEpisodeNumber():number {
 	// TODO: Really shouldn't assume we have #1 and there is no #0.
         return 1;
-    },
-    getOldestEpisodeDate: function() {
+    };
+    static getOldestEpisodeDate():number {
 	return firstBroadcastDateMS(1);
-    },
-    getFirstEpisodeIndex: function() {
+    };
+    static getFirstEpisodeIndex():number {
 	return this.getOldestEpisodeDate()
-    },
+    };
     
-    getNextEpisodeNumber: function(index) {
+    static getNextEpisodeNumber(index:number):number {
 	if (index==null)
 	    return -1 // Can't navigate from livestream
 	// Skip nulls (episodes we don't have indexed)
-	while(episodesByNumber[++index]==null && index < episodesByNumber.length)
+	while(!episodesByNumber[++index] && index < episodesByNumber.length)
 	    ;
 	return index;
-    },
-    getNextEpisodeDate: function(index) {
+    };
+    static getNextEpisodeDate(index:number):number {
 	if (index==null)
 	    return -1 // Can't navigate from livestream
 	return nextEpisodeDateMS(index)
-    },
-    getNextEpisodeIndex: function(index) {
+    };
+    static getNextEpisodeIndex(index:number):number {
 	return this.getNextEpisodeDate(index)
-    },
+    };
 
-    getPreviousEpisodeNumber: function(index) {
+    static getPreviousEpisodeNumber(index:number):number {
 	if (index==null) 
 	    return -1 // Can't navigate from livestream
 	// Skip nulls (episodes we don't have indexed)
 	while(episodesByNumber[--index]==null && index > 0)
 	    ;
 	return index;
-    },
-    getPreviousEpisodeDate: function(index) {
+    };
+    static getPreviousEpisodeDate(index:number):number {
 	if (index==null)
 	    return -1 // Can't navigate from livestream
 	return previousEpisodeDateMS(index)
-    },
-    getPreviousEpisodeIndex: function(index) {
+    };
+    static getPreviousEpisodeIndex(index:number):number {
 	return this.getPreviousEpisodeDate(index)
-    },
+    };
 
-    getEpisodeNumber: function(episodeRecord) {
+    static getEpisodeNumber(episodeRecord:EpisodeRecord):number {
 	if(episodeRecord==null || episodeRecord==undefined)
 	    return -1
         return episodeRecord.number
-    },
-    getEpisodeDate: function(episodeRecord) {
+    };
+    static getEpisodeDate(episodeRecord:EpisodeRecord):number {
 	if(episodeRecord==null || episodeRecord==undefined)
 	    return -1
 	let episodeDateMS=firstBroadcastDateMS(episodeRecord.number)
 	return episodeDateMS
-    },
-    getEpisodeIndex: function(episodeRecord) {
+    };
+    static getEpisodeIndex(episodeRecord:EpisodeRecord):number {
 	return this.getEpisodeDate(episodeRecord)
-    },
+    };
 
-    getEpisodeByNumber: function(index) {
-	if (index==null)
-	    return -1 // Can't navigate from livestream
-        return index<0 ? null : episodesByNumber[index];
-    },
-    getEpisodeByDate: function(index) {
-	if (index==null)
-	    return -1 // Can't navigate from livestream
-        return index<0 ? null : episodesByNumber[episodeNumbersByDateMsec[index]];
-    },
-    getEpisodeByIndex: function(index) {
+    static getEpisodeByNumber(index:number):EpisodeRecord|null {
+	if (index<=0)
+	    return null // Can't navigate from livestream
+	else
+            return episodesByNumber[index];
+    };
+    static getEpisodeByDate(index:number):EpisodeRecord|null {
+	if (index<=0)
+	    return null // Can't navigate from livestream
+        else {
+	    let epNumber=episodeNumbersByDateMsec[index.toString()]
+	    if (epNumber)
+		return episodesByNumber[epNumber];
+	    else
+		return null
+	}
+    };
+    static getEpisodeByIndex(index:number):EpisodeRecord|null {
         return this.getEpisodeByDate(index);
-    },
+    };
 
-    getRandomEpisodeNumber: function() {
+    static getRandomEpisodeNumber():number {
 	// ep# are sparse, but if we have a date we know the episode exists,
 	// so random-select in that space and then map.
 	let randate=this.getRandomEpisodeDate()
-	return episodeNumbersByDateMsec[randate].number
-    },
-    getRandomEpisodeDate: function() {
+	return episodeNumbersByDateMsec[randate]! // Known non-null
+    };
+    static getRandomEpisodeDate():number {
 	// Hashtable keyed by dateMS, so pick from existing keys.
-	let dates=Object.keys(episodeNumbersByDateMsec)
+	let dates=Object.keys(episodeNumbersByDateMsec) // Sparse, so string[]
 	let choice=Math.floor(Math.random()*dates.length)
-	return dates[choice]
-    },
-    getRandomEpisodeIndex: function() {
+	return parseInt(dates[choice])
+    };
+    static getRandomEpisodeIndex():number {
 	return this.getRandomEpisodeDate()
-    },
+    };
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -358,11 +405,11 @@ module.exports = {
     // TODO REVIEW: Move this into a separate file for easier
     // replacement, to handle other sources? Update *is* closely linked to
     // the cache database and player code...
-    updateEpisodes: async function(maxdepth) {
+    static async updateEpisodes(maxdepth:number) {
 	console.log("Checking server for new episodes...")
 
-	// Run Axios query, returning a Promise
-	const getEpisodeData = (page) => {
+	// Run Got HTTP query, returning object via a Promise
+	const getStationEpisodeData = (page:number) => {
 	    console.log("  Fetch index page",page)
 	    const page_size=10 // Number of results per fetch
 	    return new Promise((resolve, reject) => {
@@ -371,30 +418,146 @@ module.exports = {
 		// because I think I want to move it out to a per-show
 		// initialization file.
 		var uri=formatEpisodeDatabaseQueryURI(page,page_size)
-
-		// Axios is considered deprecated/unserviced
-		// Trying Got as an alternative; usage is fairly similar
-		
-		// const axios=require('axios')
-		// axios.get(uri)
-		//     .then(response => {
-		//     	return resolve(response.data);
-		//     })
-		//     .catch(error => {
-		//     	return reject(error.message)
-		//     })
- 
-		const got = require('got');
-		got.get(uri, {responseType: 'json'}) // default resp is string
-		    .then(response => {
-			return resolve(response.body);
+		got.get(uri) // default content-type is 'text'
+		    .then( (response:any) => {
+			return resolve(JSON.parse(response.body));
 		    })
-		    .catch(error => {
-			console.log(error)
-			return reject(error.message)
+		    .catch( (e:any) => {
+			console.log(e)
+			if(e instanceof Error) {
+			    let error:Error=e
+			    return reject(error.message)
+			}
+			else {
+			    return reject(e.toString())
+			}
 		    })
 	    })
 	};
+
+	// NOTE: For validation purposes, I believe we can comment out
+	// any fields we aren't actually using and gain performance thereby.
+	// I'm already leaving some stuff typed as any because I don't need
+	// it and don't want to spend time spelling it out/validating it.
+	interface StationEpisodeAttributes {
+	    "analytics-code": string;
+	    appearances: any;
+	    audio: string|string[]; // uri; occasionally an array (past error?)
+	    "audio-available": boolean;
+	    "audio-eventually": boolean;
+	    "audio-may-download": boolean;
+	    "audio-may-embed": boolean;
+	    "audio-may-stream": boolean;
+	    // Body is an (X?)HTML string. Parsing out the
+	    // text description and playlist may be possible;
+	    // or we might want to display it on units with screens.
+	    // Unfortunately playlist gives only run lengths; not
+	    // offsets; so even if parsed we can't derive
+	    // "what's playing now" from it. And unfortunately the
+	    // recording-source URIs are of varying types (bandcamp;
+	    // store; etc) and are not all current; so we can't
+	    // easily implement "hey; put that on my shopping list".
+	    body: string;
+	    "canonical-url": null|string;
+	    channel: null|string;
+	    "channel-title": null|string;
+	    chunks: any; // ...
+	    "cms-pk": number;
+	    "comments-count": number;
+	    "enable-comments": boolean;
+	    "date-line-ts": number; // msec since epoch?
+	    "edit-link": string; // protected; I hope!
+	    "embed-code": string; // HTML for the iframe
+	    "estimated-duration": number; // seconds?
+	    headers: any; // ... 
+	    "header-donate-chunk": any; // null|string?
+	    "image-caption": null|string;
+	    "image-main": {
+		"alt-text": null|string;
+		name: null|string;
+		source: null|string;
+		url: null|string; // TODO: May want to display
+		h: number;
+		"is-display": boolean;
+		crop: string; // containing number
+		caption: string;
+		"credits-url": string; // TODO: Display?
+		template: string; // URI with substitution slots?
+		w: number;
+		id: number;
+		"credits-name": string; // eg "courtesy of the artist"
+	    };
+	    "item-type": string;
+	    "item-type-id": number;
+	    newscast: string;
+	    newsdate: string; // containing ISO date/time/offset stamp
+	    "npr-analytics-dimensions": string[]; // mostly replicates
+	    playlist: any[]; // ?
+	    "podcast-links": any[]; //?
+	    "producing-organizations": [{
+		url: string;
+		logo: any; // often null
+		name: string
+	    }];
+	    "publish-at": string; // containing ISO date/time/offset stamp
+	    "publish-status": string;
+	    show: string; // "newsounds"
+	    "show-tease": string; // HTML for "teaser" description of SHOW
+	    "show-title": string; // "New Sounds"
+	    "show-producing-orgs": [{ // TODO: Make org an interface?
+		url: string;
+		logo: any; // often null
+		name: string;
+	    }];
+	    series: any[] // often empty
+	    segments: any[] // often empty
+	    "short-title": string // often empty
+	    "site-id": number
+	    slug: string // Brief description eg "4569-late-night-jazz"
+	    slideshow: any[] // often empty
+	    tags: string[] // "artist_name", "music", ...
+	    tease: string // NON-HTML brief description of EPISODE
+	    template: string // editing guidance
+	    title: string // Brief description eg "#4569, Late Night Jazz",
+	    transcript: string // usually empty for New Sounds
+	    "twitter-headline": string // usually === title
+	    "twitter-handle": string // eg "newsounds"
+	    url: string // for episode description page. Display?
+	    video: null|string // usually null
+	}
+	interface StationEpisodeDescription{
+	    type: string;
+	    id: string; // containing number
+	    attributes: StationEpisodeAttributes
+	}
+	interface StationEpisodeData {
+	    links: {
+		first:string;
+		last:string;
+		next:string|null;
+		prev:string|null;
+	    };
+	    data: StationEpisodeDescription[] // interface for clarity
+	    meta: {
+		pagination: {
+		    page: number
+		    pages: number
+		    count: number
+		}
+	    }
+	}
+	// Type Guard for above interface, TS's answer to ducktype downcasting.
+	// (http://www.typescriptlang.org/docs/handbook/advanced-types.html)
+	function isStationEpisodeData(toBeDetermined: any): toBeDetermined is StationEpisodeData {
+	    if((toBeDetermined as StationEpisodeData).data){
+		return true
+	    }
+	    console.log("vvvvv DEBUG vvvvv")
+	    console.log("DEBUG: Type guard unhappy")
+	    console.log(objToString(toBeDetermined))
+	    console.log("^^^^^ DEBUG ^^^^^")
+	    return false
+	}
 
 	const handlePage = async() => {
 	    var hasMore=true
@@ -403,16 +566,22 @@ module.exports = {
 		// Issue query, wait for Promise to be completed,
 		// and handle. The await is needed so we can determine
 		// when incremental load has reached already-known data.
-		await getEpisodeData(page)
-		    .then((data) => {
-			// Note that requesting data from most recent
-			// down means episodesByNumber, if not sparse,
-			// gets preallocated during the first pass
-			// through this list.
-			
-			var episodes=data.data
+		await getStationEpisodeData(page)
+		    .then( data => {
+			// Typescript's approach to downcasting is
+			// apparently to condition upon a Type Guard.
+			if(! (isStationEpisodeData(data))) {
+			    console.error("UNEXPECTED DATA STRUCTURE FROM STATION")
+			    return;
+			}
+
+			// Note that episodesByNumber array will be mostly
+			// preallocated during the first pass through
+			// this list, since highest numbered will usually be
+			// among most recent.
+
 			// PROCESS EPISODES IN THIS CHUNK
-			// TODO: Incrementality
+			var episodes=data.data
 			for (let ep of episodes) {
 			    var attributes=ep.attributes;
 			    // Shows may be in database before release;
@@ -463,9 +632,10 @@ module.exports = {
 				// Consider saving just show ID and ep#?
 				// 
 				// Occasionally coming thru as array
-				// in odd format,
-				// ['https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds050610apod.mp3?awCollectionId=385&awEpisodeId=66200']
-				// Be prepared to unpack that.
+				// in odd format (historical
+				// accident?), be prepared to unpack
+				// that.
+				// 
 				var mp3url=attributes.audio
 				if(Array.isArray(mp3url)) {
 				    mp3url=mp3url[0]
@@ -480,13 +650,22 @@ module.exports = {
 				// publishedDate=new Date(published)
 
 				var now=new Date()
-				// In at least one case the database reports a
-				// URI ending with
+				// Take broadcast date from mp3url,
+				// rather that other fields; applied
+				// paranoia.  Note: In at least one
+				// case the database reports an
+				// unusually formed URI
 				// .../newsounds050610apod.mp3?awCollectionId=385&awEpisodeId=66200
-				// so be prepared to truncate after datestamp
+				// so be prepared to truncate after
+				// datestamp.
 				var urlDateFields=mp3url
 				    .replace(/.*\/newsounds([0-9]+)/i,"$1")
 				    .match(/.{1,2}/g)
+				if(! urlDateFields) {
+				    // Should never happen but Typescript
+				    // wants us to promise it won't.
+				    throw new RangeError("invalid date in: "+mp3url)
+				}
 				// Sloppy mapping of 2-digit year to 4-digit
 				var year=parseInt(urlDateFields[2])+2000
 				if(year > now.getUTCFullYear())
@@ -557,21 +736,35 @@ module.exports = {
 				// and the array will contain the null
 				// value if so.  JSON is content with
 				// that, but our navigation will need
-				// to recognize and skip.
+				// to recognize and skip those slots.
 				//
-				// NOTE: Episodes are broadcast out of order
-				// and repeated so incremental can't just stop
-				// scanning when [episodeNumber] is already filled.
-				// It will need to look at broadcast
-				// dates. Which is TODO anyway.
+				// NOTE: Episodes are broadcast out of
+				// order and repeated, so incremental
+				// must continue until it sees a
+				// broadcast date we already know
+				// about. (Reminder: we're still
+				// handling only one radio show at a
+				// time, hence one added entry per
+				// date.)
 				//
-				// NOTE: There is at least one un-episodeNumbered
-				// episode (deep archive, with Ravi Shankar).
-				// 
-
-				if(episodeNumber > 0) { // we lose the pre-numbering ep
-				    if(episodesByNumber[episodeNumber]==null) {
-					var tempObject=new Episode(
+				// NOTE: There is at least one
+				// un-episodeNumbered episode of New
+				// Sounds ("With Ravi Shankar"). For
+				// now, I'm simply dropping that,
+				// which will unfortunately drop
+				// rebroadcasts as well. (A pity; it's
+				// a good interview!) The general case
+				// of rediscovered early archives will
+				// have to be dealt with if we want to
+				// let users access these.
+				if(episodeNumber > 0) {
+				    // Some juggling here to get types right...
+				    // Unfortunately while Typescript realizes
+				    // that after the first test ep is non-null,
+				    // Javascript needs manual help.
+				    let ep = episodesByNumber[episodeNumber]
+				    if(ep===null) {
+					var tempObject=newEpisodeRecord(
 					    episodeNumber,
 					    title,
 					    tease,
@@ -583,8 +776,7 @@ module.exports = {
 					// maintain broadcast dates index
 					episodeNumbersByDateMsec[broadcastDate.getTime()]=episodeNumber
 				    }
-				    else if (episodesByNumber[episodeNumber]
-					     .broadcastDatesMsec
+				    else if (ep!=null && ep.broadcastDatesMsec
 					     .includes(broadcastDate.getTime())
 					    ) {
 					if(maxdepth<0 && hasMore) {
@@ -593,15 +785,14 @@ module.exports = {
 					    hasMore=false
 					}
 				    }					
-				    else {
+				    else if (ep!=null) { // MUST be true!!!
 					// GONK: As we move to database
 					// there is the question of whether
 					// broadcastDatesMsec remains an
 					// array of values (more compact), or
 					// if we wind up with a row per date
 					// (fewer transactions?)
-					episodesByNumber[episodeNumber]
-					    .broadcastDatesMsec
+					ep.broadcastDatesMsec
 					    .push(broadcastDate.getTime())
 					// maintain broadcast dates index
 					episodeNumbersByDateMsec[broadcastDate.getTime()]=episodeNumber
@@ -616,24 +807,34 @@ module.exports = {
 			    hasMore=false;// can't use break in async loop
 			++page
 		    }) // end await.then
-		    .catch(error => {
-			console.error("Update failed on Page",page,"\n",error,error.stack)
+		    .catch(e => {
+			var stack;
+			if(e instanceof Error)
+			    stack=e.stack
+			else
+			    stack="(not Error, so no stack)"
+			console.error("Update failed on Page",page,"\n",e,stack)
 			// Recovery: Run with what we've previously loaded
-			throw error
+			throw e
 		    }) 
 	    } // end while
 
 	    let numberOfEpisodes=episodesByNumber.length
-	    console.log("Highest numbered:",episodesByNumber[numberOfEpisodes-1].title)
+	    let ep=episodesByNumber[numberOfEpisodes-1]
+	    // Really could/should use non-null assertion here?
+	    console.log("Highest numbered:",ep===null ? null : ep.title)
 	    let mostRecentDate=this.getMostRecentBroadcastDate()
-	    let mostRecentNumber=episodeNumbersByDateMsec[mostRecentDate]
-	    console.log("Most recent daily:",episodesByNumber[mostRecentNumber].title,"at",new Date(mostRecentDate).toUTCString())
+	    let mostRecentNumber=episodeNumbersByDateMsec[mostRecentDate.toString()]! // Should never be null
+	    let lastep=episodesByNumber[mostRecentNumber]
+	    console.log("Most recent daily:",
+			lastep===null ? null : lastep.title,
+			"at",new Date(mostRecentDate).toUTCString())
 
 	    // Cache to local file
 	    fs.writeFile(EPISODES_FILE,
 			 JSON.stringify(episodesCache,null,2), // prettyprint
 			 "utf8",
-			 function (err) {
+			 function (err:any) {
 			     if (err) {
 				 console.error("An error occured while writing updates to",EPISODES_FILE);
 				 console.error(err);

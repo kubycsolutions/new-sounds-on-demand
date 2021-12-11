@@ -1,10 +1,11 @@
+import { Player } from '../player';
+import { Handler } from 'jovo-core';
+
 // TODO: TRY TO REPLICATE THE LOGIC BURIED IN THE ALEXA HANDLER.
 // Cancel? Pause? Start Over? Stopped (logging index/offset)?
 // Heck, Previous doesn't seem to work without "ask new sounds" prefix...
 
-const Player = require('../player.js');
-
-module.exports = {
+export const GoogleHandler: Handler = {
     AUDIOPLAYER: {
 	// GONK ISSUE: Prefixless "Next" is winding up here, with
 	// no sign of a NextIntent. Sort-of okay since I happen to have
@@ -26,7 +27,7 @@ module.exports = {
 		console.log("GOOGLE: episode.url=",episode.url)
 		{
 		    // TODO: Finalize these and refactor to a single place
-		    const app_uri_parameters="user=keshlam@kubyc.solutions&nyprBrowserId=NewSoundsOnDemand.smartspeaker.player"
+		    var app_uri_parameters="user=keshlam@kubyc.solutions&nyprBrowserId=NewSoundsOnDemand.smartspeaker.player"
 		    if (uri.includes("?")) // Might already have params, though usually shouldn't.
 			uri=uri+"&"+app_uri_parameters
 		    else
@@ -34,8 +35,8 @@ module.exports = {
 		}
 		console.log("GOOGLE: uri=",uri)
                 this.$user.$data.currentDate = nextDate
-                this.$googleAction.$mediaResponse.play(uri, episode.title);
-                this.$googleAction.showSuggestionChips(['pause', 'start over']);
+                this.$googleAction!.$mediaResponse!.play(uri, episode.title);
+                this.$googleAction!.showSuggestionChips(['pause', 'start over']);
 		this.$speech.addText('Loading episode '+episode.title+".")
                 this.ask(this.$speech);
             } else {
@@ -46,17 +47,23 @@ module.exports = {
 	///////////////////////////////////////////////////////////////
 	// We *should* get notification for Paused, Stopped, and Failed
 	// even though Google doesn't expect us to do much in response.
-	// I'm not seeing any evidence, either from 
+	// Javascript complains that the getProgress() call isn't delared
+	// on MediaResponse
 	'GoogleAction.Paused'() {
-	    const progress = this.$googleAction.$audioPlayer.getProgress();
+	    // {
+	    // 	var progress = this.$googleAction!.$audioPlayer!.getProgress();
+	    // 	console.log("Google paused at", progress)
+	    // }
 	    // this will close the session
 	    this.ask('Playback paused');
-	    console.log("Google paused at", progress)
+	    console.log("Google paused by",typeof this.$googleAction!.$audioPlayer)
 	},
 	'GoogleAction.Stopped'() {
-	    const progress = this.$googleAction.$audioPlayer.getProgress();
-	    this.ask('Playback stopped');
-	    console.log("Google stopped at", progress)
+	    // {
+	    // 	var progress = this.$googleAction!.$audioPlayer!.getProgress();
+	    // 	console.log("Google stopped at", progress)
+	    // }
+	    console.log("Google stopped by",typeof this.$googleAction!.$audioPlayer)
 	    // no response possible
 	},
 	'GoogleAction.Failed'() {

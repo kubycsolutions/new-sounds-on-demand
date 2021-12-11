@@ -1,26 +1,25 @@
 {
     "compilerOptions": {
 	"lib": [
-	    "es2017"
+	    "es2020"
 	],
-	"allowJs": true,
-	"checkJs": true,
-	"module": "commonjs",
-	"noImplicitAny": false, //true
-	"removeComments": false,
 	"allowUnreachableCode": false,
-	"resolveJsonModule": true,
+	"declaration": true,
+	"esModuleInterop": true,
+	"module": "commonjs",
+	"noImplicitAny": true,
 	"noImplicitReturns": true,
-	"preserveConstEnums": true,
-	"declaration": false, //true,
-	"strict": true,
 	"outDir": "./dist/",
-	"target": "es6", //"es2017",
-	"sourceMap": true
+	"preserveConstEnums": true,
+	"removeComments": false,
+	"resolveJsonModule": true,
+	"sourceMap": true,
+	"strict": true,
+	"target": "es2020"
     },
     "include": [
 	"./src/**/*",
-	//    "./test/**/*"
+	"./test/**/*"
     ],
     "exclude": [
 	"./dist/**/*",

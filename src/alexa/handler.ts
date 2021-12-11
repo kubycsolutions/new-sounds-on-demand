@@ -1,40 +1,38 @@
+import { Player } from '../player';
+import { Handler } from 'jovo-core';
+
 // Alexa music-player event management for Jovo newsounds player.
 // Based on the Jovo podcast player example, extended and modified.
 
-// GONK REVIEW: Will this reliably be the same player object, or do we
-// need to explicitly pass/bind?
-const Player = require('../player.js');
-
-
-module.exports = {
+export const AlexaHandler: Handler = {
     'AMAZON.CancelIntent'() {
         this.tell('Alright, see you next time!');
     },
 
     'AMAZON.PauseIntent'() {
-        this.$alexaSkill.$audioPlayer.stop();
+        this.$alexaSkill!.$audioPlayer!.stop();
 	// Do I need to log index/offset here to make sure we resume in the
 	// right mode? Or does this trigger Playback Stopped, qv?
     },
 
     'AMAZON.LoopOffIntent'() {
-        this.tell('Loop Off Intent is not currently implemented.');
+        this.tell('Loop Off Intent is not currently implemented by New Sounds On Demand.');
     },
 
     'AMAZON.LoopOnIntent'() {
-        this.tell('Loop On Intent is not currently implemented.');
+        this.tell('Loop On Intent is not currently implemented by New Sounds On Demand.');
     },
 
     'AMAZON.RepeatIntent'() {
-        this.tell('Repeat Intent is not currently implemented.');
+        this.tell('Repeat Intent is not currently implemented by New Sounds On Demand.');
     },
 
     'AMAZON.ShuffleOffIntent'() {
-        this.tell('Shuffle Off intent is not currently implemented.');
+        this.tell('Shuffle Off intent is not currently implemented by New Sounds On Demand.');
     },
 
     'AMAZON.ShuffleOnIntent'() {
-        this.tell('Shuffle On intent is not currently implemented.');
+        this.tell('Shuffle On intent is not currently implemented by New Sounds On Demand.');
     },
 
     'AMAZON.StartOverIntent'() {
@@ -42,11 +40,11 @@ module.exports = {
 	// I've made it a full play operation. (Minus the episode ID voiceover.)
 	// Note implications for custom Rewind/FastForward implementation.
         let currentDate = this.$user.$data.currentDate;
-	if(currentDate==null) {
+	if(currentDate==Player.getLiveStreamDate()) {
 	    return this.tell("You can't move forward or back in the livestream. That kind of control is only available when playing episodes.");
 	}
 	let episode=Player.getEpisodeByIndex(currentDate)
-	let uri=episode.url
+	let uri=episode!.url // won't be null if we're already playing it!
 	{
 	    // TODO: Finalize these and refactor to a single place
 	    const keshlam_uri_parameters="user=joe.kesselman&purpose=research.for.smartspeaker.app"
@@ -55,7 +53,7 @@ module.exports = {
 	    else
 		uri=uri+"?"+keshlam_uri_parameters
 	}
-        this.$alexaSkill.$audioPlayer
+        return this.$alexaSkill!.$audioPlayer!
 	    .setOffsetInMilliseconds(0) // Do not retain offset
 	    .play(uri, `${currentDate}`)
     },
@@ -89,7 +87,7 @@ module.exports = {
 		    else
 			uri=uri+"?"+app_uri_parameters
 		}
-                this.$alexaSkill.$audioPlayer
+                this.$alexaSkill!.$audioPlayer!
 		    .setOffsetInMilliseconds(0) // Do not retain offset, if any
 		    .setExpectedPreviousToken(`${currentDate}`)
 		    .enqueue(uri, `${nextDate}`) // or .play(url,token,'ENQUEUE')
@@ -126,7 +124,7 @@ module.exports = {
         'AlexaSkill.PlaybackStopped'() {
 	    // It's OK if we capture this for livestream; we just
 	    // won't use it in that case.
-            this.$user.$data.offset = this.$alexaSkill.$audioPlayer.getOffsetInMilliseconds();
+            this.$user.$data.offset = this.$alexaSkill!.$audioPlayer!.getOffsetInMilliseconds();
         },
 
         'AlexaSkill.PlaybackFailed'() {

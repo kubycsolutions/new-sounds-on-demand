@@ -133,13 +133,26 @@
 */
 
 'use strict';
+import { AlexaHandler } from './alexa/handler';
+import { GoogleHandler } from './google/handler';
+import { Player } from './player';
+import { App } from 'jovo-framework';
+import { Project } from 'jovo-framework'
+import { Alexa } from 'jovo-platform-alexa';
+import { JovoDebugger } from 'jovo-plugin-debugger';
+import { GoogleAssistant } from 'jovo-platform-googleassistant';
+import { format } from 'date-fns'
+import { utcToZonedTime } from 'date-fns-tz' // may be needed to report local date
+
+console.log('This template uses an outdated version of the Jovo Framework. We strongly recommend upgrading to Jovo v4. Learn more here: https://www.jovo.tech/docs/migration-from-v3');
 
 ////////////////////////////////////////////////////////////////
 const ShowCredits="New Sounds is produced by New York Public Radio, W N Y C and W Q X R. The host and creator of the show is John Schaefer. His team includes Helga Davis, Rosa Gollan, Caryn Havlik, Justin Sergi, and Irene Trudel. More information about these folks, and about the show, can be found on the web at New Sounds dot org."
 const AppCredits="The New Sounds On Demand player for smart speakers is being developed by Joe Kesselman and Cubic Solutions, K u b y c dot solutions. Source code is available on github."
 ////////////////////////////////////////////////////////////////
 // DEBUGGING
-function objToString(obj, ndeep) {
+// TODO: EXPOSE AND IMPORT
+function objToString(obj:any, ndeep:number=0):string {
     const MAX_OBJTOSTRING_DEPTH=10 // circular refs are possible
     if(obj == null){ return String(obj); }
     if(ndeep > MAX_OBJTOSTRING_DEPTH) {return "...(elided; might recurse)..." }
@@ -164,9 +177,9 @@ function objToString(obj, ndeep) {
 //
 // Yes, it could have a better name. It's a stopgap that should be
 // unnecessary if I can move to Typescript.
-function trystack(obj) {
+function trystack(obj:any):string {
     if (obj instanceof Error) {
-	return obj.stack
+	return objToString(obj.stack)
     }
     else return ""
 }
@@ -175,14 +188,10 @@ function trystack(obj) {
 // APP INITIALIZATION
 // ------------------------------------------------------------------
 
-const { App,Project } = require('jovo-framework');
-const { Alexa } = require('jovo-platform-alexa');
-const { GoogleAssistant } = require('jovo-platform-googleassistant');
-const { JovoDebugger } = require('jovo-plugin-debugger');
-const { format } = require('date-fns');
+// Referenced by index.ts
+export const app = new App();
 
-const app = new App();
-
+//prettier-ignore
 app.use(
     new Alexa(),
     new GoogleAssistant(),
@@ -209,13 +218,14 @@ if (Project.getStage() === 'prod') {
     app.use(new FileDb());
 }
 
-const Player = require('./player.js');
-
 // If running in lambda, we do NOT want to take the time to update the
 // database at startup. Let it happen in the Intent, if needed.
 // And I'm giving serious thought to making it a separate scheduled
 // process once we move to a real database.
-//Player.updateEpisodes(-1)
+// Until then, it's sometimes useful to turn this on to easily get
+// an update we can examine for development. Make it a config switch?
+// (Or finish migrating to a real database so update is a separate app.)
+// Player.updateEpisodes(0)
 
 ////////////////////////////////////////////////////////////////
 
@@ -224,16 +234,13 @@ const Player = require('./player.js');
 // debugging and statistics.
 //
 // TODO REVIEW: refactor into Player? And/or per-show config?
-function addUriUsage(uri) { 
+function addUriUsage(uri:string):string { 
     const app_uri_parameters="user=keshlam@kubyc.solutions&nyprBrowserId=NewSoundsOnDemand.smartspeaker.player"
     if (uri.includes("?"))
 	return uri+"&"+app_uri_parameters
     else
 	return uri+"?"+app_uri_parameters
 }
-
-const AlexaHandler = require('./alexa/handler.js');
-const GoogleHandler = require('./google/handler.js');
 
 ////////////////////////////////////////////////////////////////
 // We'll need duration parsing if we implement
@@ -243,19 +250,29 @@ const GoogleHandler = require('./google/handler.js');
 
 var iso8601DurationRegex = /(-)?P(?:([.,\d]+)Y)?(?:([.,\d]+)M)?(?:([.,\d]+)W)?(?:([.,\d]+)D)?T(?:([.,\d]+)H)?(?:([.,\d]+)M)?(?:([.,\d]+)S)?/;
 
-function parseISO8601Duration (iso8601Duration) {
+interface ParsedDate {
+    sign: string
+    years: number
+    months: number
+    weeks: number
+    days: number
+    hours: number
+    minutes: number
+    seconds: number
+}
+function parseISO8601Duration (iso8601Duration:string):ParsedDate|null {
     var matches = iso8601DurationRegex.exec(iso8601Duration);
     if(matches===null) 
 	return null
     else return {
         sign: matches[1] === undefined ? '+' : '-',
-        years: matches[2] === undefined ? 0 : matches[2],
-        months: matches[3] === undefined ? 0 : matches[3],
-        weeks: matches[4] === undefined ? 0 : matches[4],
-        days: matches[5] === undefined ? 0 : matches[5],
-        hours: matches[6] === undefined ? 0 : matches[6],
-        minutes: matches[7] === undefined ? 0 : matches[7],
-        seconds: matches[8] === undefined ? 0 : matches[8]
+        years: matches[2] === undefined ? 0 : parseInt(matches[2]),
+        months: matches[3] === undefined ? 0 : parseInt(matches[3]),
+        weeks: matches[4] === undefined ? 0 : parseInt(matches[4]),
+        days: matches[5] === undefined ? 0 : parseInt(matches[5]),
+        hours: matches[6] === undefined ? 0 : parseInt(matches[6]),
+        minutes: matches[7] === undefined ? 0 : parseInt(matches[7]),
+        seconds: matches[8] === undefined ? 0 : parseInt(matches[8])
     };
 };
 
@@ -300,12 +317,12 @@ app.setHandler({
     FirstEpisodeIntent() {
 	try {
             let currentDate = Player.getOldestEpisodeDate();
-            let episode = Player.getEpisodeByDate(currentDate);
+            let episode = Player.getEpisodeByDate(currentDate)!; // never null
             this.$user.$data.currentDate = currentDate;
             this.$speech.addText('Fetching episode '+episode.title+".");
 
             if (this.isAlexaSkill()) {
-		this.$alexaSkill.$audioPlayer
+		this.$alexaSkill!.$audioPlayer!
                     .setOffsetInMilliseconds(0)
                     .play(addUriUsage(episode.url), `${currentDate}`)
                     .tell(this.$speech)
@@ -314,8 +331,8 @@ app.setHandler({
 		// playback-completed callback, which requires it not be a
 		// Final Response. However, that forces including
 		// Suggestion Chips.
-		this.$googleAction.$mediaResponse.play(addUriUsage(episode.url), episode.title);
-		this.$googleAction.showSuggestionChips(['pause', 'start over']);
+		this.$googleAction!.$mediaResponse!.play(addUriUsage(episode.url), episode.title);
+		this.$googleAction!.showSuggestionChips(['pause', 'start over']);
 		this.ask(this.$speech);
             }
 	} catch(e) {
@@ -329,12 +346,12 @@ app.setHandler({
 	try {
 	    await Player.updateEpisodes(-1) // Incremental load, in case new appeared.
             let currentDate = Player.getMostRecentBroadcastDate();
-            let episode = Player.getEpisodeByDate(currentDate);
+            let episode = Player.getEpisodeByDate(currentDate)!; // Never null
             this.$user.$data.currentDate = currentDate;
             this.$speech.addText('Fetching episode '+episode.title+".");
 
             if (this.isAlexaSkill()) {
-		this.$alexaSkill.$audioPlayer
+		this.$alexaSkill!.$audioPlayer!
                     .setOffsetInMilliseconds(0)
                     .play(addUriUsage(episode.url), `${currentDate}`)
                     .tell(this.$speech)
@@ -343,8 +360,8 @@ app.setHandler({
 		// playback-completed callback, which requires it not be a
 		// Final Response. However, that forces including
 		// Suggestion Chips.
-		this.$googleAction.$mediaResponse.play(addUriUsage(episode.url), episode.title);
-		this.$googleAction.showSuggestionChips(['pause', 'start over']);
+		this.$googleAction!.$mediaResponse!.play(addUriUsage(episode.url), episode.title);
+		this.$googleAction!.showSuggestionChips(['pause', 'start over']);
 		this.ask(this.$speech);
             }
 	} catch(e) {
@@ -368,7 +385,7 @@ app.setHandler({
 	    else if(currentOffset<0) { // Stopped at last known ep; is there newer?
 		await Player.updateEpisodes(-1) // Pick up any late additions
 		currentDate=Player.getNextEpisodeDate(currentDate)
-		episode = Player.getEpisodeByDate(currentDate);
+		episode = Player.getEpisodeByDate(currentDate); // May be null
 		if(!episode) {
 		    // TODO: This language may need to change depending on whether
 		    // we are playing in date or ep# sequence.
@@ -377,7 +394,7 @@ app.setHandler({
 		currentOffset=0;
 	    }
 	    else {
-		episode = Player.getEpisodeByDate(currentDate);
+		episode = Player.getEpisodeByDate(currentDate)!; // never null
 	    }
             this.$speech.addText('Loading and resuming episode '+episode.title+".")
 
@@ -396,7 +413,7 @@ app.setHandler({
 		    // decompression synch points I don't know what
 		    // one could do.  GONK?
 		}
-		this.$alexaSkill.$audioPlayer
+		this.$alexaSkill!.$audioPlayer!
                     .setOffsetInMilliseconds(offset)
                     .play(addUriUsage(episode.url), `${currentDate}`)
                     .tell(this.$speech);
@@ -406,8 +423,8 @@ app.setHandler({
 		// Final Response. However, that forces including
 		// Suggestion Chips.
 		console.log("GOOGLE: Resume,",addUriUsage(episode.url))
-		this.$googleAction.$mediaResponse.play(addUriUsage(episode.url), episode.title);
-		this.$googleAction.showSuggestionChips(['pause', 'start over']);
+		this.$googleAction!.$mediaResponse!.play(addUriUsage(episode.url), episode.title);
+		this.$googleAction!.showSuggestionChips(['pause', 'start over']);
 		this.ask(this.$speech);
             }
 	} catch(e) {
@@ -418,106 +435,96 @@ app.setHandler({
     },
 
     async NextIntent() {
-	try {
-            let currentDate = this.$user.$data.currentDate;
-	    if (currentDate==Player.getLiveStreamDate()) {
-		return this.tell("You can't move forward or back in the livestream. That kind of control is only available when playing episodes.");
-	    }
-	    await Player.updateEpisodes(-1) // Incremental load, in case new appeared.
-            let nextEpisodeDate = Player.getNextEpisodeDate(currentDate);
-            let nextEpisode = Player.getEpisodeByDate(nextEpisodeDate);
-            if (!nextEpisode) {
-		// TODO: This language may need to change depending on whether
-		// we are playing in date or ep# sequence.
-		return this.tell('That was the most recent episode. You will have to wait until a new episode gets released, or ask for a different one.');
-            }
-            currentDate = nextEpisodeDate;
-            this.$user.$data.currentDate = currentDate;
-            this.$speech.addText('Fetching episode '+nextEpisode.title+".");
-            if (this.isAlexaSkill()) {
-		this.tell(this.$speech)
-		return this.$alexaSkill.$audioPlayer
-		    .setOffsetInMilliseconds(0)
-		    .play(addUriUsage(nextEpisode.url), `${currentDate}`)
-            } else if (this.isGoogleAction()) {
-		// NOTE: this.ask(), not this.tell(), because we want the
-		// playback-completed callback, which requires it not be a
-		// Final Response. However, that forces including
-		// Suggestion Chips.
-		console.log("GOOGLE: Next,",addUriUsage(nextEpisode.url))
-		this.$googleAction.$mediaResponse.play(addUriUsage(nextEpisode.url), nextEpisode.title);
-		this.$googleAction.showSuggestionChips(['pause', 'start over']);
-		return this.ask(this.$speech);
-            }
-	} catch(e) {
-	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("NextIntent caught: ",e,trystack(e))
-	    throw e;
+        let currentDate = this.$user.$data.currentDate;
+	if (currentDate==Player.getLiveStreamDate()) {
+	    return this.tell("You can't move forward or back in the livestream. That kind of control is only available when playing episodes.");
+	}
+	await Player.updateEpisodes(-1) // Incremental load, in case new appeared.
+        let nextEpisodeDate = Player.getNextEpisodeDate(currentDate);
+        let nextEpisode = Player.getEpisodeByDate(nextEpisodeDate);
+        if (!nextEpisode) {
+	    // TODO: This language may need to change depending on whether
+	    // we are playing in date or ep# sequence.
+	    return this.tell('That was the most recent episode. You will have to wait until a new episode gets released, or ask for a different one.');
+        }
+        currentDate = nextEpisodeDate;
+        this.$user.$data.currentDate = currentDate;
+        this.$speech.addText('Fetching episode '+nextEpisode.title+".");
+        if (this.isAlexaSkill()) {
+	    this.tell(this.$speech)
+	    return this.$alexaSkill!.$audioPlayer!
+		.setOffsetInMilliseconds(0)
+		.play(addUriUsage(nextEpisode.url), `${currentDate}`)
+        } else if (this.isGoogleAction()) {
+	    // NOTE: this.ask(), not this.tell(), because we want the
+	    // playback-completed callback, which requires it not be a
+	    // Final Response. However, that forces including
+	    // Suggestion Chips.
+	    console.log("GOOGLE: Next,",addUriUsage(nextEpisode.url))
+	    this.$googleAction!.$mediaResponse!.play(addUriUsage(nextEpisode.url), nextEpisode.title);
+	    this.$googleAction!.showSuggestionChips(['pause', 'start over']);
+	    return this.ask(this.$speech);
+        }
+	else {
+	    console.error("Unexpected action type",objToString(this))
+	    return this; // should never happen, but for type consistency
 	}
     },
 
     PreviousIntent() {
-	try {
-	    // GONK: Tells may need to be Asks for this to run as intended
-	    // in Google. More multiple-path coding. Really wish Jovo
-	    // encapsulated that.
-            let currentDate = this.$user.$data.currentDate;
-	    if (currentDate==Player.getLiveStreamDate()) {
-		return this.tell("You can't move forward or back in the livestream. That kind of control is only available when playing episodes.");
-	    }
-            let previousEpisodeDate = Player.getPreviousEpisodeDate(currentDate);
-            let previousEpisode = Player.getEpisodeByDate(previousEpisodeDate);
-            if (!previousEpisode) {
-		// TODO: This language may need to change depending on whether
-		// we are playing in date or ep# sequence.
-		return this.tell('You are already at the oldest episode.');
-            }
-            currentDate = previousEpisodeDate;
-            this.$user.$data.currentDate = currentDate;
-	    // TODO: Can we get this to announce episode title?
-            this.$speech.addText('Fetching episode '+previousEpisode.title+".");
-            if (this.isAlexaSkill()) {
-		this.tell(this.$speech)
-		return this.$alexaSkill.$audioPlayer
-		    .setOffsetInMilliseconds(0)
-		    .play(addUriUsage(previousEpisode.url), `${currentDate}`)
-            } else if (this.isGoogleAction()) {
-		// NOTE: this.ask(), not this.tell(), because we want the
-		// playback-completed callback, which requires it not be a
-		// Final Response. However, that forces including
-		// Suggestion Chips.
-		this.$googleAction.$mediaResponse.play(addUriUsage(previousEpisode.url), previousEpisode.title);
-		this.$googleAction.showSuggestionChips(['pause', 'start over']);
-		return this.ask(this.$speech);
-            }
-	} catch(e) {
-	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("PreviousIntent caught: ",e,trystack(e))
-	    throw e;
+	// GONK: Tells may need to be Asks for this to run as intended
+	// in Google. More multiple-path coding. Really wish Jovo
+	// encapsulated that.
+        let currentDate = this.$user.$data.currentDate;
+	if (currentDate==Player.getLiveStreamDate()) {
+	    return this.tell("You can't move forward or back in the livestream. That kind of control is only available when playing episodes.");
+	}
+        let previousEpisodeDate = Player.getPreviousEpisodeDate(currentDate);
+        let previousEpisode = Player.getEpisodeByDate(previousEpisodeDate);
+        if (!previousEpisode) {
+	    // TODO: This language may need to change depending on whether
+	    // we are playing in date or ep# sequence.
+	    return this.tell('You are already at the oldest episode.');
+        }
+        currentDate = previousEpisodeDate;
+        this.$user.$data.currentDate = currentDate;
+	// TODO: Can we get this to announce episode title?
+        this.$speech.addText('Fetching episode '+previousEpisode.title+".");
+        if (this.isAlexaSkill()) {
+	    this.tell(this.$speech)
+	    return this.$alexaSkill!.$audioPlayer!
+		.setOffsetInMilliseconds(0)
+		.play(addUriUsage(previousEpisode.url), `${currentDate}`)
+        } else if (this.isGoogleAction()) {
+	    // NOTE: this.ask(), not this.tell(), because we want the
+	    // playback-completed callback, which requires it not be a
+	    // Final Response. However, that forces including
+	    // Suggestion Chips.
+	    this.$googleAction!.$mediaResponse!.play(addUriUsage(previousEpisode.url), previousEpisode.title);
+	    this.$googleAction!.showSuggestionChips(['pause', 'start over']);
+	    return this.ask(this.$speech);
+        }
+	else {
+	    console.error("Unexpected action type",objToString(this))
+	    return this; // should never happen, but for type consistency
 	}
     },
 
     FastForwardIntent() {
-	try {
-	    // GONK: This one is being surprisingly problematic...
-	    // GONK: Tells may need to be Asks for this to run as intended
-	    // in Google. More multiple-path coding. Really wish Jovo
-	    // encapsulated that.
-            var currentDate = this.$user.$data.currentDate;
-	    if (currentDate==Player.getLiveStreamDate()) {
-		return this.tell("You can't move forward or back in the livestream. That kind of control is only available when playing episodes.");
-	    }
-            let duration = this.getInput("duration").value
-	    console.log(">>> FastForwardIntent:",duration, typeof(duration))
-	    let dd=parseISO8601Duration(duration)
-	    console.log(">>> FastForwardIntentIntent:",dd)
-
-	    return this.tell("Fast forward isn't supported yet. You could ask us to skip to the next episode instead.")
-	} catch(e) {
-	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("FastForwardIntent caught: ",e,trystack(e))
-	    throw e;
+	// GONK: This one is being surprisingly problematic...
+	// GONK: Tells may need to be Asks for this to run as intended
+	// in Google. More multiple-path coding. Really wish Jovo
+	// encapsulated that.
+        var currentDate = this.$user.$data.currentDate;
+	if (currentDate==Player.getLiveStreamDate()) {
+	    return this.tell("You can't move forward or back in the livestream. That kind of control is only available when playing episodes.");
 	}
+        let duration = this.getInput("duration").value
+	console.log(">>> FastForwardIntent:",duration, typeof(duration))
+	let dd=parseISO8601Duration(duration)
+	console.log(">>> FastForwardIntentIntent:",dd)
+
+	return this.tell("Fast forward isn't supported yet. You could ask us to skip to the next episode instead.")
     },
 
     // Note: Alexa doesn't want us using the word "shuffle", except as
@@ -525,165 +532,142 @@ app.setHandler({
     // of course.) For now, avoid using that term in the language
     // model.
     RandomIntent() {
-	try {
-            let randomEpisodeDate = Player.getRandomEpisodeDate();
-            let randomEpisode = Player.getEpisodeByDate(randomEpisodeDate);
-            let currentDate = randomEpisodeDate;
-            this.$user.$data.currentDate = currentDate;
-            this.$speech.addText('Fetching episode '+randomEpisode.title+".");
-            if (this.isAlexaSkill()) {
-		this.tell(this.$speech)
-		this.$alexaSkill.$audioPlayer
-		    .setOffsetInMilliseconds(0)
-		    .play(addUriUsage(randomEpisode.url), `${currentDate}`)
-            } else if (this.isGoogleAction()) {
-		// NOTE: this.ask(), not this.tell(), because we want the
-		// playback-completed callback, which requires it not be a
-		// Final Response. However, that forces including
-		// Suggestion Chips.
-		this.$googleAction.$mediaResponse.play(addUriUsage(randomEpisode.url), randomEpisode.title);
-		this.$googleAction.showSuggestionChips(['pause', 'start over']);
-		this.ask(this.$speech)
-            }
-	} catch(e) {
-	    console.error("RandomIntent caught: ",e,trystack(e))
-	    return this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
+        let randomEpisodeDate = Player.getRandomEpisodeDate();
+        let randomEpisode = Player.getEpisodeByDate(randomEpisodeDate)!; // never null
+        let currentDate = randomEpisodeDate;
+        this.$user.$data.currentDate = currentDate;
+        this.$speech.addText('Fetching episode '+randomEpisode.title+".");
+        if (this.isAlexaSkill()) {
+	    this.tell(this.$speech)
+	    return this.$alexaSkill!.$audioPlayer!
+		.setOffsetInMilliseconds(0)
+		.play(addUriUsage(randomEpisode.url), `${currentDate}`)
+        } else if (this.isGoogleAction()) {
+	    // NOTE: this.ask(), not this.tell(), because we want the
+	    // playback-completed callback, which requires it not be a
+	    // Final Response. However, that forces including
+	    // Suggestion Chips.
+	    this.$googleAction!.$mediaResponse!.play(addUriUsage(randomEpisode.url), randomEpisode.title);
+	    this.$googleAction!.showSuggestionChips(['pause', 'start over']);
+	    return this.ask(this.$speech)
+        }
+	else {
+	    console.error("Unexpected action type",objToString(this))
+	    return this; // should never happen, but for type consistency
 	}
     },
 
     IncompleteDateIntent() {
-	try {
-	    this.$speech.addText("OK, which date do you want to select?")
-	    this.ask(this.$speech)
-	} catch(e) {
-	    console.error("IncompleteDateIntent caught: ",e,trystack(e))
-	    return this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	}
+	this.$speech.addText("Which date do you want to select?")
+	return this.ask(this.$speech)
     },
 
     IncompleteEpisodeNumberIntent() {
-	try {
-	    this.$speech.addText("OK, which episode number do you want to select?")
-	    return this.ask(this.$speech)
-	} catch(e) {
-	    console.error("IncompleteEpisodeNumberIntent caught: ",e,trystack(e))
-	    throw e
-	}
+	this.$speech.addText("OK, which episode number do you want to select?")
+	return this.ask(this.$speech)
     },
 
     async DateIntent() {
-	try {
-	    // Note: For clarity, it's best to treat all dates as UTC,
-	    // avoiding server-specific zone adjustments.  That may
-	    // occasionally cause confusion about "today", but I think
-	    // that's Mostly Harmless.
-	    var whichdate;
-	    console.log("DateIntent:",this.getInput("date"))
-            if (this.isAlexaSkill()) {
-		whichdate = this.getInput("date").value
-            } else if (this.isGoogleAction()) {
-		// May include timestamp; trim that off.
-		// (This is a bit inefficient but robust against missing Time.)
-		whichdate=this.getInput("date").key.split("T")[0]
-	    }
-	    console.log("DateIntent:",whichdate)
-	    let splitdate=whichdate.split("-")
-	    // Remember that JS Month is 0-indexed
-	    // Year will be provided in 4-digit form.
-	    let spokendate=new Date(Date.UTC(splitdate[0],splitdate[1]-1,splitdate[2]))
+	// Note: For clarity, it's best to treat all dates as UTC,
+	// avoiding server-specific zone adjustments.  That may
+	// occasionally cause confusion about "today", but I think
+	// that's Mostly Harmless.
+	var whichdate;
+	console.log("DateIntent:",this.getInput("date"))
+        if (this.isAlexaSkill()) {
+	    whichdate = this.getInput("date").value
+        } else if (this.isGoogleAction()) {
+	    // May include timestamp; trim that off.
+	    // (This is a bit inefficient but robust against missing Time.)
+	    whichdate=this.getInput("date").key!.split("T")[0]
+	}
+	// Remember that JS Month is 0-indexed
+	// Year will be provided in 4-digit form.
+	let splitdate=whichdate.split("-")
+	let localDate=new Date(splitdate[0],splitdate[1]-1,splitdate[2])
+	let utcDate=new Date(Date.UTC(splitdate[0],splitdate[1]-1,splitdate[2]))
+	console.error(">>>> DateIntent local:",localDate)
+	console.error(">>>> DateIntent utc:",utcDate)
+	let utcDatestamp=utcDate.getTime()
 
-	    // GONK: Redundant if we don't have to juggle UTC
-	    // let date=new Date()
-	    // date.setUTCFullYear(spokendate.getUTCFullYear())
-	    // date.setUTCMonth(spokendate.getUTCMonth())
-	    // date.setUTCDate(spokendate.getUTCDate())
-	    // date.setUTCHours(spokendate.getUTCHours())
-	    // date.setUTCMinutes(0)
-	    // date.setUTCSeconds(0)
-	    // date.setUTCMilliseconds(0)
-	    let date=spokendate
-	    
-	    let datestamp=date.getTime()
+	// Alexa seems to take "Monday" as "coming monday".  Google
+	// takes "the second" as "the next 2nd of whatever-month". It
+	// may not be clear to the user whether "last Monday" means
+	// this week or last week. And the user could actually ask for
+	// a future date. Simplest recovery is to ask them to rephrase
+	// when it's a date we don't know anything about. That avoids
+	// the risk of our guessing differently from other apps.
+	if(utcDatestamp>Date.now())
+	{
+	    this.$speech.addText("That came through as a future date. Could you rephrase your request?")
+	    return this.ask(this.$speech)
+	}
 
-	    // Alexa seems to take "Monday" as "coming monday".
-	    // Google takes "The second" as "the coming second of
-	    // whatever". It isn't clear whether "last Monday" means
-	    // this week or last week. And the user could actually ask
-	    // for a future date. Simplest recovery is to ask them to
-	    // rephrase. That avoids the risk of our guessing
-	    // differently from other apps.
-	    if(datestamp>Date.now())
-	    {
-		this.$speech.addText("That came through as a future date. Could you rephrase your request?")
+	await Player.updateEpisodes(-1) // Incremental load, in case new appeared.
+	let episode=Player.getEpisodeByDate(utcDatestamp)
+	if(episode!=null && episode !=undefined)
+	{
+	    let currentDate=Player.getEpisodeDate(episode) // gonk -- clean up
+	    this.$user.$data.currentDate = currentDate;
+
+	    this.$speech.addText("Fetching the show from "+format(localDate,"PPPP")+": episode "+episode.title+".");
+
+	    if (this.isAlexaSkill()) {
+		this.tell(this.$speech)
+		return this.$alexaSkill!.$audioPlayer!
+		    .setOffsetInMilliseconds(0)
+		    .play(addUriUsage(episode.url), `${currentDate}`)
+	    } else if (this.isGoogleAction()) {
+		// NOTE: this.ask(), not this.tell(), because we want the
+		// playback-completed callback, which requires it not be a
+		// Final Response. However, that forces including
+		// Suggestion Chips.
+		this.$googleAction!.$mediaResponse!.play(addUriUsage(episode.url), episode.title);
+		this.$googleAction!.showSuggestionChips(['pause', 'start over']);
 		return this.ask(this.$speech)
-	    }
-
-	    await Player.updateEpisodes(-1) // Incremental load, in case new appeared.
-	    let episode=Player.getEpisodeByDate(datestamp)
-	    if(episode!=null && episode !=undefined)
-	    {
-		let currentDate=Player.getEpisodeDate(episode) // gonk -- clean up
-		this.$user.$data.currentDate = currentDate;
-		this.$speech.addText("Fetching the show from "+format(date,"PPPP")+": episode "+episode.title+".");
-		if (this.isAlexaSkill()) {
-		    this.tell(this.$speech)
-		    return this.$alexaSkill.$audioPlayer
-			.setOffsetInMilliseconds(0)
-			.play(addUriUsage(episode.url), `${currentDate}`)
-		} else if (this.isGoogleAction()) {
-		    // NOTE: this.ask(), not this.tell(), because we want the
-		    // playback-completed callback, which requires it not be a
-		    // Final Response. However, that forces including
-		    // Suggestion Chips.
-		    this.$googleAction.$mediaResponse.play(addUriUsage(episode.url), episode.title);
-		    this.$googleAction.showSuggestionChips(['pause', 'start over']);
-		    return this.ask(this.$speech)
-		}
 	    }
 	    else {
-		this.$speech.addText("An episode broadcast on "+format(date,"PPPP")+" does not seem to be available in the vault. What would you like me to do instead?")
-		return this.ask(this.$speech)
+		console.error("Unexpected action type",objToString(this))
+		return this; // should never happen, but for type consistency
 	    }
-	} catch(e) {
-	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("DateIntent caught: ",e,trystack(e))
-	    throw e;
+	}
+	else {
+	    this.$speech.addText("An episode broadcast on "+format(localDate,"PPPP")+" does not seem to be available in the vault. What would you like me to do instead?")
+	    return this.ask(this.$speech)
 	}
     },
 
     async EpisodeNumberIntent() {
-	try {
-	    const episodeNumber=parseInt(this.getInput('episodeNumber').value) // comes back as string
-	    await Player.updateEpisodes(-1) // Incremental load, in case new appeared.
-	    const episode=Player.getEpisodeByNumber(episodeNumber)
-	    if(episode!=null && episode !=undefined)
-	    {
-		const currentDate=Player.getEpisodeDate(episode) // Gonk: Clean up
-		this.$user.$data.currentDate = currentDate;
-		this.$speech.addText('Fetching episode '+episode.title+".");
-		if (this.isAlexaSkill()) {
-		    this.tell(this.$speech)
-		    this.$alexaSkill.$audioPlayer
-			.setOffsetInMilliseconds(0)
-			.play(addUriUsage(episode.url), `${currentDate}`)
-		} else if (this.isGoogleAction()) {
-		    // NOTE: this.ask(), not this.tell(), because we want the
-		    // playback-completed callback, which requires it not be a
-		    // Final Response. However, that forces including
-		    // Suggestion Chips.
-		    this.$googleAction.$mediaResponse.play(addUriUsage(episode.url), episode.title);
-		    this.$googleAction.showSuggestionChips(['pause', 'start over']);
-		    this.ask(this.$speech)
-		}
+	const episodeNumber=parseInt(this.getInput('episodeNumber').value) // comes back as string
+	await Player.updateEpisodes(-1) // Incremental load, in case new appeared.
+	const episode=Player.getEpisodeByNumber(episodeNumber)
+	if(episode!=null && episode !=undefined)
+	{
+	    const currentDate=Player.getEpisodeDate(episode) // Gonk: Clean up
+	    this.$user.$data.currentDate = currentDate;
+	    this.$speech.addText('Fetching episode '+episode.title+".");
+	    if (this.isAlexaSkill()) {
+		this.tell(this.$speech)
+		return this.$alexaSkill!.$audioPlayer!
+		    .setOffsetInMilliseconds(0)
+		    .play(addUriUsage(episode.url), `${currentDate}`)
+	    } else if (this.isGoogleAction()) {
+		// NOTE: this.ask(), not this.tell(), because we want the
+		// playback-completed callback, which requires it not be a
+		// Final Response. However, that forces including
+		// Suggestion Chips.
+		this.$googleAction!.$mediaResponse!.play(addUriUsage(episode.url), episode.title);
+		this.$googleAction!.showSuggestionChips(['pause', 'start over']);
+		return this.ask(this.$speech)
 	    }
 	    else {
-		this.$speech.addText("Episode number "+episodeNumber+" does not seem to be available in the vault. What would you like me to do instead?")
-		this.ask(this.$speech)
+		console.error("Unexpected action type",objToString(this))
+		return this; // should never happen, but for type consistency
 	    }
-	} catch(e) {
-	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("EpisodeNumberIntent caught: ",e,trystack(e))
-	    throw e;
+	}
+	else {
+	    this.$speech.addText("Episode number "+episodeNumber+" does not seem to be available in the vault. What would you like me to do instead?")
+	    return this.ask(this.$speech)
 	}
     },
 
@@ -702,155 +686,105 @@ app.setHandler({
     // so we may need to check timestamps for "ended before now" and
     // be ready to say "I'm not sure yet."
     LiveStreamIntent() {
-	try {
-	    const streamURI=addUriUsage(Player.getLiveStreamURI())
-	    const currentDate=Player.getLiveStreamDate()
-            this.$user.$data.currentDate = currentDate;
-            this.$speech.addText("Playing the New Sounds livestream.");
-            if (this.isAlexaSkill()) {
-		this.$alexaSkill.$audioPlayer
-		    .setOffsetInMilliseconds(0)
-		    .play(streamURI, `${currentDate}`)
-	            .tell(this.$speech)
-            } else if (this.isGoogleAction()) {
-		// NOTE: this.ask(), not this.tell(), because we want the
-		// playback-completed callback, which requires it not be a
-		// Final Response. However, that forces including
-		// Suggestion Chips.
-		this.$googleAction.$mediaResponse.play(streamURI,"New Sounds On Demand Live Stream");
-		this.$googleAction.showSuggestionChips(['pause']);
-		this.ask(this.$speech)
-            }
-	} catch(e) {
-	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("LiveStreamIntent caught: ",e,trystack(e))
-	    throw e;
+	const streamURI=addUriUsage(Player.getLiveStreamURI())
+	const currentDate=Player.getLiveStreamDate()
+        this.$user.$data.currentDate = currentDate;
+        this.$speech.addText("Playing the New Sounds livestream.");
+        if (this.isAlexaSkill()) {
+	    return this.$alexaSkill!.$audioPlayer!
+		.setOffsetInMilliseconds(0)
+		.play(streamURI, `${currentDate}`)
+	        .tell(this.$speech)
+        } else if (this.isGoogleAction()) {
+	    // NOTE: this.ask(), not this.tell(), because we want the
+	    // playback-completed callback, which requires it not be a
+	    // Final Response. However, that forces including
+	    // Suggestion Chips.
+	    this.$googleAction!.$mediaResponse!.play(streamURI,"New Sounds On Demand Live Stream");
+	    this.$googleAction!.showSuggestionChips(['pause']);
+	    return this.ask(this.$speech)
+        }
+	else {
+	    console.error("Unexpected action type",objToString(this))
+	    return this; // should never happen, but for type consistency
 	}
     },
 
     HelpIntent() {
-	try {
-            this.$speech.addText('You can ask for the earliest or latest episode, request one by date or episode number, tell us to surprise you with a randomly chosen show, resume where you stopped last time, restart the episode now playing, or play the "live stream" webcast.')
-		.addText('Which would you like to do?')
-            this.ask(this.$speech);
-	} catch(e) {
-	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("HelpIntent caught: ",e,trystack(e))
-	    throw e;
-	}
+        this.$speech.addText('You can ask for the earliest or latest episode, request one by date or episode number, tell us to surprise you with a randomly chosen show, resume where you stopped last time, restart the episode now playing, or play the "live stream" webcast.')
+	    .addText('Which would you like to do?')
+        this.ask(this.$speech);
     },
 
     CreditsIntent() {
-	try {
-	    // GONK: Tells may need to be Asks for this to run as intended
-	    // in Google. More multiple-path coding. Really wish Jovo
-	    // encapsulated that.
-            this.$speech.addText(ShowCredits)
-            this.$speech.addText(AppCredits)
-	    return this.tell(this.$speech)
-	} catch(e) {
-	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("CreditsIntent caught: ",e,trystack(e))
-	    throw e;
-	}
+	// GONK: Tells may need to be Asks for this to run as intended
+	// in Google. More multiple-path coding. Really wish Jovo
+	// encapsulated that.
+        this.$speech.addText(ShowCredits)
+        this.$speech.addText(AppCredits)
+	return this.tell(this.$speech)
     },
 
     // Hook for testing, normally inactive
     DebugIntent() {
-	try {
-	    Player.updateEpisodes(0) // Asynchronous full (re)load
+	Player.updateEpisodes(0) // Asynchronous full (re)load
 
-	    // GONK: Tells may need to be Asks for this to run as intended
-	    // in Google. More multiple-path coding. Really wish Jovo
-	    // encapsulated that.
-            this.$speech.addText("Debug hook baited. Here, fishie fishie fishie...")
-	    return this.ask(this.$speech)
-	} catch(e) {
-	    this.ask("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("DebugIntent caught: ",e,trystack(e))
-	    throw e;
-	}
+	// GONK: Tells may need to be Asks for this to run as intended
+	// in Google. More multiple-path coding. Really wish Jovo
+	// encapsulated that.
+        this.$speech.addText("Debug hook baited. Here, fishie fishie fishie...")
+	return this.ask(this.$speech)
     },
 
     // Amazon's "who sings this song"
     "AMAZON.SearchAction<object@MusicRecording[byArtist.musicGroupMember]>"() {
-	try {
-            var currentDate = this.$user.$data.currentDate;
-	    if (currentDate==Player.getLiveStreamDate()) {
-		this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
-	    } else {
-		this.$speech.addText("I'm afraid I can only get that metadata for the livestream.")
-	    }
-	    return this.tell(this.$speech)
-	} catch(e) {
-	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("Who Sings caught: ",e,trystack(e))
-	    throw e;
+        var currentDate = this.$user.$data.currentDate;
+	if (currentDate==Player.getLiveStreamDate()) {
+	    this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	} else {
+	    this.$speech.addText("I'm afraid I can only get that metadata for the livestream.")
 	}
+	return this.tell(this.$speech)
     },
     // Amazon's "who is playing this song"
     "AMAZON.SearchAction<object@MusicRecording[byArtist]>"() {
-	try {
-            var currentDate = this.$user.$data.currentDate;
-	    if (currentDate==Player.getLiveStreamDate()) {
-		this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
-	    } else {
-		this.$speech.addText("I'm afraid I can only get that metadata for the livestream.")
-	    }
-	    return this.tell(this.$speech)
-	} catch(e) {
-	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("Who Is Playing caught: ",e,trystack(e))
-	    throw e;
+        var currentDate = this.$user.$data.currentDate;
+	if (currentDate==Player.getLiveStreamDate()) {
+	    this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	} else {
+	    this.$speech.addText("I'm afraid I can only get that metadata for the livestream.")
 	}
+	return this.tell(this.$speech)
     },
     // Amazon's "how long is this song"
     "AMAZON.SearchAction<object@MusicRecording[duration]>"() {
-	try {
-            var currentDate = this.$user.$data.currentDate;
-	    if (currentDate==Player.getLiveStreamDate()) {
-		this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
-	    } else {
-		this.$speech.addText("I'm afraid I can only get that metadata for the livestream.")
-	    }
-	    return this.tell(this.$speech)
-	} catch(e) {
-	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("How Long caught: ",e,trystack(e))
-	    throw e;
+        var currentDate = this.$user.$data.currentDate;
+	if (currentDate==Player.getLiveStreamDate()) {
+	    this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	} else {
+	    this.$speech.addText("I'm afraid I can only get that metadata for the livestream.")
 	}
+	return this.tell(this.$speech)
     },
     // Amazon's "what album is this song on"
     "AMAZON.SearchAction<object@MusicRecording[inAlbum]>"() {
-	try {
-            var currentDate = this.$user.$data.currentDate;
-	    if (currentDate==Player.getLiveStreamDate()) {
-		this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
-	    } else {
-		this.$speech.addText("I'm afraid I can only get that metadata for the livestream.")
-	    }
-	    return this.tell(this.$speech)
-	} catch(e) {
-	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("What Album caught: ",e,trystack(e))
-	    throw e;
+        var currentDate = this.$user.$data.currentDate;
+	if (currentDate==Player.getLiveStreamDate()) {
+	    this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	} else {
+	    this.$speech.addText("I'm afraid I can only get that metadata for the livestream.")
 	}
+	return this.tell(this.$speech)
     },
     // Amazon's "who produced this song"
     "AMAZON.SearchAction<object@MusicRecording[producer]>"() {
-	try {
-            var currentDate = this.$user.$data.currentDate;
-	    if (currentDate==Player.getLiveStreamDate()) {
-		this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
-	    } else {
-		this.$speech.addText("I'm afraid I can only get that metadata for the livestream.")
-	    }
-	    return this.tell(this.$speech)
-	} catch(e) {
-	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("Who Produced caught: ",e,trystack(e))
-	    throw e;
+        var currentDate = this.$user.$data.currentDate;
+	if (currentDate==Player.getLiveStreamDate()) {
+	    this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	} else {
+	    this.$speech.addText("I'm afraid I can only get that metadata for the livestream.")
 	}
+	return this.tell(this.$speech)
     }
 
 });
