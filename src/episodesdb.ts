@@ -1,11 +1,15 @@
 /** Substantially rewritten from Amazon.com sample code by
     keshlam@Kubyc.Solutions
 
-   TODO: Replace Object with at least a partial type for the
-   DocumentClient's returned structure, and with the Episode record
-   struct. (Latter's date has to be modified from array to single
-   number and multipe records) */
+    TODO: Replace Object with at least a partial type for the
+    DocumentClient's returned structure, and with the Episode record
+    struct. (Latter's date has to be modified from array to single
+    number and multipe records) */
 
+import got from 'got'
+
+const DEBUG="DEBUG"==process.env.EPISODESDB_CFG
+const TABLE_NAME="episodes_debug" // GONK: Change or conditionalize at golive
 
 ////////////////////////////////////////////////////////////////
 // Open the box of Dominos. I mean, Dynamos.
@@ -13,10 +17,15 @@
 
 var AWS = require("aws-sdk");
 
-AWS.config.update({
-    endpoint: "http://localhost:8000", // Initial development: Local service
-    region: "us-east-1",
-});
+// Set default, but allow for overriding later
+function set_AWS_endpoint(endpoint="http://localhost:8000",region="us-east-1") {
+    AWS.config.update({
+	endpoint: endpoint, // Initial development: Local service
+	region: region,
+    });
+}
+set_AWS_endpoint() 
+
 var dynamodb = new AWS.DynamoDB();
 var docClient = new AWS.DynamoDB.DocumentClient();
 
@@ -33,11 +42,11 @@ export interface EpisodeRecord {
 }
 
 export interface QueryUniqueResult {
-       Item: EpisodeRecord
+    Item: EpisodeRecord
 }
 
 export interface QueryMultipleResults {
-       Items: EpisodeRecord[]
+    Items: EpisodeRecord[]
 }
 
 // I chose to parameterize tableName. Overkill, but for now...
@@ -241,7 +250,7 @@ function isStationEpisodeData(duckObject: any): duckObject is StationEpisodeData
     }
     console.error("vvvvv DEBUG vvvvv")
     console.error("DEBUG: isStationEpisodeData failed on:")
-    console.error(objToString(duckObject))
+    console.error(JSON.stringify(duckObject,null,2))
     console.error("^^^^^ DEBUG ^^^^^")
     return false
 }
@@ -313,7 +322,7 @@ export function getNextItemByDate(tableName:string,program:string,date:number,fo
     // All for program, in desired order, but return only first found
     var params = {
 	TableName: tableName,
-	KeyConditionExpression: "program = :program AND broadcastDateMsec" (forward?">":"<") ":date"
+	KeyConditionExpression: "program = :program AND broadcastDateMsec"+(forward?">":"<")+":date",
 	ExpressionAttributeValues: {
 	    ":program": program,
 	    ":date": date
@@ -354,13 +363,13 @@ export function getItemsForEpisode(tableName:string,program:string,episode:numbe
     return docClient.query(params).promise()
 }
 
-export function getItemForLowestEpisode(tableName:string,program:string,episode:number): Promise<EpisodeRecord> {
-    return getTerminalItemByEpisode(tableName,program,episode,true)
+export function getItemForLowestEpisode(tableName:string,program:string): Promise<EpisodeRecord> {
+    return getTerminalItemByEpisode(tableName,program,true)
 }
-export function getItemForHighestEpisode(tableName:string,program:string,episode:number): Promise<EpisodeRecord> {
-    return getTerminalItemByEpisode(tableName,program,episode,false)
+export function getItemForHighestEpisode(tableName:string,program:string): Promise<EpisodeRecord> {
+    return getTerminalItemByEpisode(tableName,program,false)
 }
-export function getTerminalItemByEpisode(tableName:string,program:string, episode:number, forward:boolean): Promise<EpisodeRecord> {
+export function getTerminalItemByEpisode(tableName:string,program:string, forward:boolean): Promise<EpisodeRecord> {
     // Query all for program, in desired order, but return only first
     // found ... which, since the sort key is episode, will yield an
     // item for first or last episode number. NOTE that there might be
@@ -389,12 +398,12 @@ export function getNextItemByEpisode(tableName:string,program:string,episode:num
     var params = {
 	TableName: tableName,
 	IndexName: ITEM_BY_EPISODE_INDEX, 
-	KeyConditionExpression: "program = :program AND espisode" (forward:">":"<") ":episode",
+	KeyConditionExpression: "program = :program AND espisode"+(forward?">":"<")+":episode",
 	ExpressionAttributeValues: {
 	    ":program": program,
 	    ":episode": episode
 	},
-	ScanIndexForward: forward
+	ScanIndexForward: forward,
 	Limit: 1
     }
     return docClient.query(params).promise()
@@ -654,345 +663,336 @@ function scan(tableName,) {
 
 *******************************************************************/
 
-    //================================================================
-    // Check the newsounds.org database to find out which (if any) new
-    // episodes have been published. This can be run in three modes,
-    // depending on the value of maxdepth:
-    //
-    // <0 incremental, ==0 rescan all, N>0 check only first N pages
-    //
-    // Incremental is most common mode of operation. Rescan is mostly
-    // used when I'm adding a field to the table, though it may be
-    // worth running periodically just in case a missing episode
-    // appears. First-N is mostly used as a debug tool when testing
-    // new update logic.
-    //
-    // Note sequenced invocation of asynchronous fetch and process,
-    // since we want to support incremental to reduce delay and server
-    // load.  (Before you ask: No, I don't trust Javascript to
-    // optimize tail-recursion.)
-    //
-    // TODO REVIEW: Move this into a separate file for easier
-    // replacement, to handle other sources? Update *is* closely linked to
-    // the cache database and player code...
-    static async updateEpisodes(maxdepth:number) {
-	console.log("Checking server for new episodes...")
+//================================================================
+// Check the newsounds.org database to find out which (if any) new
+// episodes have been published. This can be run in three modes,
+// depending on the value of maxdepth:
+//
+// <0 incremental, ==0 rescan all, N>0 check only first N pages
+//
+// Incremental is most common mode of operation. Rescan is mostly
+// used when I'm adding a field to the table, though it may be
+// worth running periodically just in case a missing episode
+// appears. First-N is mostly used as a debug tool when testing
+// new update logic.
+//
+// Note sequenced invocation of asynchronous fetch and process,
+// since we want to support incremental to reduce delay and server
+// load.  (Before you ask: No, I don't trust Javascript to
+// optimize tail-recursion.)
+//
+// TODO REVIEW: Move this into a separate file for easier
+// replacement, to handle other sources? Update *is* closely linked to
+// the cache database and player code...
+export async function updateEpisodes(maxdepth:number) {
+    console.log("Checking server for new episodes...")
 
-	// Run Got HTTP query, returning object via a Promise
-	const getStationEpisodeData = (page:number) => {
-	    console.log("  Fetch index page",page)
-	    const page_size=10 // Number of results per fetch
-	    return new Promise((resolve, reject) => {
-		// Fetch a page from the list of episodes,
-		// date-descending order This uses a function variable
-		// because I think I want to move it out to a per-show
-		// initialization file.
-		var uri=formatEpisodeDatabaseQueryURI(page,page_size)
-		got.get(uri) // default content-type is 'text'
-		    .then( (response:any) => {
-			return resolve(JSON.parse(response.body));
-		    })
-		    .catch( (e:any) => {
-			console.log(e)
-			if(e instanceof Error) {
-			    let error:Error=e
-			    return reject(error.message)
-			}
-			else {
-			    return reject(e.toString())
-			}
-		    })
-	    })
-	};
+    // Run Got HTTP query, returning object via a Promise
+    const getStationEpisodeData = (page:number) => {
+	console.log("  Fetch index page",page)
+	const page_size=10 // Number of results per fetch
+	return new Promise((resolve, reject) => {
+	    // Fetch a page from the list of episodes,
+	    // date-descending order This uses a function variable
+	    // because I think I want to move it out to a per-show
+	    // initialization file.
+	    var uri=formatEpisodeDatabaseQueryURI(page,page_size)
+	    got.get(uri) // default content-type is 'text'
+		.then( (response:any) => {
+		    return resolve(JSON.parse(response.body));
+		})
+		.catch( (e:any) => {
+		    console.log(e)
+		    if(e instanceof Error) {
+			let error:Error=e
+			return reject(error.message)
+		    }
+		    else {
+			return reject(e.toString())
+		    }
+		})
+	})
+    };
 
-	const handlePage = async() => {
-	    var hasMore=true
-	    var page=1
-	    while(hasMore) {
-		// Issue query, wait for Promise to be completed,
-		// and handle. The await is needed so we can determine
-		// when incremental load has reached already-known data.
-		await getStationEpisodeData(page)
-		    .then( data => {
-			// Typescript's approach to downcasting is
-			// apparently to condition upon a Type Guard.
-			if(! (isStationEpisodeData(data))) {
-			    console.error("UNEXPECTED DATA STRUCTURE FROM STATION")
-			    return;
-			}
+    async function handlePage() {
+	var hasMore=true
+	var page=1
+	while(hasMore) {
+	    // Issue query, wait for Promise to be completed,
+	    // and handle. The while/await was needed so we could determine
+	    // when incremental load had reached already-known data.
+	    // Given asynchrony, conditional tail-call might be clean.
+	    await getStationEpisodeData(page)
+		.then( data => {
+		    // Typescript's approach to ducktype-downcasting is
+		    // apparently to condition upon a Type Guard.
+		    if(! (isStationEpisodeData(data))) {
+			console.error("vvvvvvvvvvvvvv")
+			console.error("UNEXPECTED DATA STRUCTURE FROM STATION")
+			console.error(JSON.stringify(data))
+			console.error("^^^^^^^^^^^^^")
+			return;
+		    }
 
-			// Note that episodesByNumber array will be mostly
-			// preallocated during the first pass through
-			// this list, since highest numbered will usually be
-			// among most recent.
+		    // PROCESS EPISODES IN THIS CHUNK
+		    var episodes=data.data
+		    for (let ep of episodes) {
+			var attributes=ep.attributes;
 
-			// PROCESS EPISODES IN THIS CHUNK
-			var episodes=data.data
-			for (let ep of episodes) {
-			    var attributes=ep.attributes;
-			    // Shows may be in database before release;
-			    // skip if not playable. (TODO: Someday we
-			    // might have a "what's coming soon" feature,
-			    // but that's very future.)
-			    if(attributes.audio!="" && attributes.audio!=undefined) {
-				// Some titles have unusual boilerplate that
-				// we need to adapt.
-				//
-				// I'm not bothering to process
-				// "pre-empted" shows; I trust that
-				// they will have no audio and be
-				// dropped later.  (In some cases
-				// those had special podcasts
-				// available, though, which I don't see
-				// a way to recover an ep# or title for.)
-				var title=attributes.title
-				    .replace(/The Undead # ?[0-9]*/gi," ")
-				    .replace(/The Undead/gi,"")
-				    .replace(/Undead # ?[0-9]*/gi," ")
-				    .replace(/ Pt. /gi," Part ")
-				if(!title.startsWith("#"))
-				    title=title.replace(/(^[^#].*)(#.*)/i,"$2, $1")
-				
-				// Nominally, number is easier to parse off
-				// attributes.slug. But that doesn't produce
-				// the right results for the "undead"
-				// episodes; slug puts those up in the 60K
-				// range but we really want the human number,
-				// and title processing should ensure it's at
-				// the start of that string (after '#').
-				// Exception: pre-empted 
-				var episodeNumber=parseInt(title.slice(1))
+			// Shows may be in database before release;
+			// skip if not playable. (Someday we might
+			// have a "what's coming soon" feature, but
+			// that's a very future TODO.)
+			if(attributes.audio!="" && attributes.audio!=undefined) {
+			    // Some titles have unusual boilerplate that
+			    // we need to adapt.
+			    //
+			    // I'm not bothering to process
+			    // "preempted" shows; I trust that they
+			    // will have no audio and be dropped
+			    // later.  (In some cases those had
+			    // special podcasts available, though,
+			    // which I don't see a way to recover an
+			    // ep# or title for.)
+			    var title=attributes.title
+				.replace(/The Undead # ?[0-9]*/gi," ")
+				.replace(/The Undead/gi,"")
+				.replace(/Undead # ?[0-9]*/gi," ")
+				.replace(/ Pt. /gi," Part ")
+			    if(!title.startsWith("#"))
+				title=title.replace(/(^[^#].*)(#.*)/i,"$2, $1")
+			    title=title.trim()
+			    if(title.endsWith("-"))
+				title=title.substr(title.length-1)
+			    
+			    // Nominally, number is easier to parse off
+			    // attributes.slug. But that doesn't produce
+			    // the right results for the "undead"
+			    // episodes; slug puts those up in the 60K
+			    // range but we really want the human number,
+			    // and title processing should ensure it's at
+			    // the start of that string (after '#').
+			    // Exception: pre-empted 
+			    var episodeNumber=parseInt(title.slice(1))
 
-				// New Sounds prefers to route these
-				// as podtrac URIs, though the direct
-				// URI can be extracted therefrom if
-				// one had reason to cheat. As of this
-				// writing the database hasn't
-				// included URI parameters, but I'm
-				// not ruling that out.
-				//
-				// For New Sounds, this can actually be reconstructed from
-				// broadcast date, in form 
-				// "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds072521.mp3"
-				// Haven't verified for Sound Check etc.
-				// Consider saving just show ID and ep#?
-				// 
-				// Occasionally coming thru as array
-				// in odd format (historical
-				// accident?), be prepared to unpack
-				// that.
-				// 
-				var mp3url=attributes.audio
-				if(Array.isArray(mp3url)) {
-				    mp3url=mp3url[0]
-				}
+			    // New Sounds prefers to route these as
+			    // podtrac URIs, though the direct URI can
+			    // be extracted therefrom if one had
+			    // reason to cheat. As of this writing the
+			    // database hasn't included URI
+			    // parameters, but I'm not ruling that
+			    // out.
+			    //
 
-				// Trim off time to work just with dates.
-				// Convert to real date value now, or later?
-				// See also newsdate, "(First Aired...)" in descr
-				// Publication date is not actually useful;
-				// that's when it was added to the DB.
-				// published=attributes["publish-at"].replace(/T.*/,'')
-				// publishedDate=new Date(published)
+			    // For New Sounds, this can actually be
+			    // reconstructed from broadcast date, in
+			    // form
+			    // "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds072521.mp3"
+			    // Haven't verified for Sound Check etc.
+			    // Could micro-optimize storage using that fact.
+			    // 
+			    // Occasionally these come thru as array
+			    // and/or in odd format (historical accident?).
+			    // Be prepared to unpack that.
+			    // 
+			    var mp3url=attributes.audio
+			    if(Array.isArray(mp3url)) {
+				mp3url=mp3url[0]
+			    }
 
-				var now=new Date()
-				// Take broadcast date from mp3url,
-				// rather that other fields; applied
-				// paranoia.  Note: In at least one
-				// case the database reports an
-				// unusually formed URI
-				// .../newsounds050610apod.mp3?awCollectionId=385&awEpisodeId=66200
-				// so be prepared to truncate after
-				// datestamp.
-				var urlDateFields=mp3url
-				    .replace(/.*\/newsounds([0-9]+)/i,"$1")
-				    .match(/.{1,2}/g)
-				if(! urlDateFields) {
-				    // Should never happen but Typescript
-				    // wants us to promise it won't.
-				    throw new RangeError("invalid date in: "+mp3url)
-				}
-				// Sloppy mapping of 2-digit year to 4-digit
-				var year=parseInt(urlDateFields[2])+2000
-				if(year > now.getUTCFullYear())
-				    year=year-100
-				var broadcastDate=new Date(
-				    Date.UTC(
-					year,
-					parseInt(urlDateFields[0])-1, // 0-based
-					parseInt(urlDateFields[1])
-				    )
+			    // see also publishedDate, newsDate, "First Aired"
+			    // Publication date is not actually useful;
+			    // that's when it was added to the DB.
+
+			    var now=new Date() // TODO: Factor out?
+
+			    // Take broadcast date from mp3url,
+			    // rather that other fields; applied
+			    // paranoia.  Note: In at least one
+			    // case the database reports an
+			    // unusually formed URI
+			    // .../newsounds050610apod.mp3?awCollectionId=385&awEpisodeId=66200
+			    // so be prepared to truncate after
+			    // datestamp.
+			    var urlDateFields=mp3url
+				.replace(/.*\/newsounds([0-9]+)/i,"$1")
+				.match(/.{1,2}/g)
+			    if(! urlDateFields) {
+				// Should never happen but Typescript
+				// wants us to promise it won't.
+				throw new RangeError("invalid date in: "+mp3url)
+			    }
+			    // Sloppy mapping of 2-digit year to 4-digit
+			    var year=parseInt(urlDateFields[2])+2000
+			    if(year > now.getUTCFullYear())
+				year=year-100
+			    var broadcastDate=new Date(
+				Date.UTC(
+				    year,
+				    parseInt(urlDateFields[0])-1, // 0-based
+				    parseInt(urlDateFields[1])
 				)
+			    )
 
-				// For Echo View and the like, long
-				// description is attributes.body, and
-				// attributes["image-main"] can be
-				// used for the image. TODO
+			    // For Echo View and the like, long
+			    // description is attributes.body, and
+			    // attributes["image-main"] can be
+			    // used for the image. TODO
 
-				// The database has &nbsp; and
-				// similar. Clean up for voice.
-				//
-				// For spoken description, use tease
-				// rather than body. But NOTE: Tease
-				// sometimes truncates long text with
-				// "...", which is not ideal for
-				// humans. Workaround: If that is
-				// seen, take the first sentence of
-				// body instead.
-				var tease=deHTMLify(attributes.tease)
-				if (tease.endsWith("..."))
-				    tease=deHTMLify(attributes.body+" ")
-					.split(". ")[0]+"."
+			    // The database has &nbsp; and
+			    // similar. Clean up for voice.
+			    //
+			    // For spoken description, use tease
+			    // rather than body. But NOTE: Tease
+			    // sometimes truncates long text with
+			    // "...", which is not ideal for
+			    // humans. Workaround: If that is
+			    // seen, take the first sentence of
+			    // body instead.
+			    var tease=deHTMLify(attributes.tease)
+			    if (tease.endsWith("..."))
+				tease=deHTMLify(attributes.body+" ")
+				.split(". ")[0]+"."
 
-				// TODO: Someday, is it worth parsing
-				// out the ARTIST/WORK/SOURCE/INFO
-				// <span/>s from the body? Alas, can't
-				// map durations to offsets, since the
-				// duration table doesn't include
-				// John's commentary.
-				
-				// TODO: Tag searchability some day.
-				// Note processing into sounds-like
-				// match form.  Other music skills
-				// seem to handle this; I'm not sure
-				// what their approach is.
-				//
-				// We want to both handle "redbone" finding
-				// Martha Redbone, and distinguish
-				// Kronos Quartet from
-				// Mivos Quartet.
-				var tags=[]
-				for(let tag of attributes.tags) {
-				    // TODO: Should we make this array
-				    // for direct matching, or reconcatentate
-				    // into a string for contains matching?
-				    // Unclear which is more robust given
-				    // possibly fuzzy matching. String is
-				    // more human-readable in JSON.
-				    var tagset=" " // For ease of exact-matching
-				    for(let token of tag.split("_")) {
-					// TODO: Match on sounds-like.
-					// token=metaphone(stemmer(token))
-					tagset=tagset+token+" "
-				    }
-				    tags.push(tagset)
+			    // TODO: Someday, is it worth parsing
+			    // out the ARTIST/WORK/SOURCE/INFO
+			    // <span/>s from the body? Alas, can't
+			    // map durations to offsets, since the
+			    // duration table doesn't include
+			    // John's commentary.
+			    
+			    // TODO: Tag searchability some day.
+			    // Note processing into sounds-like
+			    // match form.  Other music skills
+			    // seem to handle this; I'm not sure
+			    // what their approach is.
+			    //
+			    // We want to both handle "redbone" finding
+			    // Martha Redbone, and distinguish
+			    // Kronos Quartet from
+			    // Mivos Quartet.
+			    var tags=[]
+			    for(let tag of attributes.tags) {
+				// TODO: Should we make this array
+				// for direct matching, or reconcatentate
+				// into a string for contains matching?
+				// Unclear which is more robust given
+				// possibly fuzzy matching. String is
+				// more human-readable in JSON.
+				var tagset=" " // For ease of exact-matching
+				for(let token of tag.split("_")) {
+				    // TODO: Match on sounds-like.
+				    // token=metaphone(stemmer(token))
+				    tagset=tagset+token+" "
 				}
+				tags.push(tagset)
+			    }
 
-				// Some array entries may be missing
-				// and the array will contain the null
-				// value if so.  JSON is content with
-				// that, but our navigation will need
-				// to recognize and skip those slots.
-				//
-				// NOTE: Episodes are broadcast out of
-				// order and repeated, so incremental
-				// must continue until it sees a
-				// broadcast date we already know
-				// about. (Reminder: we're still
-				// handling only one radio show at a
-				// time, hence one added entry per
-				// date.)
-				//
-				// NOTE: There is at least one
-				// un-episodeNumbered episode of New
-				// Sounds ("With Ravi Shankar"). For
-				// now, I'm simply dropping that,
-				// which will unfortunately drop
-				// rebroadcasts as well. (A pity; it's
-				// a good interview!) The general case
-				// of rediscovered early archives will
-				// have to be dealt with if we want to
-				// let users access these.
-				if(episodeNumber > 0) {
-				    // Some juggling here to get types right...
-				    // Unfortunately while Typescript realizes
-				    // that after the first test ep is non-null,
-				    // Javascript needs manual help.
-				    let ep = episodesByNumber[episodeNumber]
-				    if(ep===null) {
-					var tempObject=newEpisodeRecord(
-					    episodeNumber,
-					    title,
-					    tease,
-					    [broadcastDate.getTime()],
-					    tags,
-					    mp3url
-					)
-					episodesByNumber[episodeNumber]=tempObject
-					// maintain broadcast dates index
-					episodeNumbersByDateMsec[broadcastDate.getTime()]=episodeNumber
-				    }
-				    else if (ep!=null && ep.broadcastDatesMsec
-					     .includes(broadcastDate.getTime())
-					    ) {
-					if(maxdepth<0 && hasMore) {
-					    console.log("Scan found known episode ",episodeNumber,"with known date",broadcastDate)
-					    console.log("Stopping incremental database update.")
-					    hasMore=false
-					}
-				    }					
-				    else if (ep!=null) { // MUST be true!!!
-					// GONK: As we move to database
-					// there is the question of whether
-					// broadcastDatesMsec remains an
-					// array of values (more compact), or
-					// if we wind up with a row per date
-					// (fewer transactions?)
-					ep.broadcastDatesMsec
-					    .push(broadcastDate.getTime())
-					// maintain broadcast dates index
-					episodeNumbersByDateMsec[broadcastDate.getTime()]=episodeNumber
-				    }
-				} // end if numbered
-			    } // end if released audio exists.
-			} // end for episodes in this fetch
+			    // Some array entries may be missing.  Our
+			    // navigation will need to skip those
+			    // slots.
+			    //
+			    // NOTE: Episodes are often broadcast out
+			    // of order and repeated, so incremental
+			    // must continue until it sees a broadcast
+			    // date we already know about. (Reminder:
+			    // we're still handling only one radio
+			    // show at a time, hence one added entry
+			    // per date.)
+			    //
+			    // NOTE: There is at least one
+			    // un-episodeNumbered episode of New
+			    // Sounds ("With Ravi Shankar"). For
+			    // now, I'm simply dropping that,
+			    // which will unfortunately drop
+			    // rebroadcasts as well. (A pity; it's
+			    // a good interview!) The general case
+			    // of rediscovered early archives will
+			    // have to be dealt with if we want to
+			    // let users access these.
+			    if(episodeNumber > 0) {
+				var newEpisode={
+				    program: "newsounds", // TODO: Parameterize
+				    episode: episodeNumber,
+				    title: title,
+				    tease: tease,
+				    broadcastDateMsec: broadcastDate.getTime(),
+				    tags: tags,
+				    url: mp3url
+				}
+				// GONK: Add to database
+				// GONK: If already existed, set hasMore=false
+				// ... Leveraging that may require await
+				// ... Handle with Promise.all at end?
+				
+			    } // end if numbered
+			} // end if released audio exists.
+		    } // end for episodes in this fetch
 
-			if(page == maxdepth) hasMore=false
-			
-			if(page == data.meta.pagination.pages)
-			    hasMore=false;// can't use break in async loop
-			++page
-		    }) // end await.then
-		    .catch(e => {
-			var stack;
-			if(e instanceof Error)
-			    stack=e.stack
-			else
-			    stack="(not Error, so no stack)"
-			console.error("Update failed on Page",page,"\n",e,stack)
-			// Recovery: Run with what we've previously loaded
-			throw e
-		    }) 
-	    } // end while
+		    if(page == maxdepth) hasMore=false
+		    
+		    if(page == data.meta.pagination.pages)
+			hasMore=false;// can't use break in async loop
+		    ++page
+		}) // end await.then
+		.catch(e => {
+		    var stack;
+		    if(e instanceof Error)
+			stack=e.stack
+		    else
+			stack="(not Error, so no stack)"
+		    console.error("Update failed on Page",page,"\n",e,stack)
+		    // Recovery: Run with what we've previously loaded
+		    throw e
+		}) 
+	} // end while
 
-	    let numberOfEpisodes=episodesByNumber.length
-	    let ep=episodesByNumber[numberOfEpisodes-1]
-	    // Really could/should use non-null assertion here?
-	    console.log("Highest numbered:",ep===null ? null : ep.title)
-	    let mostRecentDate=this.getMostRecentBroadcastDate()
-	    let mostRecentNumber=episodeNumbersByDateMsec[mostRecentDate.toString()]! // Should never be null
-	    let lastep=episodesByNumber[mostRecentNumber]
-	    console.log("Most recent daily:",
-			lastep===null ? null : lastep.title,
-			"at",new Date(mostRecentDate).toUTCString())
+	// GONK: Rewrite this in terms of database queries
+	getItemForHighestEpisode(TABLE_NAME,"newsounds")
+	    .then (ep => {
+		console.log("Highest numbered:",ep.title)
+	    })
+	getItemForLatestDate(TABLE_NAME,"newsounds")
+	    .then (ep => {
+		console.log("Most recent daily:",
+			    ep.title,
+			    "at",new Date(ep.broadcastDateMsec).toUTCString())
+	    })
+    } // end handlePage
 
-	    // Cache to local file
-	    fs.writeFile(EPISODES_FILE,
-			 JSON.stringify(episodesCache,null,2), // prettyprint
-			 "utf8",
-			 function (err:any) {
-			     if (err) {
-				 console.error("An error occured while writing updates to",EPISODES_FILE);
-				 console.error(err);
-			     }
-			 }
-			)
-	} // end handlePage
+    // Launch sequenced async queries, eventually updating ep list.
+    //
+    // Eventually we'll probably want to generalize this to handle
+    // Soundcheck etc. Just a matter of setting the show name, I think,
+    // and having the app run against the right index files.
+    handlePage()
+} // end update
 
-	// Launch sequenced async queries, eventually updating ep list.
-	//
-	// Eventually we'll probably want to generalize this to handle
-	// Soundcheck etc. Just a matter of setting the show name, I think,
-	// and having the app run against the right index files.
-	await handlePage()
-    } // end update
+// Convert HTML escapes to speakable. Note RE syntax in .replace().
+function deHTMLify(text:string):string {
+    return text
+	.replace(/<.*>/gi," ") // Discard markup
+	.replace(/&nbsp;/gi," ")
+	.replace(/&amp;/gi," & ")
+	.replace(/&[lr]squo;/gi,"'")
+	.replace(/&[lr]dquo;/gi,'"')
+	.replace(/&[lr]ndash;/gi," -- ")
+    // TODO: (case sensitive?) aelig, eacute, aacute, iacute, oacute,
+    // hellip, Uuml, uacute, auml, oslash -- unless speech synths
+    // handle them.
+
+    // While we're here, convert newlines to spaces, then drop repeated spaces
+	.replace(/\n/g," ")
+	.replace(/ */g," ")
+}
+
+const APP_URI_PARAMETERS="user=keshlam@kubyc.solutions&nyprBrowserId=NewSoundsOnDemand.smartspeaker.player"
+
+// URI to query the station's episode database. Pages start from 1, ordered
+// newest-first. Page size can be up to 100 episodes per query. NOTE that this
+// doesn't issue the query, just produces the URI.
+//
+// TODO: Parameterize by show name?
+function formatEpisodeDatabaseQueryURI(page:number,page_size:number) {
+    return "https://api.wnyc.org/api/v3/story/?item_type=episode&ordering=-newsdate&show=newsounds&"+APP_URI_PARAMETERS+"&page="+page+"&page_size="+page_size
+}
