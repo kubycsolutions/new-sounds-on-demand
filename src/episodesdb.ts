@@ -445,223 +445,6 @@ export function deleteItem(tableName:string,record:EpisodeRecord): Promise<Objec
 // do have the playlists and lengths.
 
 //================================================================
-/**********************************************************************
-Stuff here is strictly notes left over from previous examples.
-Get rid of it at some point.
-
-function queryYear(tableName): Promise<Object> {
-    console.log("Querying for episodes from 1985.");
-
-    var params = {
-	TableName : tableName,
-	KeyConditionExpression: "#yr = :yyyy",
-	ExpressionAttributeNames:{
-            "#yr": "year"
-	},
-	ExpressionAttributeValues: {
-            ":yyyy": 1985
-	}
-    };
-
-    return docClient.query(params).promise()
-}
-
-function queryYearTitle(tableName,): Promise<Object> {
-// NOTE: SECONDARY KEY WOULD HELP
-// See https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/SecondaryIndexes.html
-    console.log("Querying for episodes from 1992 - titles A-L, with genres and lead actor");
-
-    var params = {
-	TableName : tableName,
-	ProjectionExpression:"#yr, title, info.genres, info.actors[0]",
-	KeyConditionExpression: "#yr = :yyyy and title between :letter1 and :letter2",
-	ExpressionAttributeNames:{
-            "#yr": "year"
-	},
-	ExpressionAttributeValues: {
-            ":yyyy": 1992,
-            ":letter1": "A",
-            ":letter2": "L"
-	}
-    };
-
-    return docClient.query(params, function(err, datas) {
-	if (err) {
-            console.log("Unable to query. Error:", JSON.stringify(err, null, 2));
-	} else {
-            console.log("Query succeeded.");
-            datas.forEach(function(item) {
-		console.log(" -", item.year + ": " + item.title
-			    + " ... " + item.info.genres
-			    + " ... " + item.info.actors[0]);
-            });
-	}
-    });
-}
-
-function itemDeleteConditionally(tableName,) {
-    var table = tableName;
-    
-    var year = 2015;
-    var title = "The Big New Item";
-
-    var params = {
-	TableName:table,
-	Key:{
-            "year": year,
-            "title": title
-	},
-	ConditionExpression:"info.rating <= :val",
-	ExpressionAttributeValues: {
-            ":val": 5.0
-	}
-    };
-
-    console.log("Attempting a conditional delete...");
-    docClient.delete(params, function(err, data) {
-	if (err) {
-            console.error("Unable to delete item. Error JSON:", JSON.stringify(err, null, 2));
-	} else {
-            console.log("DeleteItem succeeded:", JSON.stringify(data, null, 2));
-	}
-    });
-}
-
-// Update runs in place, can delete fields, reduces transaction traffic,
-// and is supposedly atomic, though still only eventually consistent unless
-// reader forces a wait.
-function itemIncrementCounter(tableName,) { // Update example
-    var table = tableName;
-
-    var year = 2015;
-    var title = "The Big New Item";
-
-    // Increment an atomic counter
-
-    var params = {
-	TableName:table,
-	Key:{
-            "year": year,
-            "title": title
-	},
-	UpdateExpression: "set info.rating = info.rating + :val",
-	ExpressionAttributeValues:{
-            ":val": 1
-	},
-	ReturnValues:"UPDATED_NEW"
-    };
-
-    console.log("Updating the item...");
-    docClient.update(params, function(err, data) {
-	if (err) {
-            console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
-	} else {
-            console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
-	}
-    });
-}
-
-function itemUpdate(tableName,) {
-    var table = tableName;
-
-    var year = 2015;
-    var title = "The Big New Item";
-
-    // Update the item, unconditionally,
-
-    var params = {
-	TableName:table,
-	Key:{
-            "year": year,
-            "title": title
-	},
-	UpdateExpression: "set info.rating = :r, info.plot=:p, info.actors=:a",
-	ExpressionAttributeValues:{
-            ":r":5.5,
-            ":p":"Everything happens all at once.",
-            ":a":["Larry", "Moe", "Curly"]
-	},
-	ReturnValues:"UPDATED_NEW"
-    };
-
-    console.log("Updating the item...");
-    docClient.update(params, function(err, data) {
-	if (err) {
-            console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
-	} else {
-            console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
-	}
-    });
-
-}
-
-function itemUpdateConditionally(tableName,actors_count_ge) {
-    var params = {
-	TableName:table,
-	Key:{
-            "year": year,
-            "title": title
-	},
-	UpdateExpression: "remove info.actors[0]",
-	ConditionExpression: "size(info.actors) >= :num",
-	ExpressionAttributeValues:{
-            ":num": actors_count_ge
-	},
-	ReturnValues:"UPDATED_NEW"
-    };
-
-    console.log("Attempting a conditional update...");
-    docClient.update(params, function(err, data) {
-	if (err) {
-            console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
-	} else {
-            console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
-	}
-    });
-}
-
-// INEFFICIENT ITERATE-AND-TEST RATHER THAN HASH/KEY TEST, FALLBACK TOOL
-function scan(tableName,) {
-    var params = {
-	TableName: tableName,
-	ProjectionExpression: "#yr, title, info.rating",
-	FilterExpression: "#yr between :start_yr and :end_yr",
-	ExpressionAttributeNames: {
-            "#yr": "year",
-	},
-	ExpressionAttributeValues: {
-            ":start_yr": 1950,
-            ":end_yr": 1959 
-	}
-    };
-
-    console.log("Scanning Items table.");
-    docClient.scan(params, onScan);
-
-    function onScan(err, data) {
-	if (err) {
-            console.error("Unable to scan the table. Error JSON:", JSON.stringify(err, null, 2));
-	} else {
-        // print all the episodes
-            console.log("Scan succeeded.");
-            data.Items.forEach(function(record) {
-		console.log(
-                    record.year + ": ",
-                    record.title, "- rating:", record.info.rating);
-            });
-
-            // continue scanning if we have more episodes, because
-            // scan can retrieve a maximum of 1MB of data
-            if (typeof data.LastEvaluatedKey != "undefined") {
-		console.log("Scanning for more...");
-		params.ExclusiveStartKey = data.LastEvaluatedKey;
-		docClient.scan(params, onScan);
-            }
-	}
-    }
-}
-
-*******************************************************************/
 
 //================================================================
 // Check the newsounds.org database to find out which (if any) new
@@ -745,12 +528,20 @@ export async function updateEpisodes(maxdepth:number) {
 				
 			if(episodeRecord!=null)
 			{
-				console.error("GONK! Add to database, check previous")
-				console.error("GONK! If previous existed and incremental, set hasMore to false"
-)
-				console.error("GONK! Note this may require await, unless all following can be moved into the .then clause")
-				console.error("GONK! Which gets into parallelism logic design.")
-				console.error("GONK! ... Promise.all()?")
+			    // GONK: Need to detect if already existed.
+			    // Use updateItem with previous-value monitoring?
+			    putItem(TABLE_NAME,episodeRecord)
+				.then(ok => {
+				    console.log("DEBUG put ok vvvvvv")
+				    console.log(JSON.stringify(ok))
+				    console.log("DEBUG put ok ^^^^^^")
+				})
+				.catch(err => {
+				    console.log("DEBUG put err vvvvvv")
+				    console.log(JSON.stringify(err))
+				    console.log("DEBUG put err ^^^^^^")
+				    hasMore=false
+				})
 			} // end if released audio exists and has ep#
 		    } // end for episodes in this fetch
 
@@ -1010,3 +801,237 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
     }
     return null // Fallthrough: Can't make it a useful EpisodeRecord.
 }
+
+//================================================================
+// EARLY DEV TEST
+
+function callUpdateEpisodes() {
+    console.log("DEBUG: UPDATING")
+    updateEpisodes(1)
+}
+
+// In Theory, this should wait for table to be created or fail to be,
+// and either way invoke callUpdateEpisodes
+createTable(TABLE_NAME)
+    .then(() => callUpdateEpisodes())
+    .catch(() => callUpdateEpisodes())
+
+//================================================================
+
+/**********************************************************************
+Stuff here is strictly notes left over from previous examples.
+Get rid of it at some point.
+
+function queryYear(tableName): Promise<Object> {
+    console.log("Querying for episodes from 1985.");
+
+    var params = {
+	TableName : tableName,
+	KeyConditionExpression: "#yr = :yyyy",
+	ExpressionAttributeNames:{
+            "#yr": "year"
+	},
+	ExpressionAttributeValues: {
+            ":yyyy": 1985
+	}
+    };
+
+    return docClient.query(params).promise()
+}
+
+function queryYearTitle(tableName,): Promise<Object> {
+// NOTE: SECONDARY KEY WOULD HELP
+// See https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/SecondaryIndexes.html
+    console.log("Querying for episodes from 1992 - titles A-L, with genres and lead actor");
+
+    var params = {
+	TableName : tableName,
+	ProjectionExpression:"#yr, title, info.genres, info.actors[0]",
+	KeyConditionExpression: "#yr = :yyyy and title between :letter1 and :letter2",
+	ExpressionAttributeNames:{
+            "#yr": "year"
+	},
+	ExpressionAttributeValues: {
+            ":yyyy": 1992,
+            ":letter1": "A",
+            ":letter2": "L"
+	}
+    };
+
+    return docClient.query(params, function(err, datas) {
+	if (err) {
+            console.log("Unable to query. Error:", JSON.stringify(err, null, 2));
+	} else {
+            console.log("Query succeeded.");
+            datas.forEach(function(item) {
+		console.log(" -", item.year + ": " + item.title
+			    + " ... " + item.info.genres
+			    + " ... " + item.info.actors[0]);
+            });
+	}
+    });
+}
+
+function itemDeleteConditionally(tableName,) {
+    var table = tableName;
+    
+    var year = 2015;
+    var title = "The Big New Item";
+
+    var params = {
+	TableName:table,
+	Key:{
+            "year": year,
+            "title": title
+	},
+	ConditionExpression:"info.rating <= :val",
+	ExpressionAttributeValues: {
+            ":val": 5.0
+	}
+    };
+
+    console.log("Attempting a conditional delete...");
+    docClient.delete(params, function(err, data) {
+	if (err) {
+            console.error("Unable to delete item. Error JSON:", JSON.stringify(err, null, 2));
+	} else {
+            console.log("DeleteItem succeeded:", JSON.stringify(data, null, 2));
+	}
+    });
+}
+
+// Update runs in place, can delete fields, reduces transaction traffic,
+// and is supposedly atomic, though still only eventually consistent unless
+// reader forces a wait.
+function itemIncrementCounter(tableName,) { // Update example
+    var table = tableName;
+
+    var year = 2015;
+    var title = "The Big New Item";
+
+    // Increment an atomic counter
+
+    var params = {
+	TableName:table,
+	Key:{
+            "year": year,
+            "title": title
+	},
+	UpdateExpression: "set info.rating = info.rating + :val",
+	ExpressionAttributeValues:{
+            ":val": 1
+	},
+	ReturnValues:"UPDATED_NEW"
+    };
+
+    console.log("Updating the item...");
+    docClient.update(params, function(err, data) {
+	if (err) {
+            console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
+	} else {
+            console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
+	}
+    });
+}
+
+function itemUpdate(tableName,) {
+    var table = tableName;
+
+    var year = 2015;
+    var title = "The Big New Item";
+
+    // Update the item, unconditionally,
+
+    var params = {
+	TableName:table,
+	Key:{
+            "year": year,
+            "title": title
+	},
+	UpdateExpression: "set info.rating = :r, info.plot=:p, info.actors=:a",
+	ExpressionAttributeValues:{
+            ":r":5.5,
+            ":p":"Everything happens all at once.",
+            ":a":["Larry", "Moe", "Curly"]
+	},
+	ReturnValues:"UPDATED_NEW"
+    };
+
+    console.log("Updating the item...");
+    docClient.update(params, function(err, data) {
+	if (err) {
+            console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
+	} else {
+            console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
+	}
+    });
+
+}
+
+function itemUpdateConditionally(tableName,actors_count_ge) {
+    var params = {
+	TableName:table,
+	Key:{
+            "year": year,
+            "title": title
+	},
+	UpdateExpression: "remove info.actors[0]",
+	ConditionExpression: "size(info.actors) >= :num",
+	ExpressionAttributeValues:{
+            ":num": actors_count_ge
+	},
+	ReturnValues:"UPDATED_NEW"
+    };
+
+    console.log("Attempting a conditional update...");
+    docClient.update(params, function(err, data) {
+	if (err) {
+            console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
+	} else {
+            console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
+	}
+    });
+}
+
+// INEFFICIENT ITERATE-AND-TEST RATHER THAN HASH/KEY TEST, FALLBACK TOOL
+function scan(tableName,) {
+    var params = {
+	TableName: tableName,
+	ProjectionExpression: "#yr, title, info.rating",
+	FilterExpression: "#yr between :start_yr and :end_yr",
+	ExpressionAttributeNames: {
+            "#yr": "year",
+	},
+	ExpressionAttributeValues: {
+            ":start_yr": 1950,
+            ":end_yr": 1959 
+	}
+    };
+
+    console.log("Scanning Items table.");
+    docClient.scan(params, onScan);
+
+    function onScan(err, data) {
+	if (err) {
+            console.error("Unable to scan the table. Error JSON:", JSON.stringify(err, null, 2));
+	} else {
+        // print all the episodes
+            console.log("Scan succeeded.");
+            data.Items.forEach(function(record) {
+		console.log(
+                    record.year + ": ",
+                    record.title, "- rating:", record.info.rating);
+            });
+
+            // continue scanning if we have more episodes, because
+            // scan can retrieve a maximum of 1MB of data
+            if (typeof data.LastEvaluatedKey != "undefined") {
+		console.log("Scanning for more...");
+		params.ExclusiveStartKey = data.LastEvaluatedKey;
+		docClient.scan(params, onScan);
+            }
+	}
+    }
+}
+
+*******************************************************************/
