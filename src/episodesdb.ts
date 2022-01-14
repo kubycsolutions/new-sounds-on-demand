@@ -412,10 +412,25 @@ export function getNextItemByEpisode(tableName:string,program:string,episode:num
 
 // program+date must be unique, but multiple Items/records per episode
 // with different timestamps are common due to rebroadcasts.
+// This will overwrite.
 export function putItem(tableName:string,record:EpisodeRecord): Promise<Object> {
     var params = {
 	TableName:tableName,
 	Item:record
+    }
+    return docClient.put(params).promise()
+}
+
+// program+date must be unique, but multiple Items/records per episode
+// with different timestamps are common due to rebroadcasts.
+// This version will NOT overwrite -- it tests for presence of the (required!)
+// Hash Key.
+export function putNewItem(tableName:string,record:EpisodeRecord): Promise<Object> {
+    var params = {
+	TableName:tableName,
+	Item:record,
+	ConditionExpression: "attribute_not_exists(#p)",
+	ExpressionAttributeNames: { "#p": "program" }
     }
     return docClient.put(params).promise()
 }
@@ -505,8 +520,9 @@ export async function updateEpisodes(maxdepth:number) {
 	    // when incremental load had reached already-known data.
 	    //
 	    // NOTE AWAIT to make the loop synchronous.
+	    // (GONK May not be playing well with the promise rewrite.)
 	    // There may be a clean way to change this to fully async,
-	    // since in theory async tail-calls without wait _ought_ to not
+	    // since in theory conditional tail-calls without wait _ought_ to not
 	    // stack unreasonably.
 	    await getStationEpisodeData(page)
 		.then( data => {
@@ -528,13 +544,11 @@ export async function updateEpisodes(maxdepth:number) {
 				
 			if(episodeRecord!=null)
 			{
-			    // GONK: Need to detect if already existed.
-			    // Use updateItem with previous-value monitoring?
-			    putItem(TABLE_NAME,episodeRecord)
+			    putNewItem(TABLE_NAME,episodeRecord)
 				.then(ok => {
-				    console.log("DEBUG put ok vvvvvv")
-				    console.log(JSON.stringify(ok))
-				    console.log("DEBUG put ok ^^^^^^")
+				    // console.log("DEBUG put ok vvvvvv")
+				    // console.log(JSON.stringify(ok))
+				    // console.log("DEBUG put ok ^^^^^^")
 				})
 				.catch(err => {
 				    console.log("DEBUG put err vvvvvv")
@@ -545,6 +559,7 @@ export async function updateEpisodes(maxdepth:number) {
 			} // end if released audio exists and has ep#
 		    } // end for episodes in this fetch
 
+		    // Other terminating conditions
 		    hasMore=(hasMore && 
 			     page!=maxdepth && 
 			     page !=data.meta.pagination.pages)
