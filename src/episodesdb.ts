@@ -1,10 +1,9 @@
 /** Substantially rewritten from Amazon.com sample code by
     keshlam@Kubyc.Solutions
 
-    TODO: Replace Object with at least a partial type for the
-    DocumentClient's returned structure, and with the Episode record
-    struct. (Latter's date has to be modified from array to single
-    number and multipe records) */
+    TODO GONK: Keep actual datestamps, since we know how to query for 
+    nearest-after.
+ */
 
 import got from 'got'
 
@@ -32,13 +31,14 @@ var docClient = new AWS.DynamoDB.DocumentClient();
 const ITEM_BY_EPISODE_INDEX="ITEM_BY_EPISODE" // Just for static checking
 
 export interface EpisodeRecord {
-    program: string
+    program: string;
     episode: number;
     title: string;
     tease: string;
     broadcastDateMsec: number
     tags: string[];
     url: string;
+    imageurl: string|null;
 }
 
 export interface QueryUniqueResult {
@@ -165,19 +165,19 @@ interface StationEpisodeAttributes {
     "edit-link": string; // protected; I hope!
     "embed-code": string; // HTML for the iframe
     "estimated-duration": number; // seconds?
-    headers: any; // ... 
+    headers: any; // ... Not relevant right now
     "header-donate-chunk": any; // null|string?
     "image-caption": null|string;
-    "image-main": {
+    "image-main": { // We may want to display this on SHOW-like devices
 	"alt-text": null|string;
 	name: null|string;
 	source: null|string;
 	url: null|string; // TODO: May want to display
 	h: number;
 	"is-display": boolean;
-	crop: string; // containing number
+	crop: string; // typ. containing number
 	caption: string;
-	"credits-url": string; // TODO: Display?
+	"credits-url": string; 
 	template: string; // URI with substitution slots?
 	w: number;
 	id: number;
@@ -190,7 +190,7 @@ interface StationEpisodeAttributes {
     "npr-analytics-dimensions": string[]; // mostly replicates
     playlist: any[]; // ?
     "podcast-links": any[]; //?
-    "producing-organizations": [{
+    "producing-organizations": [{ // TODO: Make org an interface?
 	url: string;
 	logo: any; // often null
 	name: string
@@ -212,12 +212,12 @@ interface StationEpisodeAttributes {
     slug: string // Brief description eg "4569-late-night-jazz"
     slideshow: any[] // often empty
     tags: string[] // "artist_name", "music", ...
-    tease: string // NON-HTML brief description of EPISODE
+    tease: string // NON-HTML brief episode descr. May be absent or truncated.
     template: string // editing guidance
-    title: string // Brief description eg "#4569, Late Night Jazz",
+    title: string // Includes ep#, eg "#4569, Late Night Jazz",
     transcript: string // usually empty for New Sounds
-    "twitter-headline": string // usually === title
-    "twitter-handle": string // eg "newsounds"
+    "twitter-headline": string // usually == title
+    "twitter-handle": string // usually == show
     url: string // for episode description page. Display?
     video: null|string // usually null
 }
@@ -488,7 +488,7 @@ export async function updateEpisodes(maxdepth:number) {
     // Run Got HTTP query, returning object via a Promise
     const getStationEpisodeData = (page:number) => {
 	console.log("  Fetch index page",page)
-	const page_size=10 // Number of results per fetch
+	const page_size=20 // Number of results per fetch
 	return new Promise((resolve, reject) => {
 	    // Fetch a page from the list of episodes,
 	    // date-descending order This uses a function variable
@@ -512,82 +512,104 @@ export async function updateEpisodes(maxdepth:number) {
 	})
     };
 
-    async function handlePage(page:number=1) {
-	var hasMore=true
-	while(hasMore) {
-	    // Issue query, wait for Promise to be completed,
-	    // and handle. The while/await was needed so we could determine
-	    // when incremental load had reached already-known data.
-	    //
-	    // NOTE AWAIT to make the loop synchronous.
-	    // (GONK May not be playing well with the promise rewrite.)
-	    // There may be a clean way to change this to fully async,
-	    // since in theory conditional tail-calls without wait _ought_ to not
-	    // stack unreasonably.
-	    await getStationEpisodeData(page)
-		.then( data => {
-		    // Typescript's approach to ducktype-downcasting is
-		    // apparently to condition upon a Type Guard.
-		    if(! (isStationEpisodeData(data))) {
-			console.error("vvvvvvvvvvvvvv")
-			console.error("UNEXPECTED DATA STRUCTURE FROM STATION")
-			console.error(JSON.stringify(data))
-			console.error("^^^^^^^^^^^^^")
-			return;
-		    }
+    function handlePage(page:number=1): Promise<any> {
+	// Issue query, wait for Promise to be completed,
+	// and handle. The while/await was needed so we could determine
+	// when incremental load had reached already-known data.
+	//
+	// NOTE AWAIT attempting to make the loop synchronous.
+	// (GONK May not be playing well with the promise rewrite.)
+	// There may be a clean way to change this to fully async,
+	// since in theory conditional tail-calls without wait _ought_ to not
+	// stack unreasonably.
+	return getStationEpisodeData(page)
+	    .then( data => {
+		// Typescript's approach to ducktype-downcasting is
+		// apparently to condition upon a Type Guard.
+		if(! (isStationEpisodeData(data))) {
+		    console.error("vvvvvvvvvvvvvv")
+		    console.error("UNEXPECTED DATA STRUCTURE FROM STATION")
+		    console.error(JSON.stringify(data,null,2))
+		    console.error("^^^^^^^^^^^^^")
+		    return Promise.reject("unexpected");
+		}
 
-		    // PROCESS EPISODES IN THIS CHUNK
-		    var episodes=data.data
-		    for (let ep of episodes) {
-			var episodeRecord:(EpisodeRecord|null) =
-			    attributesToEpisodeRecord(ep.attributes)
-				
-			if(episodeRecord!=null)
+		// PROCESS EPISODES IN THIS CHUNK
+		var episodes=data.data
+		//for (let ep of episodes) {
+		var promises:Promise<string>[] = episodes.map( ep => {
+		    return new Promise<string> ( (resolve,reject) => {
+			if(ep==null) 
+			    resolve("null record")
+			else {
+			    var episodeRecord:(EpisodeRecord|null) =
+				attributesToEpisodeRecord(ep.attributes)
+			    
+			    if(episodeRecord!=null)
+			    {
+				// If doing a full-depth scan, force replacement
+				// (because we're presumably restructuring data)
+				var putOperation= maxdepth==0 ? putItem : putNewItem
+				return putOperation(TABLE_NAME,episodeRecord)
+				    .then(() => {
+					return resolve("NEW")
+				    })
+				    .catch( (err:any) => {
+					return reject(err) 
+				    })
+			    } // end if episodeRecord converted OK
+			    else {
+				return reject("Unconvertable data from station server.")
+			    }
+			}
+		    }) // end new Promise
+		}) // end episodes.map
+		return Promise.allSettled(promises)
+		    .then(results => {
+			if(results.some(r => r.status=="rejected"))
 			{
-			    putNewItem(TABLE_NAME,episodeRecord)
-				.then(ok => {
-				    // console.log("DEBUG put ok vvvvvv")
-				    // console.log(JSON.stringify(ok))
-				    // console.log("DEBUG put ok ^^^^^^")
-				})
-				.catch(err => {
-				    console.log("DEBUG put err vvvvvv")
-				    console.log(JSON.stringify(err))
-				    console.log("DEBUG put err ^^^^^^")
-				    hasMore=false
-				})
-			} // end if released audio exists and has ep#
-		    } // end for episodes in this fetch
-
-		    // Other terminating conditions
-		    hasMore=(hasMore && 
-			     page!=maxdepth && 
-			     page !=data.meta.pagination.pages)
-		    ++page
-		}) // end await.then
-		.catch(e => {
-		    var stack;
-		    if(e instanceof Error)
-			stack=e.stack
-		    else
-			stack="(not Error, so no stack)"
-		    console.error("Update failed on Page",page,"\n",e,stack)
-		    // Recovery: Run with what we've previously loaded
-		    throw e
-		}) // end catch 
-	} // end while
-
-	// Probe the updated table. Diagnostic logging.
-	getItemForHighestEpisode(TABLE_NAME,"newsounds")
-	    .then (ep => {
-		console.log("Highest numbered:",ep.title)
-	    })
-	getItemForLatestDate(TABLE_NAME,"newsounds")
-	    .then (ep => {
-		console.log("Most recent daily:",
-			    ep.title,
-			    "at",new Date(ep.broadcastDateMsec).toUTCString())
-	    })
+			    // Some rejection is normal when in overwrite mode.
+			    // In incremental, it means stop.
+			    if(maxdepth >=0 &&
+			       page!=maxdepth &&
+			       page!=data.meta.pagination.pages) { // more
+				console.log("Next page...")
+				return handlePage(page+1)
+				    .catch(err => {
+					Promise.reject("handlePage("+(page+1)+") failed a recursion: "+err)
+				    })
+			    }
+			    else return Promise.resolve("done")
+			}
+			else {
+			    // All successful. Stop only on depth or no-more
+			    if(page!=maxdepth && 
+			       page!=data.meta.pagination.pages) {
+				return handlePage(page+1)
+				    .catch( (err) => {
+					Promise.reject("handlePage("+(page+1)+") failed an update: "+err)
+				    })
+			    }
+			}
+			return Promise.resolve("done")
+		    })
+		    .catch(err => {
+			console.log("\nPaErr:",err)
+			// Should we continue scanning (full, and more remain)?
+			// ... I'm voting no for now; this is unexpected
+			return Promise.reject("Unexpected update failure: "+err)
+		    })
+	    }) // end Promise.all.then
+	    .catch(e => {
+		var stack;
+		if(e instanceof Error)
+		    stack=e.stack
+		else
+		    stack="(not Error, so no stack)"
+		console.error("Update failed on Page",page,"\n",e,stack)
+		// Recovery: Leave DB running with what we've previously loaded
+		return Promise.reject("Update failed on Page"+page+"\n"+e+stack)
+	    }) // end Promise.all.catch 
     } // end handlePage
 
     // Launch sequenced async queries, eventually updating ep list.
@@ -596,6 +618,29 @@ export async function updateEpisodes(maxdepth:number) {
     // Soundcheck etc. Just a matter of setting the show name, I think,
     // and having the app run against the right index files.
     handlePage()
+	.then( () => {
+	    // Probe the updated table. Diagnostic logging.
+	    getItemForHighestEpisode(TABLE_NAME,"newsounds")
+		.then (ep => {
+		    console.log("Highest numbered:",ep.title)
+		})
+	    getItemForLowestEpisode(TABLE_NAME,"newsounds")
+		.then (ep => {
+		    console.log("Loswest numbered:",ep.title)
+		})
+	    getItemForLatestDate(TABLE_NAME,"newsounds")
+		.then (ep => {
+		    console.log("Most recent daily:",
+				ep.title,
+				"at",new Date(ep.broadcastDateMsec).toUTCString())
+		})
+	    getItemForEarliestDate(TABLE_NAME,"newsounds")
+		.then (ep => {
+		    console.log("Earliest daily:",
+				ep.title,
+				"at",new Date(ep.broadcastDateMsec).toUTCString())
+		})
+	}) // .then
 } // end update
 
 // Convert HTML escapes to speakable. Note RE syntax in .replace().
@@ -630,87 +675,79 @@ function formatEpisodeDatabaseQueryURI(page:number,page_size:number) {
 // Read a broadcast record returned by the station's database, convert
 // it into our representation
 function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(EpisodeRecord|null) {
-    // Shows may be in database before release;
-    // skip if not playable. (Someday we might
-    // have a "what's coming soon" feature, but
-    // that's a very future TODO.)
-    if(attributes.audio!="" && attributes.audio!=undefined) {
-	// Some titles have unusual boilerplate that
-	// we need to adapt.
+    // Shows may be in database before release; skip if not
+    // playable.
+    if(!attributes.audio || attributes.audio==undefined || attributes.audio=="") {
+	console.log("(Skipping record, no audio)")
+    }
+    else {
+	// Some titles have unusual boilerplate that we need to adapt,
+	// or have the episode number buried in the middle.
 	//
-	// I'm not bothering to process
-	// "preempted" shows; I trust that they
-	// will have no audio and be dropped
-	// later.  (In some cases those had
-	// special podcasts available, though,
-	// which I don't see a way to recover an
-	// ep# or title for.)
+	// I'm not bothering to process "preempted" shows; I trust
+	// that they will have no audio and be dropped later.  (In
+	// some cases those had special podcasts available, though,
+	// which I don't see a way to recover an ep# or title for.)
 	var title=attributes.title
 	    .replace(/The Undead # ?[0-9]*/gi," ")
 	    .replace(/The Undead/gi,"")
 	    .replace(/Undead # ?[0-9]*/gi," ")
 	    .replace(/ Pt. /gi," Part ")
-	if(!title.startsWith("#"))
-	    title=title.replace(/(^[^#].*)(#.*)/i,"$2, $1")
+	// Deal with buried episode number (#nnnn:) by pulling it to
+	// front
+	if(!title.startsWith("#")) {
+	    title=title.replace(/(^[^#]*)(#[0-9]+)(.*)/i,"$2 $1 $3")
+	}
 	title=title.trim()
 	if(title.endsWith("-"))
 	    title=title.substr(title.length-1)
 	
 	// Nominally, number is easier to parse off
-	// attributes.slug. But that doesn't produce
-	// the right results for the "undead"
-	// episodes; slug puts those up in the 60K
-	// range but we really want the human number,
-	// and title processing should ensure it's at
-	// the start of that string (after '#').
-	// Exception: pre-empted 
+	// attributes.slug. But that doesn't produce the right results
+	// for the "undead" episodes; slug puts those up in the 60K
+	// range but we really want the human number, and title
+	// processing should have ensured it's at the start of that
+	// string (after '#').  Exception: pre-empted episodes.
 	var episodeNumber=parseInt(title.slice(1))
 
-	// New Sounds prefers to route these as
-	// podtrac URIs, though the direct URI can
-	// be extracted therefrom if one had
-	// reason to cheat. As of this writing the
-	// database hasn't included URI
-	// parameters, but I'm not ruling that
-	// out.
+	// New Sounds prefers to route these as podtrac URIs, though
+	// the direct URI can be extracted therefrom if one had reason
+	// to cheat. As of this writing the database hasn't included
+	// URI parameters, but I'm not ruling that out.
 	//
-
-	// For New Sounds, this can actually be
-	// reconstructed from broadcast date, in
-	// form
+	// For New Sounds, this can actually be reconstructed from
+	// broadcast date, in form
 	// "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds072521.mp3"
-	// Haven't verified for Sound Check etc.
-	// Could micro-optimize storage using that fact.
+	// Haven't verified for Sound Check etc.  Could micro-optimize
+	// storage using that fact, but for this size database not worth it
+	// (and would violate NoSQL's assertion that storage is cheaper
+	// than computation).
 	// 
-	// Occasionally these come thru as array
-	// and/or in odd format (historical accident?).
-	// Be prepared to unpack that.
+	// Occasionally these come thru as array and/or in odd format
+	// (historical accident?).  Be prepared to unpack that.
 	// 
 	var mp3url=attributes.audio
 	if(Array.isArray(mp3url)) {
 	    mp3url=mp3url[0]
 	}
 
-	// see also publishedDate, newsDate, "First Aired"
-	// Publication date is not actually useful;
-	// that's when it was added to the DB.
+	// See also publishedDate, newsDate, "First
+	// Aired". Publication date is not actually useful; that's
+	// when it was added to the DB.
 
 	var now=new Date() // TODO: Factor out?
 
-	// Take broadcast date from mp3url,
-	// rather that other fields; applied
-	// paranoia.  Note: In at least one
-	// case the database reports an
-	// unusually formed URI
+	// Take broadcast date from mp3url, rather that other fields;
+	// applied paranoia.  Note: In at least one case the database
+	// reports an unusually formed URI
 	// .../newsounds050610apod.mp3?awCollectionId=385&awEpisodeId=66200
-	// so be prepared to truncate after
-	// datestamp.
+	// so be prepared to truncate after datestamp.
 	var urlDateFields=mp3url
 	    .replace(/.*\/newsounds([0-9]+)/i,"$1")
 	    .match(/.{1,2}/g)
 	if(! urlDateFields) {
-	    // Should never happen but Typescript
-	    // wants us to promise it won't.
+	    // Should never happen but Typescript wants us to promise
+	    // it won't.
 	    throw new RangeError("invalid date in: "+mp3url)
 	}
 	// Sloppy mapping of 2-digit year to 4-digit
@@ -725,51 +762,32 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	    )
 	)
 
-	// For Echo View and the like, long
-	// description is attributes.body, and
-	// attributes["image-main"] can be
-	// used for the image. TODO
-
-	// The database has &nbsp; and
-	// similar. Clean up for voice.
-	//
-	// For spoken description, use tease
-	// rather than body. But NOTE: Tease
-	// sometimes truncates long text with
-	// "...", which is not ideal for
-	// humans. Workaround: If that is
-	// seen, take the first sentence of
-	// body instead.
+	// For spoken description, use tease rather than body. But
+	// NOTE: Tease sometimes truncates long text with "...", which
+	// is not ideal for humans. Workaround: If that is seen, take
+	// the first sentence or two of body instead.
 	var tease=deHTMLify(attributes.tease)
 	if (tease.endsWith("..."))
 	    tease=deHTMLify(attributes.body+" ")
 	    .split(". ")[0]+"."
 
-	// TODO: Someday, is it worth parsing
-	// out the ARTIST/WORK/SOURCE/INFO
-	// <span/>s from the body? Alas, can't
-	// map durations to offsets, since the
-	// duration table doesn't include
-	// John's commentary.
+	// TODO: Someday, is it worth parsing out the
+	// ARTIST/WORK/SOURCE/INFO <span/>s from the HTML-markup body?
+	// Alas, can't map durations to offsets, since the duration
+	// table doesn't include John's commentary.
 	
-	// TODO: Tag searchability some day.
-	// Note processing into sounds-like
-	// match form.  Other music skills
-	// seem to handle this; I'm not sure
-	// what their approach is.
+	// TODO: Tag searchability some day.  Note processing into
+	// sounds-like match form.  Other music skills seem to handle
+	// this; I'm not sure what their approach is.
 	//
-	// We want to both handle "redbone" finding
-	// Martha Redbone, and distinguish
-	// Kronos Quartet from
-	// Mivos Quartet.
+	// We want to both handle "redbone" finding Martha Redbone,
+	// and distinguish Kronos Quartet from Mivos Quartet.
 	var tags=[]
 	for(let tag of attributes.tags) {
-	    // TODO: Should we make this array
-	    // for direct matching, or reconcatentate
-	    // into a string for contains matching?
-	    // Unclear which is more robust given
-	    // possibly fuzzy matching. String is
-	    // more human-readable in JSON.
+	    // TODO: Should we make this array for direct matching, or
+	    // reconcatentate into a string for contains matching?
+	    // Unclear which is more robust given possibly fuzzy
+	    // matching. String is more human-readable in JSON.
 	    var tagset=" " // For ease of exact-matching
 	    for(let token of tag.split("_")) {
 		// TODO: Match on sounds-like.
@@ -779,42 +797,42 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	    tags.push(tagset)
 	}
 
-	// Some array entries may be missing.  Our
-	// navigation will need to skip those
-	// slots.
+	// image-main.url should be the show banner image, if present.
+	var imageurl= attributes["image-main"] ? attributes["image-main"].url : null
+
+	// Some array entries may be missing.  Our navigation will
+	// need to skip those slots.
 	//
-	// NOTE: Episodes are often broadcast out
-	// of order and repeated, so incremental
-	// must continue until it sees a broadcast
-	// date we already know about. (Reminder:
-	// we're still handling only one radio
-	// show at a time, hence one added entry
-	// per date.)
+	// NOTE: Episodes are often broadcast out of order and
+	// repeated, so incremental must continue until it sees a
+	// broadcast date we already know about. (Reminder: we're
+	// still handling only one radio show at a time, hence one
+	// added entry per date.)
 	//
-	// NOTE: There is at least one
-	// un-episodeNumbered episode of New
-	// Sounds ("With Ravi Shankar"). For
-	// now, I'm simply dropping that,
-	// which will unfortunately drop
-	// rebroadcasts as well. (A pity; it's
-	// a good interview!) The general case
-	// of rediscovered early archives will
-	// have to be dealt with if we want to
-	// let users access these.
+	// NOTE: There is at least one un-episodeNumbered episode of
+	// New Sounds ("With Ravi Shankar"). For now, I'm simply
+	// dropping that, which may unfortunately drop rebroadcasts of
+	// it as well. (A pity; it's a good interview!) The general
+	// case of rediscovered early archives will have to be dealt
+	// with if we want to let users access these.
 	if(episodeNumber > 0) {
 	    var newEpisode:EpisodeRecord={
-		program: "newsounds", // TODO: Parameterize
+		program: attributes.show,
 		episode: episodeNumber,
 		title: title,
 		tease: tease,
 		broadcastDateMsec: broadcastDate.getTime(),
 		tags: tags,
-		url: mp3url
+		url: mp3url,
+		imageurl: imageurl
 	    }
 	    return newEpisode
 	}
+	else
+	    console.log("(Skipping record, no episode number in",title)
     }
-    return null // Fallthrough: Can't make it a useful EpisodeRecord.
+    console.log("(Skipping record, reason unknown)\n"+JSON.stringify(attributes))
+    return null
 }
 
 //================================================================
@@ -822,11 +840,12 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 
 function callUpdateEpisodes() {
     console.log("DEBUG: UPDATING")
-    updateEpisodes(1)
+    updateEpisodes(-1) // 0 to force rebuild, < incremental, > to specified depth
 }
 
-// In Theory, this should wait for table to be created or fail to be,
-// and either way invoke callUpdateEpisodes
+// TODO: This sequencing doesn't seem to work as written; we may need
+// to explicitly query the table's state to find out if creation is
+// complete or pending.
 createTable(TABLE_NAME)
     .then(() => callUpdateEpisodes())
     .catch(() => callUpdateEpisodes())
