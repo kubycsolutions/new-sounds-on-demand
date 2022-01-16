@@ -479,11 +479,8 @@ export function deleteItem(tableName:string,record:EpisodeRecord): Promise<Objec
 // do have the playlists and lengths.
 
 //================================================================
-
-//================================================================
-// Check the newsounds.org database to find out which (if any) new
-// episodes have been published. This can be run in three modes,
-// depending on the value of maxdepth:
+// Check the newsounds.org database for published data on episodes.
+// This can be run in three modes, depending on the value of maxdepth:
 //
 // <0 incremental, ==0 rescan all, N>0 check only first N pages
 //
@@ -493,19 +490,19 @@ export function deleteItem(tableName:string,record:EpisodeRecord): Promise<Objec
 // appears. First-N is mostly used as a debug tool when testing
 // new update logic.
 //
-// Note sequenced invocation of asynchronous fetch and process,
-// since we want to support incremental to reduce delay and server
-// load.  (Before you ask: No, I don't trust Javascript to
-// optimize tail-recursion.)
+// NOTE: I _don't_ trust Javascript to optimize tail-recursion of
+// Promises.  But this is the simplest way to structure the logic
+// unless I go to explicit awaits and an enclosing loop (which was my
+// original sketch).
 //
-// TODO: Change from async to Promise
+// TODO: Change from async to Promise, I think.
 export async function updateEpisodes(maxdepth:number) {
     console.log("Checking server for new episodes...")
 
     // Run Got HTTP query, returning object via a Promise
     const getStationEpisodeData = (page:number) => {
 	console.log("  Fetch index page",page)
-	const page_size=20 // Number of results per fetch
+	const page_size=10 // Number of results per fetch
 	return new Promise((resolve, reject) => {
 	    // Fetch a page from the list of episodes,
 	    // date-descending order This uses a function variable
@@ -590,7 +587,6 @@ export async function updateEpisodes(maxdepth:number) {
 			    if(maxdepth >=0 &&
 			       page!=maxdepth &&
 			       page!=data.meta.pagination.pages) { // more
-				console.log("Next page...")
 				return handlePage(page+1)
 				    .catch(err => {
 					Promise.reject("handlePage("+(page+1)+") failed a recursion: "+err)
@@ -696,28 +692,27 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
     // playable.
     if(!attributes.audio || attributes.audio==undefined || attributes.audio=="") {
 	console.log("(Skipping record, no audio)")
+	return null;
     }
     else {
 	// Some titles have unusual boilerplate that we need to adapt,
 	// or have the episode number buried in the middle.
 	//
 	// I'm not bothering to process "preempted" shows; I trust
-	// that they will have no audio and be dropped later.  (In
-	// some cases those had special podcasts available, though,
-	// which I don't see a way to recover an ep# or title for.)
+	// that they will have no audio and be dropped later.
 	var title=attributes.title
 	    .replace(/The Undead # ?[0-9]*/gi," ")
 	    .replace(/The Undead/gi,"")
 	    .replace(/Undead # ?[0-9]*/gi," ")
 	    .replace(/ Pt. /gi," Part ")
 	// Deal with buried episode number (#nnnn:) by pulling it to
-	// front
+	// front. 
 	if(!title.startsWith("#")) {
 	    title=title.replace(/(^[^#]*)(#[0-9]+)(.*)/i,"$2 $1 $3")
 	}
 	title=title.trim()
 	if(title.endsWith("-"))
-	    title=title.substr(title.length-1)
+	    title=title.substr(0,title.length-1)
 	
 	// Nominally, number is easier to parse off
 	// attributes.slug. But that doesn't produce the right results
@@ -759,6 +754,12 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// reports an unusually formed URI
 	// .../newsounds050610apod.mp3?awCollectionId=385&awEpisodeId=66200
 	// so be prepared to truncate after datestamp.
+	//
+	// TODO REVIEW: We *could* switch to real timestamps and use query
+	// to find the one at or before requested... but I'm not sure where
+	// I can reliably find that. Newsdate seems to be better than
+	// publish-at, which is database update time; I'm not sure it's
+	// reliably the broadcast time for this station record.
 	var urlDateFields=mp3url
 	    .replace(/.*\/newsounds([0-9]+)/i,"$1")
 	    .match(/.{1,2}/g)
@@ -850,8 +851,6 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	    return null
 	}
     }
-    console.log("(Skipping record, reason unknown)\n"+JSON.stringify(attributes))
-    return null
 }
 
 //================================================================
@@ -864,17 +863,17 @@ function callUpdateEpisodes(depth:number) {
 }
 
 // Note: createTable considers itself complete when the request has been accepted. We need to wait for that to complete before starting to populate it.
-function createAndLoad() {
+function createAndLoad(maxdepth:number) {
     createTable(TABLE_NAME)
 	.then( () => {
 	    return waitForTable(TABLE_NAME)
 		.then(()=>callUpdateEpisodes(0)) // New table, populate
 		.catch(err=>console.log("waitForTable failed",err)) // TODO: REVIEW
 	})
-	.catch(()=>callUpdateEpisodes(-1)) // Existing table, update
+	.catch(()=>callUpdateEpisodes(maxdepth)) // Existing table, update
 }
 
-createAndLoad()
+createAndLoad(-1)
 
 //================================================================
 
