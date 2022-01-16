@@ -268,6 +268,26 @@ export function createTable(tableName:string): Promise<Object> {
     return dynamodb.createTable(episodesSchema).promise()
 }
 
+export function waitForTable(tableName:string): Promise<Object> {
+    var params = {
+	TableName : tableName
+    };
+    return dynamodb.waitFor("tableExists",params).promise()	
+}
+export function waitForNoTable(tableName:string): Promise<Object> {
+    var params = {
+	TableName : tableName
+    };
+    return dynamodb.waitFor("tableNotExists",params).promise()	
+}
+
+export function describeTable(tableName:string): Promise<Object> {
+    var params = {
+	TableName : tableName
+    };
+    return dynamodb.describeTable(params).promise()	
+}
+
 export function deleteTable(tableName:string): Promise<Object> {
     var params = {
 	TableName : tableName
@@ -277,6 +297,12 @@ export function deleteTable(tableName:string): Promise<Object> {
 
 // program+date main key is unique, though multiple records may exist
 // per episode.
+//
+// TODO GONK: Rework as query for most recent before timestamp? 
+// Before timestamp+almost_24_hours? Think about how that resolves.
+// (Goal would be to switch to using straight timestamps. Complication
+// in how we are obtaining the datestamps; I don't know that we have
+// the additional UTC precision needed to make this work in reality.)
 export function getItemForDate(tableName:string,program:string,date:number): Promise<QueryUniqueResult> {
     var params = {
 	TableName: tableName,
@@ -285,7 +311,6 @@ export function getItemForDate(tableName:string,program:string,date:number): Pro
 	    "broadcastDateMsec": date
 	}
     }
-
     return docClient.get(params).promise()
 }
 
@@ -297,7 +322,6 @@ export function getItemForLatestDate(tableName:string,program:string): Promise<E
     return getTerminalItemByDate(tableName,program,false)
 }
 
-// Needs to be a query
 export function getTerminalItemByDate(tableName:string,program:string, forward:boolean): Promise<EpisodeRecord> {
     // All for program, in desired order, but return only first found
     var params = {
@@ -313,11 +337,6 @@ export function getTerminalItemByDate(tableName:string,program:string, forward:b
 	.then( (data:QueryMultipleResults) => data.Items[0])
 }
 
-// QUESTION: Can ExclusiveStartKey be used to optimize this, iff
-// we know that program/date does exist? (Normally it's used to restart
-// a second query chunk from LastEvaluatedKey.)
-// ... Or is DynamoDB already clever enough to recognize that the
-// expression implies this optimization?
 export function getNextItemByDate(tableName:string,program:string,date:number,forward:boolean): Promise<EpisodeRecord> {
     // All for program, in desired order, but return only first found
     var params = {
@@ -422,9 +441,9 @@ export function putItem(tableName:string,record:EpisodeRecord): Promise<Object> 
 }
 
 // program+date must be unique, but multiple Items/records per episode
-// with different timestamps are common due to rebroadcasts.
-// This version will NOT overwrite -- it tests for presence of the (required!)
-// Hash Key.
+// with different timestamps are common due to rebroadcasts.  This
+// version will NOT overwrite -- it tests for prior presence of the
+// (required!)  Hash Key.
 export function putNewItem(tableName:string,record:EpisodeRecord): Promise<Object> {
     var params = {
 	TableName:tableName,
@@ -479,9 +498,7 @@ export function deleteItem(tableName:string,record:EpisodeRecord): Promise<Objec
 // load.  (Before you ask: No, I don't trust Javascript to
 // optimize tail-recursion.)
 //
-// TODO REVIEW: Move this into a separate file for easier
-// replacement, to handle other sources? Update *is* closely linked to
-// the cache database and player code...
+// TODO: Change from async to Promise
 export async function updateEpisodes(maxdepth:number) {
     console.log("Checking server for new episodes...")
 
@@ -548,7 +565,7 @@ export async function updateEpisodes(maxdepth:number) {
 			    if(episodeRecord!=null)
 			    {
 				// If doing a full-depth scan, force replacement
-				// (because we're presumably restructuring data)
+				// (because we may be restructuring data)
 				var putOperation= maxdepth==0 ? putItem : putNewItem
 				return putOperation(TABLE_NAME,episodeRecord)
 				    .then(() => {
@@ -828,27 +845,36 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	    }
 	    return newEpisode
 	}
-	else
+	else {
 	    console.log("(Skipping record, no episode number in",title)
+	    return null
+	}
     }
     console.log("(Skipping record, reason unknown)\n"+JSON.stringify(attributes))
     return null
 }
 
 //================================================================
-// EARLY DEV TEST
+// EARLY DEV TEST DRIVER
 
-function callUpdateEpisodes() {
-    console.log("DEBUG: UPDATING")
-    updateEpisodes(-1) // 0 to force rebuild, < incremental, > to specified depth
+// TODO: Should table name be a param to updateEpisodes? Meh...
+function callUpdateEpisodes(depth:number) {
+    console.log("DEBUG: UPDATE MODE",depth)
+    updateEpisodes(depth) // 0 to force rebuild, < incremental, > to specified depth
 }
 
-// TODO: This sequencing doesn't seem to work as written; we may need
-// to explicitly query the table's state to find out if creation is
-// complete or pending.
-createTable(TABLE_NAME)
-    .then(() => callUpdateEpisodes())
-    .catch(() => callUpdateEpisodes())
+// Note: createTable considers itself complete when the request has been accepted. We need to wait for that to complete before starting to populate it.
+function createAndLoad() {
+    createTable(TABLE_NAME)
+	.then( () => {
+	    return waitForTable(TABLE_NAME)
+		.then(()=>callUpdateEpisodes(0)) // New table, populate
+		.catch(err=>console.log("waitForTable failed",err)) // TODO: REVIEW
+	})
+	.catch(()=>callUpdateEpisodes(-1)) // Existing table, update
+}
+
+createAndLoad()
 
 //================================================================
 
