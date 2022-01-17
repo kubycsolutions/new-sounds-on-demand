@@ -242,16 +242,14 @@ interface StationEpisodeData {
 	}
     }
 }
-// Type Guard for above interface, TS's answer to ducktype downcasting.
+// Type Guard for above interface, Typescript's answer to ducktype downcasting.
 // (http://www.typescriptlang.org/docs/handbook/advanced-types.html)
 function isStationEpisodeData(duckObject: any): duckObject is StationEpisodeData {
     if((duckObject as StationEpisodeData).data){
 	return true
     }
-    console.error("vvvvv DEBUG vvvvv")
-    console.error("DEBUG: isStationEpisodeData failed on:")
-    console.error(JSON.stringify(duckObject,null,2))
-    console.error("^^^^^ DEBUG ^^^^^")
+    console.error("\nERROR: isStationEpisodeData failed on:")
+    console.error(JSON.stringify(duckObject,null,2)+"\n")
     return false
 }
 
@@ -756,10 +754,9 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// so be prepared to truncate after datestamp.
 	//
 	// TODO REVIEW: We *could* switch to real timestamps and use query
-	// to find the one at or before requested... but I'm not sure where
-	// I can reliably find that. Newsdate seems to be better than
-	// publish-at, which is database update time; I'm not sure it's
-	// reliably the broadcast time for this station record.
+	// to find the one at or before requested. .newsdate appears to be
+	// the genuine broadcast time, though I need to sanity-check
+	// repeated episodes.
 	var urlDateFields=mp3url
 	    .replace(/.*\/newsounds([0-9]+)/i,"$1")
 	    .match(/.{1,2}/g)
@@ -779,6 +776,21 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 		parseInt(urlDateFields[1])
 	    )
 	)
+
+	// I was considering using the stations's actual airing timestamp,
+	// provided as .newsdate, and querying rather than getting.
+	// (Nearest ... is it <= or >=?) For some episodes, that works.
+	// But for some, I'm seing differences of up to years in both
+	// directions. I could take real time when they agree and
+	// force the others to A Typical Time On Broadcastdate, or just
+	// force them all to A Typical Time, or as now keep them all on
+	// just Broadcastdate. TODO: Consider.
+	//
+	// console.log("DEBUG: diff of ",
+	// 	    ( Date.parse(attributes.newsdate)
+	// 	     -broadcastDate.getTime() )/1000/60/60/24,
+	// 	    "days for #",episodeNumber)
+	
 
 	// For spoken description, use tease rather than body. But
 	// NOTE: Tease sometimes truncates long text with "...", which
@@ -873,6 +885,8 @@ function createAndLoad(maxdepth:number) {
 	.catch(()=>callUpdateEpisodes(maxdepth)) // Existing table, update
 }
 
+// TODO GONK: This should be a separate entry point. We need a lambda
+// driver anyway to do the scheduled incrementals.
 createAndLoad(-1)
 
 //================================================================
