@@ -1,3 +1,7 @@
+// GONK: Database being moved into an instance of DominoDB,
+// loaded/maintained/accessed through the episodedb module.
+// This may be obsolete code.
+
 'use strict;'
 
 import got from 'got'
@@ -11,10 +15,6 @@ import got from 'got'
 
 // Filesystem access, so we can write out updates to the "reload cache"
 // copy of the episode tables.
-// GONK GONK: Episodes and dates tables should be moved into a
-// database when running on lambda. Which DB may depend on environment,
-// as we saw in the jovo initialization... or it may be simpler to just
-// require DominoDB, and launch it locally for development.
 const fs = require('fs')
 
 ////////////////////////////////////////////////////////////////

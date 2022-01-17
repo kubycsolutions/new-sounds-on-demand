@@ -30,7 +30,11 @@ module.exports = {
     	}
     }
     
+    // TODO: Get this up and running: 
     // In production, the Jovo code will run on an AWS Lambda
+    // This is supposed to switch back and forth automagically depending
+    // on the stage we are building for. 
+    //
     // stages: {
     // 	dev: {
     // 	    endpoint: '${JOVO_WEBHOOK_URL}',

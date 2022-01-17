@@ -335,7 +335,13 @@ export function getTerminalItemByDate(tableName:string,program:string, forward:b
 	.then( (data:QueryMultipleResults) => data.Items[0])
 }
 
-export function getNextItemByDate(tableName:string,program:string,date:number,forward:boolean): Promise<EpisodeRecord> {
+export function getNextItemByDate(tableName:string,program:string,date:number): Promise<EpisodeRecord> {
+    return getAdjacentItemByDate(tableName,program,date,true)
+}      
+export function getPreviousItemByDate(tableName:string,program:string,date:number): Promise<EpisodeRecord> {
+    return getAdjacentItemByDate(tableName,program,date,false)
+}      
+export function getAdjacentItemByDate(tableName:string,program:string,date:number,forward:boolean): Promise<EpisodeRecord> {
     // All for program, in desired order, but return only first found
     var params = {
 	TableName: tableName,
@@ -408,10 +414,16 @@ export function getTerminalItemByEpisode(tableName:string,program:string, forwar
 	.then( (data:QueryMultipleResults) => data.Items[0])
 }
 
+export function getNextItemByEpisode(tableName:string,program:string,episode:number): Promise<EpisodeRecord> {
+    return getAdjacentItemByEpisode(tableName,program,episode,true)
+}
+export function getPreviousItemByEpisode(tableName:string,program:string,episode:number): Promise<EpisodeRecord> {
+    return getAdjacentItemByEpisode(tableName,program,episode,false)
+}
 // Given an episode number, find the next lower or higher.  There may
 // be several instances with different dates; this arbitrarily grabs
 // the first found.
-export function getNextItemByEpisode(tableName:string,program:string,episode:number, forward:boolean): Promise<EpisodeRecord> {
+export function getAdjacentItemByEpisode(tableName:string,program:string,episode:number, forward:boolean): Promise<EpisodeRecord> {
     var params = {
 	TableName: tableName,
 	IndexName: ITEM_BY_EPISODE_INDEX, 
@@ -425,6 +437,35 @@ export function getNextItemByEpisode(tableName:string,program:string,episode:num
     }
     return docClient.query(params).promise()
 	.then( (data:QueryMultipleResults) => data.Items[0])
+}
+
+const EARLY_DATE_CACHE:Map<string,number>=new Map();
+export function getRandomItem(tableName:string,program:string): Promise<EpisodeRecord> {
+    // We know the first broadcast date of first episode.  We know
+    // today's date. Randomize within that range. Be prepared for risk that
+    // any given date's show may be preempted.
+    //
+    // Could do the same between episode numbers 1 and most-recent, but has
+    // same issue of knowing what most-recent is.
+    //
+    // TODO REVIEW: Double-fetch is inefficient. Running in lambda, we
+    // can't easily cache the first fetch either.
+    // 
+    // There are magic DynamoDB randomizations involving GUID hash
+    // keys and "ExclusiveStartKey = lastKeyEvaluated", but I don't
+    // think they translate well to my data.
+    //
+    // There's also one using total COUNT of items (supposedly a free
+    // query???), SCAN with number of segments set to that number,
+    // randomize the segment number in that range, take first...
+    // I'm not highly convinced.
+    return getItemForEarliestDate(tableName,program)
+	.then( ep => {
+	    var earliest=ep.broadcastDateMsec-1 // Back up since we'll get Next
+	    var latest=Date.now() - 7*24*60*60*1000 // Roll back one day, paranoia
+	    var pickDate=Math.floor(earliest +Math.random()*(latest-earliest))
+	    return getNextItemByDate(tableName,program,pickDate)
+	})
 }
 
 // program+date must be unique, but multiple Items/records per episode
@@ -637,7 +678,7 @@ export async function updateEpisodes(maxdepth:number) {
 		})
 	    getItemForLowestEpisode(TABLE_NAME,"newsounds")
 		.then (ep => {
-		    console.log("Loswest numbered:",ep.title)
+		    console.log("Lowest numbered:",ep.title)
 		})
 	    getItemForLatestDate(TABLE_NAME,"newsounds")
 		.then (ep => {
@@ -649,8 +690,20 @@ export async function updateEpisodes(maxdepth:number) {
 		.then (ep => {
 		    console.log("Earliest daily:",
 				ep.title,
-				"at",new Date(ep.broadcastDateMsec).toUTCString())
+				"at",
+				new Date(ep.broadcastDateMsec).toUTCString()
+			       )
 		})
+	    for(let i in [1,2,3,4,5]) {
+		getRandomItem(TABLE_NAME,"newsounds")
+		.then (ep => {
+		    console.log("Random:",
+				ep.title,
+				"at",
+				new Date(ep.broadcastDateMsec).toUTCString()
+			       )
+		})
+	    }
 	}) // .then
 } // end update
 
@@ -698,6 +751,12 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	//
 	// I'm not bothering to process "preempted" shows; I trust
 	// that they will have no audio and be dropped later.
+	//
+	// TODO: Some early titles were just entered in the station
+	// database as "Program #1595" and the like. (Many in that
+	// range.)  There may be another field we can pull descriptive
+	// text from, such as the tease or slug. (See below re
+	// tease. Re-order?)
 	var title=attributes.title
 	    .replace(/The Undead # ?[0-9]*/gi," ")
 	    .replace(/The Undead/gi,"")
