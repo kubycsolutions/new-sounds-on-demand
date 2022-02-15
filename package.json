@@ -17,6 +17,7 @@
     "jovo-platform-googleassistant": "^3.0.16",
     "jovo-plugin-debugger": "^3.0.15",
     "metaphone": "^2.0.0",
+    "nvm": "^0.0.4",
     "stemmer": "^2.0.0"
   },
   "devDependencies": {
