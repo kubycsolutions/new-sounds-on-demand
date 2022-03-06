@@ -801,12 +801,25 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	if(title.endsWith("-"))
 	    title=title.substr(0,title.length-1)
 	
-	// Nominally, number is easier to parse off
+	// Nominally, number should be easier to parse off
 	// attributes.slug. But that doesn't produce the right results
 	// for the "undead" episodes; slug puts those up in the 60K
 	// range but we really want the human number, and title
 	// processing should have ensured it's at the start of that
-	// string (after '#').  Exception: pre-empted episodes.
+	// string (after '#').
+	//
+	// However, some episodes don't have the ep# in their title.
+	// It appears to be present in the MP3's metadata, which would
+	// be one fairly fast way of looking it up if we can't get it
+	// from another database field. Note that this includes some
+	// episodes which are marked as pre-empted but which the
+	// database says do have audio -- for example,
+	// audio.wnyc.org/newsounds/newsounds012120.mp3 turns out to
+	// be #4226.  NOTE that if we work around that (with manually
+	// entered side data, MP3 metadata, or anything else), we will
+	// still have a blank title unless that can be gotten from a
+	// re/prebroadcast record...  be careful not to overwrite
+	// valid data in this case. GONK TODO 
 	var episodeNumber=parseInt(title.slice(1))
 
 	// New Sounds prefers to route these as podtrac URIs, though
