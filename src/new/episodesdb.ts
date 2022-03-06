@@ -693,43 +693,45 @@ export async function updateEpisodes(table:string,maxdepth:number) {
     // Soundcheck etc. Just a matter of setting the show name, I think,
     // and having the app run against the right index files.
     handlePage(table)
-	.then( () => {
-	    // Probe the updated table. Diagnostic logging. TODO: Factor out
-	    let program="newsounds" // hardcode for now.
-	    getItemForHighestEpisode(table,program)
-		.then (ep => {
-		    console.log("Highest numbered:",ep.title)
-		})
-	    getItemForLowestEpisode(table,program)
-		.then (ep => {
-		    console.log("Lowest numbered:",ep.title)
-		})
-	    getItemForLatestDate(table,program)
-		.then (ep => {
-		    console.log("Most recent daily:",
-				ep.title,
-				"at",new Date(ep.broadcastDateMsec).toUTCString())
-		})
-	    getItemForEarliestDate(table,program)
-		.then (ep => {
-		    console.log("Earliest daily:",
-				ep.title,
-				"at",
-				new Date(ep.broadcastDateMsec).toUTCString()
-			       )
-		})
-	    for(let i in [1,2,3,4,5]) {
-		getRandomItem(table,program)
-		.then (ep => {
-		    console.log("Random:",
-				ep.title,
-				"at",
-				new Date(ep.broadcastDateMsec).toUTCString()
-			       )
-		})
-	    }
-	}) // .then
+	.then( () => reportSnapshotStats(table))
 } // end update
+
+function reportSnapshotStats(table:string,program:string="newsounds") {
+    // Probe the updated table. Diagnostic logging. 
+    console.log("STATISTICS DUMP for",program+":")
+    getItemForHighestEpisode(table,program)
+	.then (ep => {
+	    console.log("\tHighest numbered:",ep.title)
+	})
+    getItemForLowestEpisode(table,program)
+	.then (ep => {
+	    console.log("\tLowest numbered:",ep.title)
+	})
+    getItemForLatestDate(table,program)
+	.then (ep => {
+	    console.log("\tMost recent daily:",
+			ep.title,
+			"at",new Date(ep.broadcastDateMsec).toUTCString())
+	})
+    getItemForEarliestDate(table,program)
+	.then (ep => {
+	    console.log("\tEarliest daily:",
+			ep.title,
+			"at",
+			new Date(ep.broadcastDateMsec).toUTCString()
+		       )
+	})
+    for(let i in [1,2,3,4,5]) {
+	getRandomItem(table,program)
+	    .then (ep => {
+		console.log("\tRandom:",
+			    ep.title,
+			    "at",
+			    new Date(ep.broadcastDateMsec).toUTCString()
+			   )
+	    })
+    }
+}
 
 // Convert HTML escapes to speakable. Note RE syntax in .replace().
 function deHTMLify(text:string):string {
@@ -947,46 +949,3 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 //================================================================
 // Drivers should be moved to separate files.
 //----------------------------------------------------------------
-// GONK: PARAMETERIZE. Endpoint should be selectable; currently
-// hardwired. Also, need to think about whether to start
-// loading/searching multiple shows to include Soundcheck, since it's
-// the other "recorded live" part of NewSounds... which will require
-// parameterizing the station-database URI since I don't think there's
-// an all-shows query thereupon. (Though their API *is* mostly
-// undocumented, so it may have more flexibility than I've been able
-// to access. Ideal, of course, would be to be able to run the
-// smartspeaker app directly against their data, but the part of the
-// API I've figured out isn't flexibile enough for more than paged
-// access.)
-
-recreateAndLoad(-1) // TEST: REBUILD MY ENTIRE DATABASE.
-
-// Note: createTable considers itself complete when the request has been accepted. We need to wait for that to complete before starting to populate it.
-async function recreateAndLoad(maxdepth:number) {
-    const table="episodes_debug" // GONK: Change or conditionalize at golive
-    const program="newsounds"
-    try {
-	await deleteTable(table);
-	await waitForNoTable(table);
-    } catch(err:any) {
-	console.log("Error removing table; hopefully means didn't exist:",err)
-    }
-    try {
-	await createTable(table)
-	await waitForTable(table)
-	await callUpdateEpisodes(table,program,0)
-    }
-    catch(err:any) {
-	console.log("create/update error:",err)
-    }
-}
-
-async function callUpdateEpisodes(table:string,program:string,depth:number) {
-    try {
-	console.log("DEBUG: UPDATE MODE",depth)
-	updateEpisodes(table,depth) // 0 to force rebuild, < incremental, > to specified depth
-    }
-    catch(e:any) {
-	console.log("updateEpisodes:",e)
-    }
-}

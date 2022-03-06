@@ -68,7 +68,7 @@ import {set_AWS_endpoint,
 	getRandomItem
        } from './episodesdb'
 
-// CONSTANTS FOR NOW, WILL WANT OVERRIDES
+// GONK: CONSTANTS FOR NOW, WILL WANT OVERRIDES
 const TABLENAME="episodes"
 const PROGRAM="newsounds"
 set_AWS_endpoint()
