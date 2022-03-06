@@ -13,7 +13,12 @@
 import got from 'got'
 
 // TODO: Sounds-like processing, for tag searches, eventually.
-// GONK ISSUE: Getting my Typescript project to link these correctly.
+/* NOTE: These are now "pure ESM" packages. Either make your own code
+   fully ESM (multiple configuration details; not sure if that's
+   compatible with Jovo), or use "await import()" ugly workaround.
+   See
+   https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c
+*/
 // import {metaphone} from 'metaphone'
 // import {stemmer} from 'stemmer'
 
@@ -931,7 +936,8 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	    return newEpisode
 	}
 	else {
-	    console.log("(Skipping record, no episode number in",title+")")
+	    console.log("Skipping",broadcastDate,"record, no episode number in",title)
+	    console.log("\t but audio at",mp3url)
 	    // Example: "In Memoriam 2016: Prince, Bowie, Cohen &
 	    // Others", or the before-# episode "With Ravi Shankar".
 	    //

@@ -17,8 +17,8 @@ import got from 'got'
 // see.)
 //
 // TODO REVIEW: We could cheat the livestream into our normal tables,
-// treating it as an Episode with null date and episodeNumber
-// zero. Unclear that would actually be much cleaner; app.js still
+// treating it as an Episode with null date and episode
+// number. Unclear that would actually be much cleaner; app.js still
 // needs to special-case it since we can't navigate to/from/within it.
 const LIVE_STREAM_URI="https://q2stream.wqxr.org/q2-web?nyprBrowserId=NewSoundsOnDemand.smartspeaker.player"
 const LIVE_STREAM_DATE=0 // Reserved slot. Don't try to navigate it!
@@ -36,17 +36,6 @@ const LIVE_STREAM_METADATA_URI="http://api.wnyc.org/api/v1/whats_on/q2"
 //
 // TODO REVIEW: export/import addUriUsage, refactor as needed?
 const APP_URI_PARAMETERS="user=keshlam@kubyc.solutions&nyprBrowserId=NewSoundsOnDemand.smartspeaker.player"
-
-// URI to query the station's episode database. Pages start from 1, ordered
-// newest-first. Page size can be up to 100 episodes per query. NOTE that this
-// doesn't issue the query, just produces the URI.
-//
-// This is currently an anonymous function/function-pointer because I
-// think we want to refactor it into the per-show configuration, and
-// that *may* be a clean way to do it. Or may not.
-const formatEpisodeDatabaseQueryURI=function(page:number,page_size:number) {
-    return "https://api.wnyc.org/api/v3/story/?item_type=episode&ordering=-newsdate&show=newsounds&"+APP_URI_PARAMETERS+"&page="+page+"&page_size="+page_size
-}
 
 ////////////////////////////////////////////////////////////////
 // Switching from local FileDB to DynamoDB instance
