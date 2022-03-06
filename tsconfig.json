@@ -12,10 +12,10 @@
 	"outDir": "./dist/",
 	"preserveConstEnums": true,
 	"removeComments": false,
-	"resolveJsonModule": true,
 	"sourceMap": true,
 	"strict": true,
-	"target": "es2020"
+	"target": "es2020",
+	"resolveJsonModule": true
     },
     "include": [
 	"./src/**/*",

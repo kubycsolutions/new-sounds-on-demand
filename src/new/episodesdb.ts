@@ -1,22 +1,24 @@
 /** Substantially rewritten from Amazon.com sample code by
     keshlam@Kubyc.Solutions
 
-    TODO GONK: Keep actual datestamps, since we know how to query for 
-    nearest-after.
+    Currently stateless; table and program names must be passed in every
+    time. Could wrap in object and keep those in context, or at least table
+    if we may intermix programs. TODO: review.
+
+    TODO GONK: Keep actual timestamps, since we know how to query for 
+    nearest-after. Question is whether there's a field we can reliably
+    get them from; first thought didn't always work.
  */
 
 import got from 'got'
 
 // TODO: Sounds-like processing, for tag searches, eventually.
-// ISSUE: TS is turning these imports into requires, and then
-// Jovo/JS complains that they needed to be imports. Some combination
-// of Typescript config options is needed to fix this, I assume.
+// GONK ISSUE: Getting my Typescript project to link these correctly.
 // import {metaphone} from 'metaphone'
 // import {stemmer} from 'stemmer'
 
 const DEBUG="DEBUG"==process.env.EPISODESDB_CFG
-const TABLE_NAME="episodes_debug" // GONK: Change or conditionalize at golive
-const PROGRAM="newsounds"
+
 
 ////////////////////////////////////////////////////////////////
 // Open the box of Dominos. I mean, Dynamos.
@@ -30,6 +32,7 @@ const PROGRAM="newsounds"
 // env AWS_DEFAULT_REGION=us-east-1 
 
 const AWS = require("aws-sdk");
+set_AWS_endpoint(); // Must default or be set before initializing the DynamoDB
 
 // Set default, but allow for overriding later
 export function set_AWS_endpoint(endpoint="http://localhost:8000",region="us-east-1") {
@@ -313,11 +316,12 @@ export function deleteTable(tableName:string): Promise<Object> {
 // program+date main key is unique, though multiple records may exist
 // per episode.
 //
-// TODO GONK: Rework as query for most recent before timestamp? 
+// TODO GONK: Rework as query for most recent before timestamp?
 // Before timestamp+almost_24_hours? Think about how that resolves.
-// (Goal would be to switch to using straight timestamps. Complication
-// in how we are obtaining the datestamps; I don't know that we have
-// the additional UTC precision needed to make this work in reality.)
+// (Goal would be to switch to using straight timestamps and rational
+// matching. Complication in how we are obtaining the datestamps; I
+// don't know that we have the additional UTC precision needed to make
+// this work in reality.)
 export function getItemForDate(tableName:string,program:string,date:number): Promise<QueryUniqueResult> {
     var params = {
 	TableName: tableName,
@@ -464,6 +468,7 @@ export function getRandomItem(tableName:string,program:string): Promise<EpisodeR
     //
     // Could do the same between episode numbers 1 and most-recent, but has
     // the issue of knowing what most-recent is.
+    // ---
     //
     // TODO REVIEW: Double-fetch is inefficient. Running in lambda, we
     // can't easily cache the first fetch either.
@@ -528,32 +533,32 @@ export function deleteItem(tableName:string,record:EpisodeRecord): Promise<Objec
     return deleteItemForDate(tableName,record.program,record.broadcastDateMsec)
 }
 
-// Consider searching tags. Can contains() be used in keyCondition? If
-// not, can we leverage attributeExists on structured data with sparse
-// properties (scan keys rather than values)? This also gets us into
-// the playlist space, since we don't have usable offsets even when we
-// do have the playlists and lengths.
+// Consider searching tags. Can contains() be used in keyCondition
+// without givin up Query efficiency? If not, can we leverage
+// attributeExists on structured data with sparse properties (keys
+// rather than values)? 
+//
+// Unfortunately playlists don't have usable offsets even when we do
+// have the track lengths; talk between/over isn't accounted for.
 
 //================================================================
-// Check the newsounds.org database for published data on episodes.
-// This can be run in three modes, depending on the value of maxdepth:
+// Read published episode data from the newsounds.org database.  This
+// can be run in three modes, depending on the value of maxdepth:
 //
 // <0 incremental, ==0 rescan all, N>0 check only first N pages
 //
-// Incremental is most common mode of operation. Rescan is mostly
-// used when I'm adding a field to the table, though it may be
-// worth running periodically just in case a missing episode
-// appears. First-N is mostly used as a debug tool when testing
-// new update logic.
+// Incremental from most recent date is most common mode of
+// operation. Rescan is mostly used when I'm adding a field to the
+// table or developing, though it may be worth running periodically
+// just in case a missing episode appears. First-N is mostly used as a
+// debug tool when testing new update logic.
 //
-// NOTE: I _don't_ trust Javascript to optimize tail-recursion of
-// Promises.  But this is the simplest way to structure the logic
-// unless I go to explicit awaits and an enclosing loop (which was my
-// original sketch, and which is apparently considered better form
-// these days...)
-//
-// TODO: Change from async to Promise, I think.
-export async function updateEpisodes(maxdepth:number) {
+// NOTE: I _don't_ fully trust Javascript to optimize tail-recursion
+// of Promises/asyncs.  But this is the simplest way to structure the
+// logic unless I go back to explicit awaits and an enclosing loop (which
+// was my original sketch, and which is apparently considered better
+// form these days...)
+export async function updateEpisodes(table:string,maxdepth:number) {
     console.log("Checking server for new episodes...")
 
     // Run Got HTTP query, returning object via a Promise
@@ -583,7 +588,7 @@ export async function updateEpisodes(maxdepth:number) {
 	})
     };
 
-    function handlePage(page:number=1): Promise<any> {
+    function handlePage(table:string,page:number=1): Promise<any> {
 	// Issue query, wait for Promise to be completed,
 	// and handle. The while/await was needed so we could determine
 	// when incremental load had reached already-known data.
@@ -621,7 +626,7 @@ export async function updateEpisodes(maxdepth:number) {
 				// If doing a full-depth scan, force replacement
 				// (because we may be restructuring data)
 				var putOperation= maxdepth==0 ? putItem : putNewItem
-				return putOperation(TABLE_NAME,episodeRecord)
+				return putOperation(table,episodeRecord)
 				    .then(() => {
 					return resolve("NEW")
 				    })
@@ -644,7 +649,7 @@ export async function updateEpisodes(maxdepth:number) {
 			    if(maxdepth >=0 &&
 			       page!=maxdepth &&
 			       page!=data.meta.pagination.pages) { // more
-				return handlePage(page+1)
+				return handlePage(table,page+1)
 				    .catch(err => {
 					Promise.reject("handlePage("+(page+1)+") failed a recursion: "+err)
 				    })
@@ -655,7 +660,7 @@ export async function updateEpisodes(maxdepth:number) {
 			    // All successful. Stop only on depth or no-more
 			    if(page!=maxdepth && 
 			       page!=data.meta.pagination.pages) {
-				return handlePage(page+1)
+				return handlePage(table,page+1)
 				    .catch( (err) => {
 					Promise.reject("handlePage("+(page+1)+") failed an update: "+err)
 				    })
@@ -687,24 +692,25 @@ export async function updateEpisodes(maxdepth:number) {
     // Eventually we'll probably want to generalize this to handle
     // Soundcheck etc. Just a matter of setting the show name, I think,
     // and having the app run against the right index files.
-    handlePage()
+    handlePage(table)
 	.then( () => {
-	    // Probe the updated table. Diagnostic logging.
-	    getItemForHighestEpisode(TABLE_NAME,PROGRAM)
+	    // Probe the updated table. Diagnostic logging. TODO: Factor out
+	    let program="newsounds" // hardcode for now.
+	    getItemForHighestEpisode(table,program)
 		.then (ep => {
 		    console.log("Highest numbered:",ep.title)
 		})
-	    getItemForLowestEpisode(TABLE_NAME,PROGRAM)
+	    getItemForLowestEpisode(table,program)
 		.then (ep => {
 		    console.log("Lowest numbered:",ep.title)
 		})
-	    getItemForLatestDate(TABLE_NAME,PROGRAM)
+	    getItemForLatestDate(table,program)
 		.then (ep => {
 		    console.log("Most recent daily:",
 				ep.title,
 				"at",new Date(ep.broadcastDateMsec).toUTCString())
 		})
-	    getItemForEarliestDate(TABLE_NAME,PROGRAM)
+	    getItemForEarliestDate(table,program)
 		.then (ep => {
 		    console.log("Earliest daily:",
 				ep.title,
@@ -713,7 +719,7 @@ export async function updateEpisodes(maxdepth:number) {
 			       )
 		})
 	    for(let i in [1,2,3,4,5]) {
-		getRandomItem(TABLE_NAME,PROGRAM)
+		getRandomItem(table,program)
 		.then (ep => {
 		    console.log("Random:",
 				ep.title,
@@ -736,7 +742,7 @@ function deHTMLify(text:string):string {
 	.replace(/&[lr]ndash;/gi," -- ")
     // TODO: (case sensitive?) aelig, eacute, aacute, iacute, oacute,
     // hellip, Uuml, uacute, auml, oslash -- unless speech synths
-    // handle them.
+    // handle them properly.
 
     // While we're here, convert newlines to spaces, then drop repeated spaces
 	.replace(/\n/g," ")
@@ -782,7 +788,7 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// Deal with buried episode number (#nnnn:) by pulling it to
 	// front. 
 	if(!title.startsWith("#")) {
-	    title=title.replace(/(^[^#]*)(#[0-9]+)(.*)/i,"$2 $1 $3")
+	    title=title.replace(/(^[^#]*)(#[0-9]+)(.*)/i,"$2: $1 $3")
 	}
 	title=title.trim()
 	if(title.endsWith("-"))
@@ -821,8 +827,6 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// Aired". Publication date is not actually useful; that's
 	// when it was added to the DB.
 
-	var now=new Date() // TODO: Factor out?
-
 	// Take broadcast date from mp3url, rather that other fields;
 	// applied paranoia.  Note: In at least one case the database
 	// reports an unusually formed URI
@@ -844,6 +848,7 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	}
 	// Sloppy mapping of 2-digit year to 4-digit
 	var year=parseInt(urlDateFields[2])+2000
+	var now=new Date() // TODO: Factor out would be more efficient
 	if(year > now.getUTCFullYear())
 	    year=year-100
 	var broadcastDate=new Date(
@@ -886,18 +891,21 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// TODO: Tag searchability some day.  Note processing into
 	// sounds-like match form.  Other music skills seem to handle
 	// this; I'm not sure what their approach is.
-	//
-	// We want to both handle "redbone" finding Martha Redbone,
-	// and distinguish Kronos Quartet from Mivos Quartet.
 	var tags=[]
 	for(let tag of attributes.tags) {
 	    // TODO: Should we make this array for direct matching, or
 	    // reconcatentate into a string for contains matching?
 	    // Unclear which is more robust given possibly fuzzy
 	    // matching. String is more human-readable in JSON.
+	    //
+	    // We want to both handle "redbone" finding Martha
+	    // Redbone, and distinguish Kronos Quartet from Mivos
+	    // Quartet, so tags currently remain as token sets which are
+	    // searched within rather than exploding into individual
+	    // tokens. That's subject to redesign as search evolves.
 	    var tagset=" " // For ease of exact-matching
 	    for(let token of tag.split("_")) {
-		// TODO: Match on sounds-like.
+		// Match on sounds-like.
 		// token=metaphone(stemmer(token))
 		tagset=tagset+token+" "
 	    }
@@ -907,11 +915,6 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// image-main.url should be the show banner image, if present.
 	var imageurl= attributes["image-main"] ? attributes["image-main"].url : null
 
-	// NOTE: Episodes are often broadcast out of order and
-	// repeated, so incremental must continue until it sees a
-	// broadcast date we already know about. (Reminder: we're
-	// still copying data for only one radio show at a time, hence
-	// one added entry per date.)
 	if(episodeNumber > 0) {
 	    var newEpisode:EpisodeRecord={
 		program: attributes.show,
@@ -941,34 +944,47 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
     }
 }
 
+//================================================================
 // Drivers should be moved to separate files.
-// Probably requires a bit of work refactoring static context, esp TABLE_NAME.
 //----------------------------------------------------------------
-// GONK: Endpoint should be selectable; currently defaulting to local.
-recreateAndLoad(-1)
+// GONK: PARAMETERIZE. Endpoint should be selectable; currently
+// hardwired. Also, need to think about whether to start
+// loading/searching multiple shows to include Soundcheck, since it's
+// the other "recorded live" part of NewSounds... which will require
+// parameterizing the station-database URI since I don't think there's
+// an all-shows query thereupon. (Though their API *is* mostly
+// undocumented, so it may have more flexibility than I've been able
+// to access. Ideal, of course, would be to be able to run the
+// smartspeaker app directly against their data, but the part of the
+// API I've figured out isn't flexibile enough for more than paged
+// access.)
+
+recreateAndLoad(-1) // TEST: REBUILD MY ENTIRE DATABASE.
 
 // Note: createTable considers itself complete when the request has been accepted. We need to wait for that to complete before starting to populate it.
 async function recreateAndLoad(maxdepth:number) {
+    const table="episodes_debug" // GONK: Change or conditionalize at golive
+    const program="newsounds"
     try {
-	await deleteTable(TABLE_NAME);
-	await waitForNoTable(TABLE_NAME);
+	await deleteTable(table);
+	await waitForNoTable(table);
     } catch(err:any) {
 	console.log("Error removing table; hopefully means didn't exist:",err)
     }
     try {
-	await createTable(TABLE_NAME)
-	await waitForTable(TABLE_NAME)
-	await callUpdateEpisodes(0)
+	await createTable(table)
+	await waitForTable(table)
+	await callUpdateEpisodes(table,program,0)
     }
     catch(err:any) {
 	console.log("create/update error:",err)
     }
 }
 
-async function callUpdateEpisodes(depth:number) {
+async function callUpdateEpisodes(table:string,program:string,depth:number) {
     try {
 	console.log("DEBUG: UPDATE MODE",depth)
-	updateEpisodes(depth) // 0 to force rebuild, < incremental, > to specified depth
+	updateEpisodes(table,depth) // 0 to force rebuild, < incremental, > to specified depth
     }
     catch(e:any) {
 	console.log("updateEpisodes:",e)
