@@ -138,10 +138,12 @@ function getEpisodesSchema(tableName:string) {
 	// CONSIDER PROVISIONED for throttling just to establish upper
 	// limit of billing if malfunction (or attack?) occurs
 	BillingMode: "PAY_PER_REQUEST", // or PROVISIONED
+	/* Now must only be specified in PROVISIONED billing mode
 	ProvisionedThroughput: {   // Throttled max per second
-	    ReadCapacityUnits: 0, // Set to 0 if PAY_PER_REQUEST
-	    WriteCapacityUnits: 0
+	    ReadCapacityUnits: 1, // Apparently must now be >0
+	    WriteCapacityUnits: 1
 	}
+	*/
     }
 }
 
@@ -557,7 +559,7 @@ export async function updateEpisodes(maxdepth:number) {
     // Run Got HTTP query, returning object via a Promise
     const getStationEpisodeData = (page:number) => {
 	console.log("  Fetch index page",page)
-	const page_size=10 // Number of results per fetch
+	const page_size=50 // Number of results per fetch
 	return new Promise((resolve, reject) => {
 	    // Fetch a page from the list of episodes,
 	    // date-descending order This uses a function variable
@@ -569,7 +571,7 @@ export async function updateEpisodes(maxdepth:number) {
 		    return resolve(JSON.parse(response.body));
 		})
 		.catch( (e:any) => {
-		    console.log(e)
+		    console.error(e)
 		    if(e instanceof Error) {
 			let error:Error=e
 			return reject(error.message)
@@ -662,7 +664,7 @@ export async function updateEpisodes(maxdepth:number) {
 			return Promise.resolve("done")
 		    })
 		    .catch(err => {
-			console.log("\nPaErr:",err)
+			console.error("\nPaErr:",err)
 			// Should we continue scanning (full, and more remain)?
 			// ... I'm voting no for now; this is unexpected
 			return Promise.reject("Unexpected update failure: "+err)
@@ -755,10 +757,9 @@ function formatEpisodeDatabaseQueryURI(page:number,page_size:number) {
 // Read a broadcast record returned by the station's database, convert
 // it into our representation
 function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(EpisodeRecord|null) {
-    // Shows may be in database before release; skip if not
-    // playable.
+    // If no audio, they don't help my application. Skip 'em for now.
     if(!attributes.audio || attributes.audio==undefined || attributes.audio=="") {
-	console.log("(Skipping record, no audio)")
+	console.log("(Skipping record, no audio:",attributes.title+")")
 	return null;
     }
     else {
@@ -777,7 +778,7 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	    .replace(/The Undead # ?[0-9]*/gi," ")
 	    .replace(/The Undead/gi,"")
 	    .replace(/Undead # ?[0-9]*/gi," ")
-	    .replace(/ Pt. /gi," Part ")
+	    .replace(/ Pt. /gi," Part ") // For pronouncability
 	// Deal with buried episode number (#nnnn:) by pulling it to
 	// front. 
 	if(!title.startsWith("#")) {
@@ -828,10 +829,11 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// .../newsounds050610apod.mp3?awCollectionId=385&awEpisodeId=66200
 	// so be prepared to truncate after datestamp.
 	//
-	// TODO REVIEW: We *could* switch to real timestamps and use query
-	// to find the one at or before requested. .newsdate appears to be
-	// the genuine broadcast time, though I need to sanity-check
-	// repeated episodes.
+	// TODO REVIEW: We *could* (probably should) switch to real
+	// timestamps and use query to find the one at or before
+	// requested. .newsdate appears to sometimes differ from the
+	// URL fields by years, so presumably is the wrong
+	// field. Which is the way that's clear?
 	var urlDateFields=mp3url
 	    .replace(/.*\/newsounds([0-9]+)/i,"$1")
 	    .match(/.{1,2}/g)
@@ -905,21 +907,11 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// image-main.url should be the show banner image, if present.
 	var imageurl= attributes["image-main"] ? attributes["image-main"].url : null
 
-	// Some array entries may be missing.  Our navigation will
-	// need to skip those slots.
-	//
 	// NOTE: Episodes are often broadcast out of order and
 	// repeated, so incremental must continue until it sees a
 	// broadcast date we already know about. (Reminder: we're
-	// still handling only one radio show at a time, hence one
-	// added entry per date.)
-	//
-	// NOTE: There is at least one un-episodeNumbered episode of
-	// New Sounds ("With Ravi Shankar"). For now, I'm simply
-	// dropping that, which may unfortunately drop rebroadcasts of
-	// it as well. (A pity; it's a good interview!) The general
-	// case of rediscovered early archives will have to be dealt
-	// with if we want to let users access these.
+	// still copying data for only one radio show at a time, hence
+	// one added entry per date.)
 	if(episodeNumber > 0) {
 	    var newEpisode:EpisodeRecord={
 		program: attributes.show,
@@ -934,10 +926,51 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	    return newEpisode
 	}
 	else {
-	    console.log("(Skipping record, no episode number in",title)
+	    console.log("(Skipping record, no episode number in",title+")")
+	    // Example: "In Memoriam 2016: Prince, Bowie, Cohen &
+	    // Others", or the before-# episode "With Ravi Shankar".
+	    //
+	    // We *could* include it in my DB, since DB primary key is
+	    // by date rather than ep#. It would sort oddly in
+	    // highest/lowest numbered, though, unless we can specialcase
+	    // those searches to skip unknowns.
+	    //
+	    // For now, just don't index. TODO: REVIEW.
 	    return null
 	}
     }
 }
 
-// Drivers moved to separate files
+// Drivers should be moved to separate files.
+// Probably requires a bit of work refactoring static context, esp TABLE_NAME.
+//----------------------------------------------------------------
+// GONK: Endpoint should be selectable; currently defaulting to local.
+recreateAndLoad(-1)
+
+// Note: createTable considers itself complete when the request has been accepted. We need to wait for that to complete before starting to populate it.
+async function recreateAndLoad(maxdepth:number) {
+    try {
+	await deleteTable(TABLE_NAME);
+	await waitForNoTable(TABLE_NAME);
+    } catch(err:any) {
+	console.log("Error removing table; hopefully means didn't exist:",err)
+    }
+    try {
+	await createTable(TABLE_NAME)
+	await waitForTable(TABLE_NAME)
+	await callUpdateEpisodes(0)
+    }
+    catch(err:any) {
+	console.log("create/update error:",err)
+    }
+}
+
+async function callUpdateEpisodes(depth:number) {
+    try {
+	console.log("DEBUG: UPDATE MODE",depth)
+	updateEpisodes(depth) // 0 to force rebuild, < incremental, > to specified depth
+    }
+    catch(e:any) {
+	console.log("updateEpisodes:",e)
+    }
+}

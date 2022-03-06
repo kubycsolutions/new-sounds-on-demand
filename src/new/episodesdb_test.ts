@@ -22,7 +22,7 @@ import {set_AWS_endpoint,
 
        } from './episodesdb'
 
-//----------------------------------------------------------------
+ //----------------------------------------------------------------
 // GONK: Endpoint should be selectable; currently defaulting to local.
 const AWS=set_AWS_endpoint("http://localhost:8000","us-east-1")
 console.log("AWS:",AWS)
