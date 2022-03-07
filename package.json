@@ -17,8 +17,9 @@
     "jovo-platform-googleassistant": "^3.0.16",
     "jovo-plugin-debugger": "^3.0.15",
     "lodash": "^4.17.21",
-    "metaphone": "^2.0.0",
+    "phonetics": "^1.0.0",
     "nvm": "^0.0.4",
+    "phonetics": "^1.0.0",
     "stemmer": "^2.0.0"
   },
   "devDependencies": {

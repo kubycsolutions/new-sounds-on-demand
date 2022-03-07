@@ -12,15 +12,26 @@
 
 import got from 'got'
 
-// TODO: Sounds-like processing, for tag searches, eventually.
-/* NOTE: These are now "pure ESM" packages. Either make your own code
+//================================================================
+/* TODO GONK: Sounds-like processing, for tag searches, eventually.
+
+   NOTE: Metaphone and Stepper are now "pure ESM" packages. Either make your own code
    fully ESM (multiple configuration details; not sure if that's
-   compatible with Jovo), or use "await import()" ugly workaround.
+   compatible with Jovo), or use "await import()" ugly workaround
+   which has the usual mess of not playing nice with functions which
+   are not themselves async.
+
    See
    https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c
+
+   ... Consider a different soundex-like system which is NOT ESM.
+   The npm "phonetics" package does support metaphone and double-metaphone,
 */
 // import {metaphone} from 'metaphone'
 // import {stemmer} from 'stemmer'
+// import Phonetics from 'phonetics'
+const Phonetics = require('phonetics')
+//================================================================
 
 const DEBUG="DEBUG"==process.env.EPISODESDB_CFG
 
@@ -923,10 +934,23 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	    // Quartet, so tags currently remain as token sets which are
 	    // searched within rather than exploding into individual
 	    // tokens. That's subject to redesign as search evolves.
-	    var tagset=" " // For ease of exact-matching
+	    //
+	    // Note that metaphone codes a word that starts with a
+	    // vowel sound as starting with A. So Yo Yo Ma becomes "A
+	    // A M". Unless the system mishears it as "yoyo Ma", in
+	    // which case it would become "A M". Which might still be
+	    // able to sorta work if our test checks presence without
+	    // order, but that might be too shaggy a dog.
+	    //
+	    // TODO: DESIGN.
+	    var tagset=" " // Treat words as equal tokens within tag.
 	    for(let token of tag.split("_")) {
 		// Match on sounds-like.
 		// token=metaphone(stemmer(token))
+		token=Phonetics.metaphone(token)
+		// Could use double-metaphone and change the , to a space,
+		// including both versions as tokens, for even fuzzier match.
+		// In that mode, Yo Yo Ma comes back as A,A A,A M,M. 
 		tagset=tagset+token+" "
 	    }
 	    tags.push(tagset)
