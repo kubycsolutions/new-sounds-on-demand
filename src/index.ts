@@ -2,7 +2,7 @@ import { ExpressJS, Lambda, Webhook } from 'jovo-framework';
 import { app } from './app';
 
 // ------------------------------------------------------------------
-// HOST CONFIGURATION
+// JOVO HOST CONFIGURATION
 // ------------------------------------------------------------------
 
 // ExpressJS (Jovo Webhook)

@@ -1,5 +1,8 @@
 // ------------------------------------------------------------------
-// APP CONFIGURATION
+// JOVO/ALEXA APP CONFIGURATION
+//
+// Note: FileDB is being taken out of use in favor of DynamoDB, since
+// Lambdas have no writable filesystem.
 // ------------------------------------------------------------------
 
 const config = {
