@@ -14,14 +14,15 @@
    Episode-versus-Index coding; always work with Episode object and
    let Player do the mapping back to episodedb access.
 
-   BUG/ISSUE: Possible long delay on resume if not already in Alexa's
+   BUG/ISSUE: Possible long delay on resume IF not already in Alexa's
    local cache, presumably due to the computational cost of
    decompressing up to offset. Can we avoid that, eg by triggering
    earlier preloading?  I presume Amazon's answer is "not our problem;
    break it up into smaller audio files", which doesn't work for this
    use case. And it's not something we can easily warn the user about,
-   though recording timestamp when they stopped as well as the offset
-   might let us at least make a guess.
+   though recording clocktime when they stopped might let us at least
+   make a guess about whether other work might have intervened and
+   flushed that cache.
 
    TODO CLEANLINESS: Get rid of the TS ! non-null assertions; do
    explicit tests. It isn't _likely_ that these will ever be null, but
