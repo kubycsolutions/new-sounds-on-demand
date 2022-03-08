@@ -810,6 +810,11 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// ideally finding another broadcast of this episode and
 	// pulling the title from there (unless that too can come from
 	// side-data). GONK TODO
+	//
+	// TODO: Try fetching the metadate with https://github.com/Borewit/tokenizer-http
+	// The returned .common.title should be, eg "New Sounds 2904"
+	// If it still isn't, then we need to wait for the station
+	// to give it a number.
 	var episodeNumber=parseInt(title.slice(1))
 
 	// New Sounds prefers to route these as podtrac URIs, though
@@ -962,8 +967,7 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	    return newEpisode
 	}
 	else {
-	    console.log("Skipping",broadcastDate,"record, no episode number in",title)
-	    console.log("\t but audio at",mp3url)
+	    console.log("Skipping, no ep# in \""+title+"\" for",mp3url)
 	    // Example: "In Memoriam 2016: Prince, Bowie, Cohen &
 	    // Others", or the before-# episode "With Ravi Shankar".
 	    //
