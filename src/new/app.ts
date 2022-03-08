@@ -7,6 +7,13 @@
 
    OPEN TASKS:
 
+   TODO #1: Confirm that episodedb rewrite is functioning, retarget to
+   hosted DynamoDB rather than local, then cut over to /new/ code.
+
+   TODO #2: Now that we're working from database, clean up the
+   Episode-versus-Index coding; always work with Episode object and
+   let Player do the mapping back to episodedb access.
+
    BUG/ISSUE: Possible long delay on resume if not already in Alexa's
    local cache, presumably due to the computational cost of
    decompressing up to offset. Can we avoid that, eg by triggering
@@ -24,10 +31,10 @@
    sometimes. It's probably harmless but might be affecting
    speech-synth inflection.
 
-   TODO: "Highest Numbered Episode" is currently (mis)interpreted as
-   EpisodeNumberIntent with "episodeNumber" having
+   TODO: "Highest Numbered Episode" seems to be (mis)interpreted as
+   EpisodeNumberIntent ("number episode"?) with "episodeNumber" having
    confirmationStatus="NONE".  I'm not sure anyone but me will want
-   that operation, but... add an Intent?
+   that operation, but clean up that intent handling.
 
    TODO: "Who/what are we listening to" and "who/what is this" can't
    be precise for episodes with currently available data, but should
