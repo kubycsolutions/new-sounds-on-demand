@@ -16,6 +16,10 @@
    though recording timestamp when they stopped as well as the offset
    might let us at least make a guess.
 
+   TODO CLEANLINESS: Get rid of the TS ! non-null assertions; do
+   explicit tests. It isn't _likely_ that these will ever be null, but
+   better to have clean recovery in that case.
+
    TODO NITPICK: Strip trailing "," from titles? It occurs
    sometimes. It's probably harmless but might be affecting
    speech-synth inflection.
