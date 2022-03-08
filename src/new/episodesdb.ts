@@ -12,25 +12,9 @@
 
 import got from 'got'
 
-//================================================================
-/* TODO GONK: Sounds-like processing, for tag searches, eventually.
-
-   NOTE: Metaphone and Stepper are now "pure ESM" packages. Either make your own code
-   fully ESM (multiple configuration details; not sure if that's
-   compatible with Jovo), or use "await import()" ugly workaround
-   which has the usual mess of not playing nice with functions which
-   are not themselves async.
-
-   See
-   https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c
-
-   ... Consider a different soundex-like system which is NOT ESM.
-   The npm "phonetics" package does support metaphone and double-metaphone,
-*/
-// import {metaphone} from 'metaphone'
-// import {stemmer} from 'stemmer'
-// import Phonetics from 'phonetics'
+//  Sounds-like processing, for tag searches, eventually.
 const Phonetics = require('phonetics')
+
 //================================================================
 
 const DEBUG="DEBUG"==process.env.EPISODESDB_CFG
@@ -549,11 +533,6 @@ export function deleteItem(tableName:string,record:EpisodeRecord): Promise<Objec
     return deleteItemForDate(tableName,record.program,record.broadcastDateMsec)
 }
 
-// Consider searching tags. Can contains() be used in keyCondition
-// without givin up Query efficiency? If not, can we leverage
-// attributeExists on structured data with sparse properties (keys
-// rather than values)? 
-//
 // Unfortunately playlists don't have usable offsets even when we do
 // have the track lengths; talk between/over isn't accounted for.
 
@@ -567,13 +546,13 @@ export function deleteItem(tableName:string,record:EpisodeRecord): Promise<Objec
 // operation. Rescan is mostly used when I'm adding a field to the
 // table or developing, though it may be worth running periodically
 // just in case a missing episode appears. First-N is mostly used as a
-// debug tool when testing new update logic.
+// debug tool when developing new update logic.
 //
 // NOTE: I _don't_ fully trust Javascript to optimize tail-recursion
-// of Promises/asyncs.  But this is the simplest way to structure the
-// logic unless I go back to explicit awaits and an enclosing loop (which
-// was my original sketch, and which is apparently considered better
-// form these days...)
+// of Promises/asyncs. We might want to go back to an eplicit await
+// loop instead, which was my original sketch; I was confused about
+// whether promise or async/await was currently preferred Javascript
+// style. TODO: POLISH.
 export async function updateEpisodes(table:string,maxdepth:number) {
     console.log("Checking server for new episodes...")
 
@@ -854,33 +833,43 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	    mp3url=mp3url[0]
 	}
 
-	// See also publishedDate, newsDate, "First
-	// Aired". Publication date is not actually useful; that's
-	// when it was added to the DB.
 
-	// Take broadcast date from mp3url, rather that other fields;
-	// applied paranoia.  Note: In at least one case the database
-	// reports an unusually formed URI
+	// Extract broadcast date from mp3url.  Note: In at least one
+	// case the database reports an unusually formed URI
 	// .../newsounds050610apod.mp3?awCollectionId=385&awEpisodeId=66200
 	// so be prepared to truncate after datestamp.
 	//
-	// TODO REVIEW: We *could* (probably should) switch to real
-	// timestamps and use query to find the one at or before
-	// requested. .newsdate appears to sometimes differ from the
-	// URL fields by years, so presumably is the wrong
-	// field. Which is the way that's clear?
+	// Yes, this is ugly. But the alternatives are unreliable, for
+	// unknown reasons:
+	//
+	// .newsdate usually works but appears to sometimes differ
+	// from the URL-in-NYC fields by years (28 to 50K hours rather
+	// than the 4 or 5 expected. 
+	//
+	// .publish-at also usually works, but has similar excursions,
+	// sometimes negative.
+	//
+	// .npr-analytics-dimensions[11] is SOMETIMES another
+	// timestamp field.  It seems to have the same problems when
+	// it is present, plus sometimes being absent. Wrong direction.
+	//
+	// Looks like I'm stuck with pulling date back out of the URI,
+	// unless the folks at the studio have a better idea.
+	
 	var urlDateFields=mp3url
 	    .replace(/.*\/newsounds([0-9]+)/i,"$1")
 	    .match(/.{1,2}/g)
 	if(! urlDateFields) {
 	    // Should never happen but Typescript wants us to promise
-	    // it won't.
+	    // it won't. Might be able to use !. syntax instead, if
+	    // we're willing to have less-useful diagnostics if/when
+	    // this fails.
 	    throw new RangeError("invalid date in: "+mp3url)
 	}
-	// Sloppy mapping of 2-digit year to 4-digit
+	// Sloppy mapping of 2-digit year back to 4-digit: 100-year bracket
+	// centered on today.
 	var year=parseInt(urlDateFields[2])+2000
-	var now=new Date() // TODO: Factor out would be more efficient
-	if(year > now.getUTCFullYear())
+	if(year > new Date().getUTCFullYear())
 	    year=year-100
 	var broadcastDate=new Date(
 	    Date.UTC(
@@ -890,25 +879,11 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	    )
 	)
 
-	// I was considering using the stations's actual airing timestamp,
-	// provided as .newsdate, and querying rather than getting.
-	// (Nearest ... is it <= or >=?) For some episodes, that works.
-	// But for some, I'm seing differences of up to years in both
-	// directions. I could take real time when they agree and
-	// force the others to A Typical Time On Broadcastdate, or just
-	// force them all to A Typical Time, or as now keep them all on
-	// just Broadcastdate. TODO: Consider.
-	//
-	// console.log("DEBUG: diff of ",
-	// 	    ( Date.parse(attributes.newsdate)
-	// 	     -broadcastDate.getTime() )/1000/60/60/24,
-	// 	    "days for #",episodeNumber)
-	
-
-	// For spoken description, use tease rather than body. But
-	// NOTE: Tease sometimes truncates long text with "...", which
-	// is not ideal for humans. Workaround: If that is seen, take
-	// the first sentence or two of body instead.
+	// For spoken description, take the one-phrase tease rather
+	// than the extended HTML-markup body. But NOTE: Tease
+	// sometimes truncates long text with "...", which is not
+	// ideal for humans. Workaround: If that is seen, take the
+	// first sentence or two of body instead.
 	var tease=deHTMLify(attributes.tease)
 	if (tease.endsWith("..."))
 	    tease=deHTMLify(attributes.body+" ")
@@ -917,11 +892,25 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// TODO: Someday, is it worth parsing out the
 	// ARTIST/WORK/SOURCE/INFO <span/>s from the HTML-markup body?
 	// Alas, can't map durations to offsets, since the duration
-	// table doesn't include John's commentary.
+	// table doesn't include John's commentary, so there isn't a
+	// lot the player can usefully do with that. It might eventually
+	// want to display the body on smartspeakers with screens, I s'pose...
 	
-	// TODO: Tag searchability some day.  Note processing into
-	// sounds-like match form.  Other music skills seem to handle
-	// this; I'm not sure what their approach is.
+	// Tag searchability: TODO some day.  Note processing into
+	// sounds-like match form. Unfortunately we can't navigate to
+	// timestamp, but we could filter shows. Other music apps
+	// seem to be surprisingly good at recognizing performer and
+	// band names... Note that to make this work as more than a
+	// one-shot, we need to enter a tag-filtered mode. I think that
+	// winds up being basically a playlist, at the end of which
+	// we return to normal operation?
+	//
+	// Implementation thoughts: Can contains() be used in a
+	// DynamoDB keyCondition without giving up Query efficiency?
+	// If not, can we leverage attributeExists on structured
+	// values with sparse properties (keys rather than values,
+	// hashset style)? Or would we be forced to scan rather than
+	// query (more expensive, but this isn't a huge database).
 	var tags=[]
 	for(let tag of attributes.tags) {
 	    // TODO: Should we make this array for direct matching, or
@@ -942,7 +931,7 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	    // able to sorta work if our test checks presence without
 	    // order, but that might be too shaggy a dog.
 	    //
-	    // TODO: DESIGN.
+	    // TODO: DESIGN THE UI
 	    var tagset=" " // Treat words as equal tokens within tag.
 	    for(let token of tag.split("_")) {
 		// Match on sounds-like.
@@ -988,7 +977,3 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	}
     }
 }
-
-//================================================================
-// Drivers should be moved to separate files.
-//----------------------------------------------------------------
