@@ -819,43 +819,13 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// range but we really want the human number, and title
 	// processing above should have ensured it's at the start of that
 	// string (after '#').
-	var episodeNumber=parseInt(title.slice(1))
-
+	//
 	// However, some episodes don't have the ep# in their title at
-	// all.  It is SOMETIMES present in the audio's metadata.
-	// That includes some episodes which are marked as pre-empted
-	// but which the database says do have audio -- for example,
-	// audio.wnyc.org/newsounds/newsounds012120.mp3 turns out to
-	// be #4226.
-	//
-	// BUT: Since the metadata query is asyncronous, this fallback
-	// would force rewriting everything above it in the stack into
-	// async/await form -- which is OK, but it means redesigning
-	// some of what was previously implemented as Promises, since
-	// Javascript didn't make the new syntactic sugar fully
-	// backward-compatible with its underlying Promise
-	// implementation.
-	//
-	// TODO: GONK. Sketched, but Not Right Now.
-	// if(episodeNumber==0) {
-	//     // Try the fallback.
-	//     // Do we need to suppress "pre-empted" in title in this case?
-	//     console.log("DEBUG: No ep# in station DB, trying metadata");
-	//     var metadata= await getMetadataTitleFromAudioURI(mp3url)
-	//     var metatitle=metadata.common.title
-	//     var metanumber=metatitle.replace(/(^.**)([0-9]+)(.*)/i,"$2")
-	//     episodeNumber=parseInt(metanumber)
-
-	//     // If we found ep#, also patch it into title for human consumption.
-	//     if(episodeNumber!=0) {
-	// 	title="#"+metanumber+": "+title
-	// 	console.log("DEBUG: FIXED TITLE:",title)
-	//     }
-	//     else {
-	//	console.log("DEBUG: No metadata ep#. We'll drop this record.")
-	//     }
-	// }
-	
+	// all. The folks at New Sounds are working on this, so I don't have
+	// to implement a workaround; if there is no number, this will
+	// get set to 0 and I will take that as a signal to simply skip
+	// inserting this record.
+	var episodeNumber=parseInt(title.slice(1))
 
 	// Extract broadcast date from mp3url.  Note: In at least one
 	// case the database reports an unusually formed URI
@@ -985,7 +955,7 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	    return newEpisode
 	}
 	else {
-	    console.log("SKIPPING: No ep# in \""+title+"\" of ",mp3url)
+	    console.log("SKIPPING: No ep# in \""+title+"\", ",mp3url)
 	    return null
 	}
     }
