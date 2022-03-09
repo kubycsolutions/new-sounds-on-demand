@@ -1,3 +1,4 @@
+
 /** Substantially rewritten from Amazon.com sample code by
     keshlam@Kubyc.Solutions
 
@@ -766,6 +767,27 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	return null;
     }
     else {
+	// New Sounds prefers to route these as podtrac URIs, though
+	// the direct URI can be extracted therefrom if one had reason
+	// to cheat. As of this writing the database hasn't included
+	// URI parameters, but I'm not ruling that out.
+	//
+	// For New Sounds, this can actually be reconstructed from
+	// broadcast date, in form
+	// "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds072521.mp3"
+	// Haven't verified for Sound Check etc.  Could micro-optimize
+	// storage using that fact, but for this size database not worth it
+	// (and would violate NoSQL's assertion that storage is cheaper
+	// than computation).
+	// 
+	// Occasionally these come thru as array and/or in odd format
+	// (historical accident?).  Be prepared to unpack that.
+	// 
+	var mp3url=attributes.audio
+	if(Array.isArray(mp3url)) {
+	    mp3url=mp3url[0]
+	}
+
 	// Some titles have unusual boilerplate that we need to adapt,
 	// or have the episode number buried in the middle.
 	//
@@ -797,47 +819,43 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// range but we really want the human number, and title
 	// processing above should have ensured it's at the start of that
 	// string (after '#').
-	//
-	// However, some episodes don't have the ep# in their title
-	// either.  It appears to be present in the MP3's metadata,
-	// which would be one way of resolving this if we can't get it
-	// from another database field. NOTE that this includes some
-	// episodes which are marked as pre-empted but which the
-	// database says do have audio -- for example,
-	// audio.wnyc.org/newsounds/newsounds012120.mp3 turns out to
-	// be #4226.  NOTE TOO that getting a useful title out of this
-	// will require handling the "pre-empted" pattern ... and
-	// ideally finding another broadcast of this episode and
-	// pulling the title from there (unless that too can come from
-	// side-data). GONK TODO
-	//
-	// TODO: Try fetching the metadate with https://github.com/Borewit/tokenizer-http
-	// The returned .common.title should be, eg "New Sounds 2904"
-	// If it still isn't, then we need to wait for the station
-	// to give it a number.
 	var episodeNumber=parseInt(title.slice(1))
 
-	// New Sounds prefers to route these as podtrac URIs, though
-	// the direct URI can be extracted therefrom if one had reason
-	// to cheat. As of this writing the database hasn't included
-	// URI parameters, but I'm not ruling that out.
+	// However, some episodes don't have the ep# in their title at
+	// all.  It is SOMETIMES present in the audio's metadata.
+	// That includes some episodes which are marked as pre-empted
+	// but which the database says do have audio -- for example,
+	// audio.wnyc.org/newsounds/newsounds012120.mp3 turns out to
+	// be #4226.
 	//
-	// For New Sounds, this can actually be reconstructed from
-	// broadcast date, in form
-	// "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds072521.mp3"
-	// Haven't verified for Sound Check etc.  Could micro-optimize
-	// storage using that fact, but for this size database not worth it
-	// (and would violate NoSQL's assertion that storage is cheaper
-	// than computation).
-	// 
-	// Occasionally these come thru as array and/or in odd format
-	// (historical accident?).  Be prepared to unpack that.
-	// 
-	var mp3url=attributes.audio
-	if(Array.isArray(mp3url)) {
-	    mp3url=mp3url[0]
-	}
+	// BUT: Since the metadata query is asyncronous, this fallback
+	// would force rewriting everything above it in the stack into
+	// async/await form -- which is OK, but it means redesigning
+	// some of what was previously implemented as Promises, since
+	// Javascript didn't make the new syntactic sugar fully
+	// backward-compatible with its underlying Promise
+	// implementation.
+	//
+	// TODO: GONK. Sketched, but Not Right Now.
+	// if(episodeNumber==0) {
+	//     // Try the fallback.
+	//     // Do we need to suppress "pre-empted" in title in this case?
+	//     console.log("DEBUG: No ep# in station DB, trying metadata");
+	//     var metadata= await getMetadataTitleFromAudioURI(mp3url)
+	//     var metatitle=metadata.common.title
+	//     var metanumber=metatitle.replace(/(^.**)([0-9]+)(.*)/i,"$2")
+	//     episodeNumber=parseInt(metanumber)
 
+	//     // If we found ep#, also patch it into title for human consumption.
+	//     if(episodeNumber!=0) {
+	// 	title="#"+metanumber+": "+title
+	// 	console.log("DEBUG: FIXED TITLE:",title)
+	//     }
+	//     else {
+	//	console.log("DEBUG: No metadata ep#. We'll drop this record.")
+	//     }
+	// }
+	
 
 	// Extract broadcast date from mp3url.  Note: In at least one
 	// case the database reports an unusually formed URI
@@ -967,17 +985,26 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	    return newEpisode
 	}
 	else {
-	    console.log("Skipping, no ep# in \""+title+"\" for",mp3url)
-	    // Example: "In Memoriam 2016: Prince, Bowie, Cohen &
-	    // Others", or the before-# episode "With Ravi Shankar".
-	    //
-	    // We *could* include it in my DB, since DB primary key is
-	    // by date rather than ep#. It would sort oddly in
-	    // highest/lowest numbered, though, unless we can specialcase
-	    // those searches to skip unknowns.
-	    //
-	    // For now, just don't index. TODO: REVIEW.
+	    console.log("SKIPPING: No ep# in \""+title+"\" of ",mp3url)
 	    return null
 	}
+    }
+
+    // TODO: Try dynamically fetching the title field of the MP3's
+    // metadate with https://github.com/Borewit/tokenizer-http.  
+    //
+    // USUAL PROBLEM: As network I/O, it must run async.  But since I
+    // want to return the value, I would need to await -- and that can
+    // only be done from another async function. We're being called within
+    // an async context, several layers up, so that's doable, but...
+    // UGH.
+    //
+    // Have I said recently that I hate Javascript?
+    async function getMetadataTitleFromAudioURI(audioURI:String) {
+	const mm = require('music-metadata'); 
+	const {makeTokenizer} = require('@tokenizer/http');
+	var httpTokenizer = await makeTokenizer(audioURI);
+	var metadata = await mm.parseFromTokenizer(httpTokenizer);
+	return metadata
     }
 }
