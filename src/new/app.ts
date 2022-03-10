@@ -218,10 +218,7 @@ function addUriUsage(uri:string):string {
 }
 
 ////////////////////////////////////////////////////////////////
-// We'll need duration parsing if we implement
-// rewind/fast-forward. The following is adapted into
-// nodejs-compatable form from
-// https://stackoverflow.com/questions/14934089/convert-iso-8601-duration-with-javascript/29153059
+// We'll need duration parsing if we implement rewind/fast-forward.
 
 interface ParsedDate {
     sign: string
@@ -270,7 +267,7 @@ app.setHandler({
             return this.ask(this.$speech);
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("NEW_USER caught: ",e,e,trystack(e))
+	    console.error("NEW_USER caught: ",e,trystack(e))
 	    throw e;
 	}
     },
