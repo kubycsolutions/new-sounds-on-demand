@@ -20,7 +20,7 @@
     "lodash": "^4.17.21",
     "music-metadata": "^7.12.2",
     "nvm": "^0.0.4",
-    "phonetics": "^1.0.0",
+    "phonetics": "^1.0.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.6",

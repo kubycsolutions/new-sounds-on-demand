@@ -1,25 +1,27 @@
-
 /** Substantially rewritten from Amazon.com sample code by
     keshlam@Kubyc.Solutions
 
-    Currently stateless; table and program names must be passed in every
-    time. Could wrap in object and keep those in context, or at least table
-    if we may intermix programs. TODO: review.
+    AWS endpoint is persistant/shared state, though settable.
+    Currently table and program names must be passed in every
+    time. Could wrap in object and keep some or all of those in
+    instance properties. TODO: Consider.
 
-    TODO GONK: Keep actual timestamps, since we know how to query for 
-    nearest-after. Question is whether there's a field we can reliably
-    get them from; first thought didn't always work.
+    TODO: Make endpoint, station URI, server/table, program settable
+    from environment. Any others that might want to be parameterized
+    for reuse? App would also have values to be adjusted for that.
+    (See below re AWS SDK env properties.)
  */
 
 import got from 'got'
 
-//  Sounds-like processing, for tag searches, eventually.
+// Sounds-like processing, for tag searches, eventually.
+// Note: May be better UI to maintain a table recording known tags,
+// do the sounds-like against that and get user confirmation, then
+// search for unprocessed tags.
 const Phonetics = require('phonetics')
 
 //================================================================
-
-const DEBUG="DEBUG"==process.env.EPISODESDB_CFG
-
+//const DEBUG="DEBUG"==process.env.EPISODESDB_CFG
 
 ////////////////////////////////////////////////////////////////
 // Open the box of Dominos. I mean, Dynamos.
@@ -317,7 +319,7 @@ export function deleteTable(tableName:string): Promise<Object> {
 // program+date main key is unique, though multiple records may exist
 // per episode.
 //
-// TODO GONK: Rework as query for most recent before timestamp?
+// TODO GONK: Rework as query for most recent <= timestamp?
 // Before timestamp+almost_24_hours? Think about how that resolves.
 // (Goal would be to switch to using straight timestamps and rational
 // matching. Complication in how we are obtaining the datestamps; I
