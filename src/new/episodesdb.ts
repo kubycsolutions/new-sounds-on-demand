@@ -800,14 +800,14 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// text from, such as the tease or slug. (See below re
 	// tease. Re-order?)
 	var title=attributes.title
-	    .replace(/The Undead # ?[0-9]*/gi," ")
+	    .replace(/The Undead # ?[0-9.]*/gi," ")
 	    .replace(/The Undead/gi,"")
-	    .replace(/Undead # ?[0-9]*/gi," ")
+	    .replace(/Undead # ?[0-9.]*/gi," ")
 	    .replace(/ Pt. /gi," Part ") // For pronouncability
 	// Deal with buried episode number (#nnnn:) by pulling it to
 	// front. 
 	if(!title.startsWith("#")) {
-	    title=title.replace(/(^[^#]*)(#[0-9]+)(.*)/i,"$2: $1 $3")
+	    title=title.replace(/(^[^#]*)(#[0-9.]+)(.*)/i,"$2: $1 $3")
 	}
 	title=title.trim()
 	if(title.endsWith("-"))
