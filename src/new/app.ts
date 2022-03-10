@@ -124,25 +124,26 @@
 */
 
 'use strict';
-import { AlexaHandler } from './alexa/handler';
-import { GoogleHandler } from './google/handler';
-import { Player } from './player';
-import { App } from 'jovo-framework';
-import { Project } from 'jovo-framework'
 import { Alexa } from 'jovo-platform-alexa';
-import { JovoDebugger } from 'jovo-plugin-debugger';
+import { AlexaHandler } from './alexa/handler';
+import { App } from 'jovo-framework';
 import { GoogleAssistant } from 'jovo-platform-googleassistant';
+import { GoogleHandler } from './google/handler';
+import { JovoDebugger } from 'jovo-plugin-debugger';
+import { Player } from './player';
+import { Project } from 'jovo-framework'
 import { format } from 'date-fns'
-import { utcToZonedTime } from 'date-fns-tz' // may be needed to report local date
+//import { utcToZonedTime } from 'date-fns-tz' // may be needed to report local date
 
-console.log('This template uses an outdated version of the Jovo Framework. We strongly recommend upgrading to Jovo v4. Learn more here: https://www.jovo.tech/docs/migration-from-v3');
+console.log('TODO: This implementation uses an outdated version of the Jovo Framework. When time permits, we will upgrade Jovo v4. Learn more here: https://www.jovo.tech/docs/migration-from-v3');
 
 ////////////////////////////////////////////////////////////////
-const ShowCredits="New Sounds is produced by New York Public Radio, W N Y C and W Q X R. The host and creator of the show is John Schaefer. His team includes Helga Davis, Rosa Gollan, Caryn Havlik, Justin Sergi, and Irene Trudel. More information about these folks, and about the show, can be found on the web at New Sounds dot org."
+const ShowCredits="New Sounds is produced by New York Public Radio, W N Y C and W Q X R. The host and creator of the show is John Schaefer. His team includes Caryn Havlik, Helga Davis, Rosa Gollan, Justin Sergi, and Irene Trudel. More information about these folks, and about the show, can be found on the web at New Sounds dot org."
 const AppCredits="The New Sounds On Demand player for smart speakers is being developed by Joe Kesselman and Cubic Solutions, K u b y c dot solutions. Source code is available on github."
+
 ////////////////////////////////////////////////////////////////
 // DEBUGGING
-// TODO: EXPOSE AND IMPORT
+// TODO: SHARE THIS via export and import, rather than duplicating.
 function objToString(obj:any, ndeep:number=0):string {
     const MAX_OBJTOSTRING_DEPTH=10 // circular refs are possible
     if(obj == null){ return String(obj); }
@@ -160,14 +161,6 @@ function objToString(obj:any, ndeep:number=0):string {
 }
 
 // Trying to make sure we report stacks when we catch an exception.
-// Apparently the way one does a downcast in Javascript is to do an
-// instanceof conditional; it's at least clever enough to realize that
-// in the true case the object implements the named in. Making it a
-// function that returns the stack or null was the easiest way for me
-// to global-replace this into my console.log calls.
-//
-// Yes, it could have a better name. It's a stopgap that should be
-// unnecessary if I can move to Typescript.
 function trystack(obj:any):string {
     if (obj instanceof Error) {
 	return objToString(obj.stack)
@@ -189,13 +182,14 @@ app.use(
     new JovoDebugger(),
 );
 
-// Select database depending on operating environment. When running as
-// Amazon lambda, we want to use DynamoDB. In development, FileDB may be
-// easier to set up and debug but you can run DynamoDB locally; see
+// Theoretically we can select database (FileDB or DynamoDB) depending
+// on operating environment. However, since I'm migrating to DynamoDB
+// for the episode data, we might as well hard-wire that and use
+// Dynamo locally too. To set up a local instance, see
 // https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GettingStarted.NodeJs.html
 //
 // "Project.getStage() is a shortcut for process.env.JOVO_STAGE."
-if (Project.getStage() === 'prod') {
+// if (Project.getStage() === 'prod') {
     const { DynamoDb } = require('jovo-db-dynamodb')
     app.use(
 	new DynamoDb({
@@ -204,13 +198,12 @@ if (Project.getStage() === 'prod') {
 	    tableName: "UserState"
 	}),
     );
-} else { // stage assumed to be dev, running locally
-    const { FileDb } = require('jovo-db-filedb')
-    app.use(new FileDb());
-}
+// } else { // stage assumed to be dev, running locally
+//     const { FileDb } = require('jovo-db-filedb')
+//     app.use(new FileDb());
+// }
 
 ////////////////////////////////////////////////////////////////
-
 // Politeness: Tell the station's servers (and any tracking system
 // they're using) where these HTTP(S) queries are coming from, for
 // debugging and statistics.
@@ -230,8 +223,6 @@ function addUriUsage(uri:string):string {
 // nodejs-compatable form from
 // https://stackoverflow.com/questions/14934089/convert-iso-8601-duration-with-javascript/29153059
 
-var iso8601DurationRegex = /(-)?P(?:([.,\d]+)Y)?(?:([.,\d]+)M)?(?:([.,\d]+)W)?(?:([.,\d]+)D)?T(?:([.,\d]+)H)?(?:([.,\d]+)M)?(?:([.,\d]+)S)?/;
-
 interface ParsedDate {
     sign: string
     years: number
@@ -242,6 +233,9 @@ interface ParsedDate {
     minutes: number
     seconds: number
 }
+
+var iso8601DurationRegex = /(-)?P(?:([.,\d]+)Y)?(?:([.,\d]+)M)?(?:([.,\d]+)W)?(?:([.,\d]+)D)?T(?:([.,\d]+)H)?(?:([.,\d]+)M)?(?:([.,\d]+)S)?/;
+
 function parseISO8601Duration (iso8601Duration:string):ParsedDate|null {
     var matches = iso8601DurationRegex.exec(iso8601Duration);
     if(matches===null) 
