@@ -15,9 +15,6 @@
 import got from 'got'
 
 // Sounds-like processing, for tag searches, eventually.
-// Note: May be better UI to maintain a table recording known tags,
-// do the sounds-like against that and get user confirmation, then
-// search for unprocessed tags.
 const Phonetics = require('phonetics')
 
 //================================================================
@@ -26,19 +23,23 @@ const Phonetics = require('phonetics')
 ////////////////////////////////////////////////////////////////
 // Open the box of Dominos. I mean, Dynamos.
 // Basic database interface config.
-//
-// NOTE: to read from ~/.aws/config, the Javascript SDK requires
-// env AWS_SDK_LOAD_CONFIG=1
-// Otherwise:
-// env AWS_ACCESS_KEY_ID=...
-// env AWS_SECRET_ACCESS_KEY=...
-// env AWS_DEFAULT_REGION=us-east-1 
 
 const AWS = require("aws-sdk");
-set_AWS_endpoint(); // Must default or be set before initializing the DynamoDB
 
-// Set default, but allow for overriding later
-export function set_AWS_endpoint(endpoint="http://localhost:8000",region="us-east-1") {
+// Environment variable configuiration, with defaults if not set
+// Defaults are as I've been running on my local machine for testing.
+// They can be overridden to target a DynamoDB service on AWS, and/or
+// to switch between databases thereupon.
+// 
+// NOTE: Table name and program are currently passed in each time from
+// higher-level code. One or both may want to be stateful, eg as
+// object context, if we generalize this.
+const DYNAMODB_ENDPOINT = (process.env.DYNAMODB_ENDPOINT || "http://localhost:8000")
+const DYNAMODB_REGION = (process.env.DYNAMODB_REGION || "us-east-1")
+const ITEM_BY_EPISODE_INDEX = (process.env.ITEM_BY_EPISODE_INDEX || "ITEM_BY_EPISODE")
+
+// Set default, but allow for convenient later
+export function set_AWS_endpoint(endpoint=DYNAMODB_ENDPOINT,region=DYNAMODB_REGION) {
     AWS.config.update({
 	"endpoint": endpoint,
 	"region": region,
@@ -46,10 +47,18 @@ export function set_AWS_endpoint(endpoint="http://localhost:8000",region="us-eas
     return AWS // mostly for testing
 }
 
+// AWS endpoint must be set before initializing the DynamoDB and DocumentClient instances.
+// NOTE that if we ever call this dynamically to change the endpoint,
+// we will need to obtain new instances thereof -- which is why these are
+// assigned to vars rather than consts.
+// 
+// TODO: Should that be a side-effect of set_AWS_endpoint?
+// TODO: Should this be renamed set_DDB_endpoint, to emphasize that?
+set_AWS_endpoint(DYNAMODB_ENDPOINT,DYNAMODB_REGION); 
+
 var dynamodb = new AWS.DynamoDB();
 var docClient = new AWS.DynamoDB.DocumentClient();
 
-const ITEM_BY_EPISODE_INDEX="ITEM_BY_EPISODE" // Just for static checking
 
 export interface EpisodeRecord {
     program: string;
@@ -891,14 +900,14 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// lot the player can usefully do with that. It might eventually
 	// want to display the body on smartspeakers with screens, I s'pose...
 	
-	// Tag searchability: TODO some day.  Note processing into
-	// sounds-like match form. Unfortunately we can't navigate to
-	// timestamp, but we could filter shows. Other music apps
-	// seem to be surprisingly good at recognizing performer and
-	// band names... Note that to make this work as more than a
-	// one-shot, we need to enter a tag-filtered mode. I think that
-	// winds up being basically a playlist, at the end of which
-	// we return to normal operation?
+	// Tag searchability: TODO.  Sounds-like handling can be
+	// achieved by matching under metaphone transformation.
+	// Unfortunately we can't navigate to the specific tracks, but
+	// we could filter shows. Other music apps seem to be
+	// surprisingly good at recognizing performer and band and
+	// album names; I wonder how they're doing it. Note that to
+	// make this work as more than a one-shot, we'd need to go to
+	// a tag-filtered playlist mode.
 	//
 	// Implementation thoughts: Can contains() be used in a
 	// DynamoDB keyCondition without giving up Query efficiency?
@@ -906,7 +915,7 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// values with sparse properties (keys rather than values,
 	// hashset style)? Or would we be forced to scan rather than
 	// query (more expensive, but this isn't a huge database).
-	var tags=[]
+	var tags:string[]=[]
 	for(let tag of attributes.tags) {
 	    // TODO: Should we make this array for direct matching, or
 	    // reconcatentate into a string for contains matching?
@@ -916,7 +925,7 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	    // We want to both handle "redbone" finding Martha
 	    // Redbone, and distinguish Kronos Quartet from Mivos
 	    // Quartet, so tags currently remain as token sets which are
-	    // searched within rather than exploding into individual
+	    // searched within rather than exploding into separated
 	    // tokens. That's subject to redesign as search evolves.
 	    //
 	    // Note that metaphone codes a word that starts with a
@@ -924,17 +933,16 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	    // A M". Unless the system mishears it as "yoyo Ma", in
 	    // which case it would become "A M". Which might still be
 	    // able to sorta work if our test checks presence without
-	    // order, but that might be too shaggy a dog.
+	    // order, but that might be too shaggy a dog. Double-metaphone
+	    // might help in this case.
 	    //
-	    // TODO: DESIGN THE UI
+	    // TODO: DESIGN THE UI, DRIVE THE MATCH FROM THAT.
 	    var tagset=" " // Treat words as equal tokens within tag.
 	    for(let token of tag.split("_")) {
 		// Match on sounds-like.
-		// token=metaphone(stemmer(token))
 		token=Phonetics.metaphone(token)
-		// Could use double-metaphone and change the , to a space,
-		// including both versions as tokens, for even fuzzier match.
-		// In that mode, Yo Yo Ma comes back as A,A A,A M,M. 
+		// Could use double-metaphone and match against either,
+		// for increased fuzz plus and minus.
 		tagset=tagset+token+" "
 	    }
 	    tags.push(tagset)
