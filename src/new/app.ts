@@ -295,6 +295,10 @@ app.setHandler({
 	    	this.tell("Sorry, but the database appears to be empty right now. That shoudln't happen. Please try again later, and register a complaint if it persists.")
 		return;
 	    }
+	    // Quick note: "var a=b=c" declares a as var, but does NOT
+	    // so declare b; it's left in the default scope if not
+	    // already bound. Fine in this case, but a hazard to be
+	    // aware of.  Have I said recently that I hate Javascript?
             var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
             this.$speech.addText('Fetching episode '+episode.title+".");
 
