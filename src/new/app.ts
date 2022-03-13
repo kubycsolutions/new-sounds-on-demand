@@ -289,10 +289,14 @@ app.setHandler({
 
     FirstEpisodeIntent: async function() {
 	try {
-            let currentDate = await Player.getOldestEpisodeDate();
-            let episode = await Player.getEpisodeByDate(currentDate)!; // never null
-            this.$user.$data.currentDate = currentDate;
-            this.$speech.addText('Fetching episode '+episode!.title+".");
+            let episode = await Player.getOldestEpisode()!; // never null
+	    if(episode==null) {
+		console.error("FirstEpisodeIntent returned null. Empty DB?")
+	    	this.tell("Sorry, but the database appears to be empty right now. That shoudln't happen. Please try again later, and register a complaint if it persists.")
+		return;
+	    }
+            var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
+            this.$speech.addText('Fetching episode '+episode.title+".");
 
             if (this.isAlexaSkill()) {
 		this.$alexaSkill!.$audioPlayer!
@@ -317,25 +321,32 @@ app.setHandler({
 
     async LatestEpisodeIntent() {
 	try {
-            let currentDate = await Player.getMostRecentBroadcastDate();
-            let episode = await Player.getEpisodeByDate(currentDate); // Never null
-            this.$user.$data.currentDate = currentDate;
-            this.$speech.addText('Fetching episode '+episode!.title+".");
+            let episode = await Player.getMostRecentBroadcastEpisode();
+	    if(episode==null)
+	    {
+		console.error("LatestEpisodeIntent returned null. Empty DB?")
+	    	this.tell("Sorry, but the database appears to be empty right now. That shoudln't happen. Please try again later, and register a complaint if it persists.")
+	    }
+	    else
+	    {
+		var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
+		this.$speech.addText('Fetching episode '+episode!.title+".");
 
-            if (this.isAlexaSkill()) {
-		this.$alexaSkill!.$audioPlayer!
-                    .setOffsetInMilliseconds(0)
-                    .play(addUriUsage(episode!.url), `${currentDate}`)
-                    .tell(this.$speech)
-            } else if (this.isGoogleAction()) {
-		// NOTE: this.ask(), not this.tell(), because we want the
-		// playback-completed callback, which requires it not be a
-		// Final Response. However, that forces including
-		// Suggestion Chips.
-		this.$googleAction!.$mediaResponse!.play(addUriUsage(episode!.url), episode!.title);
-		this.$googleAction!.showSuggestionChips(['pause', 'start over']);
-		this.ask(this.$speech);
-            }
+		if (this.isAlexaSkill()) {
+		    this.$alexaSkill!.$audioPlayer!
+			.setOffsetInMilliseconds(0)
+			.play(addUriUsage(episode!.url), `${currentDate}`)
+			.tell(this.$speech)
+		} else if (this.isGoogleAction()) {
+		    // NOTE: this.ask(), not this.tell(), because we want the
+		    // playback-completed callback, which requires it not be a
+		    // Final Response. However, that forces including
+		    // Suggestion Chips.
+		    this.$googleAction!.$mediaResponse!.play(addUriUsage(episode!.url), episode!.title);
+		    this.$googleAction!.showSuggestionChips(['pause', 'start over']);
+		    this.ask(this.$speech);
+		}
+	    }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	    console.error("LastEpisodeIntent caught: ",e,trystack(e))
@@ -345,27 +356,30 @@ app.setHandler({
 
     async ResumeIntent() {
 	try {
-	    // If we played to end of last known episode -- flagged by offset<0 --
-	    // try to advance to next after that, which may have been added
-	    // since that session.
+	    // If we played to end of last known episode -- flagged by
+	    // offset<0 -- try to advance to next after that, which
+	    // may have been added since that session.
 	    var currentOffset = this.$user.$data.offset;
             var currentDate = this.$user.$data.currentDate;
 	    var episode=null
 	    if (currentDate==Player.getLiveStreamDate()) {
+		// Resume livestream; can't set offset.
 		return this.toIntent('LiveStreamIntent')
 	    }
 	    else if(currentOffset<0) { // Stopped at last known ep; is there newer?
-		currentDate=await Player.getNextEpisodeDate(currentDate)
 		episode = await Player.getEpisodeByDate(currentDate); // May be null
 		if(!episode) {
 		    // TODO: This language may need to change depending on whether
 		    // we are playing in date or ep# sequence.
 		    return this.tell("You have already heard all of the most recent episode, so we can't resume right now. You can try again after a new episode gets released, or make a different request.");
 		}
+		currentDate=episode.broadcastDateMsec
 		currentOffset=0;
 	    }
 	    else {
-		episode = await Player.getEpisodeByDate(currentDate)!; // never null
+		// Resume stored date, at stored offset if possible
+		// (Google appears to have limitations in that regard.)
+		episode = await Player.getEpisodeByDate(currentDate);
 	    }
             this.$speech.addText('Loading and resuming episode '+episode!.title+".")
 
@@ -410,13 +424,13 @@ app.setHandler({
 	if (currentDate==Player.getLiveStreamDate()) {
 	    return this.tell("You can't move forward or back in the livestream. That kind of control is only available when playing episodes.");
 	}
-        let nextEpisodeDate = await Player.getNextEpisodeDate(currentDate);
-        let nextEpisode = await Player.getEpisodeByDate(nextEpisodeDate);
+        let nextEpisode = await Player.getNextEpisodeByDate(currentDate);
         if (!nextEpisode) {
 	    // TODO: This language may need to change depending on whether
 	    // we are playing in date or ep# sequence.
 	    return this.tell('That was the most recent episode. You will have to wait until a new episode gets released, or ask for a different one.');
         }
+        let nextEpisodeDate = nextEpisode.broadcastDateMsec
         currentDate = nextEpisodeDate;
         this.$user.$data.currentDate = currentDate;
         this.$speech.addText('Fetching episode '+nextEpisode!.title+".");
@@ -449,17 +463,16 @@ app.setHandler({
 	if (currentDate==Player.getLiveStreamDate()) {
 	    return this.tell("You can't move forward or back in the livestream. That kind of control is only available when playing episodes.");
 	}
-        let previousEpisodeDate = await Player.getPreviousEpisodeDate(currentDate);
-        let previousEpisode = await Player.getEpisodeByDate(previousEpisodeDate);
+        let previousEpisode = await Player.getPreviousEpisodeByDate(currentDate);
         if (!previousEpisode) {
 	    // TODO: This language may need to change depending on whether
 	    // we are playing in date or ep# sequence.
 	    return this.tell('You are already at the oldest episode.');
         }
+        let previousEpisodeDate = previousEpisode.broadcastDateMsec
         currentDate = previousEpisodeDate;
         this.$user.$data.currentDate = currentDate;
-	// TODO: Can we get this to announce episode title?
-        this.$speech.addText('Fetching episode '+previousEpisode!.title+".");
+        this.$speech.addText('Fetching episode '+previousEpisode.title+".");
         if (this.isAlexaSkill()) {
 	    this.tell(this.$speech)
 	    return this.$alexaSkill!.$audioPlayer!
@@ -502,22 +515,26 @@ app.setHandler({
     // of course.) For now, avoid using that term in the language
     // model.
     RandomIntent: async function() {
-        let randomEpisodeDate = await Player.getRandomEpisodeDate();
-        let randomEpisode = await Player.getEpisodeByDate(randomEpisodeDate)!; // never null
+        let randomEpisode = await Player.getRandomEpisode()
+	if(!randomEpisode) {
+	    console.error("RandomIntent returned null. Empty DB?")
+	    return this.tell("Sorry, but I can't fetch a random episode right now. That shoudln't happen. Please try again later, and register a complaint if it persists.")
+	}
+        let randomEpisodeDate = randomEpisode.broadcastDateMsec
         let currentDate = randomEpisodeDate;
         this.$user.$data.currentDate = currentDate;
-        this.$speech.addText('Fetching episode '+randomEpisode!.title+".");
+        this.$speech.addText('Fetching episode '+randomEpisode.title+".");
         if (this.isAlexaSkill()) {
 	    this.tell(this.$speech)
 	    return this.$alexaSkill!.$audioPlayer!
 		.setOffsetInMilliseconds(0)
-		.play(addUriUsage(randomEpisode!.url), `${currentDate}`)
+		.play(addUriUsage(randomEpisode.url), `${currentDate}`)
         } else if (this.isGoogleAction()) {
 	    // NOTE: this.ask(), not this.tell(), because we want the
 	    // playback-completed callback, which requires it not be a
 	    // Final Response. However, that forces including
 	    // Suggestion Chips.
-	    this.$googleAction!.$mediaResponse!.play(addUriUsage(randomEpisode!.url), randomEpisode!.title);
+	    this.$googleAction!.$mediaResponse!.play(addUriUsage(randomEpisode.url), randomEpisode.title);
 	    this.$googleAction!.showSuggestionChips(['pause', 'start over']);
 	    return this.ask(this.$speech)
         }
@@ -576,10 +593,10 @@ app.setHandler({
 	let episode=await Player.getEpisodeByDate(utcDatestamp)
 	if(episode!=null && episode !=undefined)
 	{
-	    let currentDate=await Player.getEpisodeDate(episode) // gonk -- clean up
+	    let currentDate=episode.broadcastDateMsec
 	    this.$user.$data.currentDate = currentDate;
 
-	    this.$speech.addText("Fetching the show from "+format(localDate,"PPPP")+": episode "+episode!.title+".");
+	    this.$speech.addText("Fetching the show from "+format(localDate,"PPPP")+": episode "+episode.title+".");
 
 	    if (this.isAlexaSkill()) {
 		this.tell(this.$speech)
@@ -611,9 +628,9 @@ app.setHandler({
 	const episode=await Player.getEpisodeByNumber(episodeNumber)
 	if(episode!=null && episode !=undefined)
 	{
-	    const currentDate=await Player.getEpisodeDate(episode) // Gonk: Clean up
+	    const currentDate=Player.getEpisodeDate(episode) // Gonk: Clean up
 	    this.$user.$data.currentDate = currentDate;
-	    this.$speech.addText('Fetching episode '+episode!.title+".");
+	    this.$speech.addText('Fetching episode '+episode.title+".");
 	    if (this.isAlexaSkill()) {
 		this.tell(this.$speech)
 		return this.$alexaSkill!.$audioPlayer!
@@ -624,7 +641,7 @@ app.setHandler({
 		// playback-completed callback, which requires it not be a
 		// Final Response. However, that forces including
 		// Suggestion Chips.
-		this.$googleAction!.$mediaResponse!.play(addUriUsage(episode!.url), episode!.title);
+		this.$googleAction!.$mediaResponse!.play(addUriUsage(episode.url), episode.title);
 		this.$googleAction!.showSuggestionChips(['pause', 'start over']);
 		return this.ask(this.$speech)
 	    }
@@ -639,15 +656,12 @@ app.setHandler({
 	}
     },
 
-    // TODO REVIEW: Should we be able to "resume" livestream?
-    // Currently, it's set up so that will work (special index used to
-    // flag that state, which also lets us respond appropriately to
-    // FF/RW/Next/Prev in the stream). But there's something to be
-    // said for maintaining episode playback state separetely, and of
-    // course "resume" of livestream is from now rather than from
-    // stop, so it's debatable. I lean toward keeping it this way for
-    // user convenience after pause (eg for phone call), but this gets
-    // back to the "bookmarks" wishlist item.
+    // Currently, resuming livestream works as expected.  But there's
+    // something to be said for maintaining episode playback state
+    // separetely, and of course "resume" of livestream is from now
+    // rather than from stop, so it's debatable. I lean toward keeping
+    // it this way for user convenience after pause (eg for phone
+    // call), but this gets back to the "bookmarks" TODO item.
     //
     // TODO: acess the livestream's playlist, to be able to answer
     // "who/what is this"?.  Note that whos-on updates a bit slowly,

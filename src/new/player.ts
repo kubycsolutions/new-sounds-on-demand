@@ -123,6 +123,14 @@ export class Player {
 	    return Promise.resolve(-1);
 	}
     };
+    static async getMostRecentBroadcastEpisode():Promise<EpisodeRecord|null> {
+	try {
+	    return getItemForLatestDate(TABLENAME,PROGRAM)
+	} catch(err) {
+	    console.error("ERROR in getMostRecentBroadcastDate: not found")
+	    return Promise.resolve(null);
+	}
+    };
     static async getHighestEpisodeNumber():Promise<number> {
 	try {
 	    var record=await getItemForHighestEpisode(TABLENAME,PROGRAM)
@@ -155,26 +163,34 @@ export class Player {
 	    return Promise.resolve(-1);
 	}
     };
+    static async getOldestEpisode():Promise<EpisodeRecord|null> {
+	try {
+	    return getItemForEarliestDate(TABLENAME,PROGRAM)
+	} catch(err) {
+	    console.error("ERROR in getOldestEpisodeDate: date not found")
+	    return Promise.resolve(null);
+	}
+    };
     static async getFirstEpisodeIndex():Promise<number> {
 	return this.getOldestEpisodeDate()
     };
     
-    static async getNextEpisodeNumber(index:number):Promise<number> {
-	if (index==null)
+    static async getNextEpisodeNumber(episode:number):Promise<number> {
+	if (episode==null)
 	    return Promise.resolve(-1) // Can't navigate from livestream
 	try {
-	    var record=await getNextItemByEpisode(TABLENAME,PROGRAM,index)
+	    var record=await getNextItemByEpisode(TABLENAME,PROGRAM,episode)
 	    return record.episode
 	} catch(err) {
 	    console.error("ERROR in getNextEpisodeNumber: not found")
 	    return -1;
 	}
     };
-    static async getNextEpisodeDate(index:number):Promise<number> {
-	if (index==null)
+    static async getNextEpisodeDate(date:number):Promise<number> {
+	if (date==null)
 	    return -1 // Can't navigate from livestream
 	try {
-	    var record=await getNextItemByDate(TABLENAME,PROGRAM,index)
+	    var record=await getNextItemByDate(TABLENAME,PROGRAM,date)
 	    return record.broadcastDateMsec
 	} catch(err) {
 	    console.error("ERROR in getNextEpisodeByDate: not found")
@@ -184,29 +200,46 @@ export class Player {
     static async getNextEpisodeIndex(index:number):Promise<number> {
 	return this.getNextEpisodeDate(index)
     };
+    static async getNextEpisodeByDate(date:number):Promise<EpisodeRecord|null> {
+	if (date==LIVE_STREAM_DATE)
+	    return null // Can't navigate from livestream
+	try {
+	    return getNextItemByDate(TABLENAME,PROGRAM,date)
+	} catch(err) {
+	    return null;
+	}
+    };
 
-    static async getPreviousEpisodeNumber(index:number):Promise<number> {
-	if (index==null) 
-	    return -1 // Can't navigate from livestream
-	if (index==null)
+    static async getPreviousEpisodeNumber(episode:number):Promise<number> {
+	if (episode==null)
 	    return -1 // Can't navigate from livestream
 	try {
-	    var record=await getPreviousItemByEpisode(TABLENAME,PROGRAM,index)
+	    var record=await getPreviousItemByEpisode(TABLENAME,PROGRAM,episode)
 	    return record.episode
 	} catch(err) {
 	    console.error("ERROR in getPreviousEpisodeNumber: not found")
 	    return -1;
 	}
     };
-    static async getPreviousEpisodeDate(index:number):Promise<number> {
-	if (index==null)
+    static async getPreviousEpisodeDate(date:number):Promise<number> {
+	if (date==null)
 	    return -1 // Can't navigate from livestream
 	try {
-	    var record=await getPreviousItemByDate(TABLENAME,PROGRAM,index)
+	    var record=await getPreviousItemByDate(TABLENAME,PROGRAM,date)
 	    return record.episode
 	} catch(err) {
 	    console.error("ERROR in getPreviousEpisodeDate: not found")
 	    return -1;
+	}
+    };
+    static async getPreviousEpisodeByDate(date:number):Promise<EpisodeRecord|null> {
+	if (date==null)
+	    return null // Can't navigate from livestream
+	try {
+	    return getPreviousItemByDate(TABLENAME,PROGRAM,date)
+	} catch(err) {
+	    console.error("ERROR in getPreviousEpisodeByDate: not found")
+	    return null;
 	}
     };
     static async getPreviousEpisodeIndex(index:number):Promise<number> {
@@ -227,13 +260,13 @@ export class Player {
 	return this.getEpisodeDate(episodeRecord)
     };
 
-    static async getEpisodeByNumber(index:number):Promise<EpisodeRecord|null> {
-	if (index<=0)
+    static async getEpisodeByNumber(episode:number):Promise<EpisodeRecord|null> {
+	if (episode<=0)
 	    return null // Can't navigate from livestream
 	else try {
 	    // Multiple records may exist if rebroadcast.
 	    // Return earliest instance (default sort order)
-	    var records=await getItemsForEpisode(TABLENAME, PROGRAM, index)
+	    var records=await getItemsForEpisode(TABLENAME, PROGRAM, episode)
 	    if(records.Items.length >= 1)
 		return records.Items[0]
 	    else {
@@ -246,11 +279,11 @@ export class Player {
 	}
     };
 
-    static async getEpisodeByDate(index:number):Promise<EpisodeRecord|null> {
-	if (index<=0)
+    static async getEpisodeByDate(date:number):Promise<EpisodeRecord|null> {
+	if (date<=0)
 	    return null // Can't navigate from livestream
         else try {
-	    var record = await getItemForDate(TABLENAME,PROGRAM,index)
+	    var record = await getItemForDate(TABLENAME,PROGRAM,date)
 	    return record.Item
 	} catch(err) {
 	    console.error("ERROR in getEpisodeByDate: not found")
@@ -272,6 +305,9 @@ export class Player {
     };
     static async getRandomEpisodeIndex():Promise<number> {
 	return this.getRandomEpisodeDate()
+    };
+    static async getRandomEpisode():Promise<EpisodeRecord> {
+	return getRandomItem(TABLENAME,PROGRAM)
     };
 
 // Update refactored to episodesdb

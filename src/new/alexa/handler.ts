@@ -43,7 +43,7 @@ export const AlexaHandler: Handler = {
 	if(currentDate==Player.getLiveStreamDate()) {
 	    return this.tell("You can't move forward or back in the livestream. That kind of control is only available when playing episodes.");
 	}
-	let episode=await Player.getEpisodeByIndex(currentDate)
+	let episode=await Player.getEpisodeByDate(currentDate)
 	let uri=episode!.url // won't be null if we're already playing it!
 	{
 	    // TODO: Finalize these and refactor to a single place
@@ -73,9 +73,9 @@ export const AlexaHandler: Handler = {
 	    if (currentDate==null) {
 		return // Livestream never ends; no enqueued next.
 	    }
-            let nextDate = await Player.getNextEpisodeIndex(currentDate);
-	    let episode=await Player.getEpisodeByIndex(nextDate)
+	    let episode=await Player.getNextEpisodeByDate(currentDate)
             if (episode) {
+	        let nextDate = episode.broadcastDateMsec
 		console.log(">>> PlaybackNearlyFinished: Queued:",nextDate,episode.title)
 		let uri=episode.url
 		{
@@ -106,9 +106,9 @@ export const AlexaHandler: Handler = {
 		console.log("Playback finished on what we think was Live Stream")
 		return
 	    }
-            let nextDate = await Player.getNextEpisodeIndex(currentDate);
-	    if(nextDate>0) {
-		let episode=await Player.getEpisodeByIndex(nextDate)
+	    let episode=await Player.getNextEpisodeByDate(currentDate)
+	    if(episode!=null) {
+		let nextDate = episode.broadcastDateMsec
                 this.$user.$data.currentDate = nextDate;
             } else {
 		// "Resume" after play-to-stop of last ep
