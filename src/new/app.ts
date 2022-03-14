@@ -182,26 +182,20 @@ app.use(
     new JovoDebugger(),
 );
 
-// Theoretically we can select database (FileDB or DynamoDB) depending
-// on operating environment. However, since I'm migrating to DynamoDB
-// for the episode data, we might as well hard-wire that and use
-// Dynamo locally too. To set up a local instance, see
-// https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GettingStarted.NodeJs.html
-//
-// "Project.getStage() is a shortcut for process.env.JOVO_STAGE."
-// if (Project.getStage() === 'prod') {
-    const { DynamoDb } = require('jovo-db-dynamodb')
-    app.use(
-	new DynamoDb({
-	    // GONK: Get value as eg process.env.USER_TABLE with default;
-	    // in Typescript, add "as string"
-	    tableName: "UserState"
-	}),
-    );
-// } else { // stage assumed to be dev, running locally
-//     const { FileDb } = require('jovo-db-filedb')
-//     app.use(new FileDb());
-// }
+// Tell Jovo to store user state on the DynamoDB instance, rather than
+// its default FileDB.
+// Note that AWS region must be set before instantiating DynamoDB,
+// even if we're running against a local instance.
+var AWS = require('aws-sdk');
+AWS.config.update({region:'us-east-1'});
+const { DynamoDb } = require('jovo-db-dynamodb')
+app.use(
+    new DynamoDb({
+	// TODO: Get value as eg process.env.USER_TABLE with default;
+	// in Typescript, add "as string"
+	tableName: "UserState"
+    }),
+);
 
 ////////////////////////////////////////////////////////////////
 // Politeness: Tell the station's servers (and any tracking system

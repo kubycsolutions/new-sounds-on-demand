@@ -22,18 +22,20 @@ module.exports = {
 	projectId: `new-sounds-on-demand`,
     },
 
-//    endpoint: '${JOVO_WEBHOOK_URL}',
-    host: {
-    	lambda: {
-    	    arn: 'arn:aws:lambda:us-east-1:046935287063:function:prod-new-sounds-on-demand',
-    	    askProfile: 'admin', // if left out: "default" profile is used
-    	}
-    }
+    // MANUAL DEV/PROD SWITCHING: Comment out either endpoint: or host:.
+    endpoint: '${JOVO_WEBHOOK_URL}'
+    // host: {
+    // 	lambda: {
+    // 	    arn: 'arn:aws:lambda:us-east-1:046935287063:function:prod-new-sounds-on-demand',
+    // 	    askProfile: 'admin', // if left out: "default" profile is used
+    // 	}
+    // }
     
     // TODO: Get this up and running: 
     // In production, the Jovo code will run on an AWS Lambda
-    // This is supposed to switch back and forth automagically depending
-    // on the stage we are building for. 
+    // This is supposed to replace the manual kluge above and 
+    // switch back and forth automagically depending on the stage 
+    // we are building for. 
     //
     // stages: {
     // 	dev: {
