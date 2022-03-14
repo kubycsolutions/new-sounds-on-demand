@@ -19,10 +19,9 @@ export const GoogleHandler: Handler = {
 	    if (currentDate==null) {
 		return // Livestream never ends; no enqueued next.
 	    }
-	    await Player.updateEpisodes(-1) // Incremental load, in case new appeared.
-            let nextDate = Player.getNextEpisodeDate(currentDate);
-	    let episode=Player.getEpisodeByDate(nextDate)
+	    let episode=await Player.getNextEpisodeByDate(currentDate)
             if (episode) {
+	        let nextDate = episode.broadcastDateMsec
 		let uri=episode.url
 		console.log("GOOGLE: episode.url=",episode.url)
 		{

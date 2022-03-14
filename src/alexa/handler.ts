@@ -35,7 +35,7 @@ export const AlexaHandler: Handler = {
         this.tell('Shuffle On intent is not currently implemented by New Sounds On Demand.');
     },
 
-    'AMAZON.StartOverIntent'() {
+    'AMAZON.StartOverIntent': async function() {
 	// I have not been able to just "move the needle" on existing URI, so
 	// I've made it a full play operation. (Minus the episode ID voiceover.)
 	// Note implications for custom Rewind/FastForward implementation.
@@ -43,7 +43,7 @@ export const AlexaHandler: Handler = {
 	if(currentDate==Player.getLiveStreamDate()) {
 	    return this.tell("You can't move forward or back in the livestream. That kind of control is only available when playing episodes.");
 	}
-	let episode=Player.getEpisodeByIndex(currentDate)
+	let episode=await Player.getEpisodeByDate(currentDate)
 	let uri=episode!.url // won't be null if we're already playing it!
 	{
 	    // TODO: Finalize these and refactor to a single place
@@ -73,10 +73,9 @@ export const AlexaHandler: Handler = {
 	    if (currentDate==null) {
 		return // Livestream never ends; no enqueued next.
 	    }
-	    await Player.updateEpisodes(-1) // Incremental load, in case new appeared.
-            let nextDate = Player.getNextEpisodeIndex(currentDate);
-	    let episode=Player.getEpisodeByIndex(nextDate)
+	    let episode=await Player.getNextEpisodeByDate(currentDate)
             if (episode) {
+	        let nextDate = episode.broadcastDateMsec
 		console.log(">>> PlaybackNearlyFinished: Queued:",nextDate,episode.title)
 		let uri=episode.url
 		{
@@ -101,15 +100,15 @@ export const AlexaHandler: Handler = {
 	// answer.
 	//
 	// TODO: Leverage fact that the index is also the playback token?
-        'AlexaSkill.PlaybackFinished'() {
+        'AlexaSkill.PlaybackFinished': async function() {
             let currentDate = this.$user.$data.currentDate;
 	    if (currentDate==Player.getLiveStreamDate()) {
 		console.log("Playback finished on what we think was Live Stream")
 		return
 	    }
-            let nextDate = Player.getNextEpisodeIndex(currentDate);
-	    if(nextDate>0) {
-		let episode=Player.getEpisodeByIndex(nextDate)
+	    let episode=await Player.getNextEpisodeByDate(currentDate)
+	    if(episode!=null) {
+		let nextDate = episode.broadcastDateMsec
                 this.$user.$data.currentDate = nextDate;
             } else {
 		// "Resume" after play-to-stop of last ep

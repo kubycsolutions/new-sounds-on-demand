@@ -5,4 +5,6 @@ set DYNAMODB_ENDPOINT=https://dynamodb.%DYNAMODB_REGION%.amazonaws.com
 set NSOD_EPISODES_TABLE=episodes_debug
 set NSOD_PROGRAM="newsounds"
 
-tsc && node dist\src\new\episodesdb_update.js
+: TSC is apparently a batchfile, and either needs to be CALLed or single-lined
+: to avoid ending the script prematurely.
+tsc && node dist\src\episodesdb_update.js
