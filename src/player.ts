@@ -1,7 +1,7 @@
-// GONK: Database being moved into an instance of DominoDB,
+// Database has been moved into an instance of DominoDB,
 // loaded/maintained/accessed through the episodedb module.
-// This requires rewriting from synchronous form to Promise/async.
-// Note that this will affect callers too.
+// That runs asynchronously, so you'll see lots of Promises,
+// Asyncs, and Awaits.
 
 'use strict;'
 
@@ -38,10 +38,7 @@ const LIVE_STREAM_METADATA_URI="http://api.wnyc.org/api/v1/whats_on/q2"
 const APP_URI_PARAMETERS="user=keshlam@kubyc.solutions&nyprBrowserId=NewSoundsOnDemand.smartspeaker.player"
 
 ////////////////////////////////////////////////////////////////
-// Switching from local FileDB to DynamoDB instance
-// GONK: DYNAMO INSTANCE SHOULD BE SETTABLE.
-// GONK: TABLE INSTANCE SHOULD BE SETTABLE (for debug vs. live)
-// GONK: Currently hardwired to one program. Eventually may want several.
+// Database interface layer, currently bound to DynamoDB
 import {set_AWS_endpoint,
 	EpisodeRecord,
 	getItemForDate,
@@ -57,7 +54,7 @@ import {set_AWS_endpoint,
 	getRandomItem
        } from './episodesdb'
 
-// GONK: CONSTANTS FOR NOW, WILL WANT OVERRIDES
+// Pick up config from environment, with some safety-net defaults.
 const TABLENAME=process.env.NSOD_EPISODES_TABLE || "episodes"
 const PROGRAM=process.env.NSOD_PROGRAM || "newsounds"
 
@@ -134,8 +131,16 @@ export class Player {
 	    var record=await getItemForHighestEpisode(TABLENAME,PROGRAM)
 	    return record.broadcastDateMsec
 	} catch(err) {
-	    console.error("ERROR in getMostRecentBroadcastDate: date not found")
+	    console.error("ERROR in getHighestEpisodeNumber: Not found. Empty DB?")
 	    return Promise.resolve(-1);
+	}
+    };
+    static async getEpisodeWithHighestEpisodeNumber():Promise<EpisodeRecord|null> {
+	try {
+	    return getItemForHighestEpisode(TABLENAME,PROGRAM)
+	} catch(err) {
+	    console.error("ERROR in getHighestbyEpisodeNumber: Not found. Empty DB?")
+	    return Promise.resolve(null);
 	}
     };
     static async getLatestEpisodeIndex():Promise<number> {
@@ -150,6 +155,14 @@ export class Player {
 	} catch(err) {
 	    console.error("ERROR in getFirstEpisodeNumber: date not found")
 	    return Promise.resolve(-1);
+	}
+    };
+    static async getEpisodeWithLowestEpisodeNumber():Promise<EpisodeRecord|null> {
+	try {
+	    return getItemForLowestEpisode(TABLENAME,PROGRAM)
+	} catch(err) {
+	    console.error("ERROR in getLowestbyEpisodeNumber: Not found. Empty DB?")
+	    return Promise.resolve(null);
 	}
     };
     static async getOldestEpisodeDate():Promise<number> {

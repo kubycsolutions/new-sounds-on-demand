@@ -135,7 +135,7 @@ import { Project } from 'jovo-framework'
 import { format } from 'date-fns'
 //import { utcToZonedTime } from 'date-fns-tz' // may be needed to report local date
 
-console.log('TODO: This implementation uses an outdated version of the Jovo Framework. When time permits, we will upgrade Jovo v4. Learn more here: https://www.jovo.tech/docs/migration-from-v3');
+console.log('TODO: This implementation uses an outdated version of the Jovo Framework. When time permits, we will upgrade to Jovo v4. See https://www.jovo.tech/docs/migration-from-v3');
 
 ////////////////////////////////////////////////////////////////
 const ShowCredits="New Sounds is produced by New York Public Radio, W N Y C and W Q X R. The host and creator of the show is John Schaefer. His team includes Caryn Havlik, Helga Davis, Rosa Gollan, Justin Sergi, and Irene Trudel. More information about these folks, and about the show, can be found on the web at New Sounds dot org."
@@ -328,6 +328,79 @@ app.setHandler({
 	    }
 	    else
 	    {
+		var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
+		this.$speech.addText('Fetching episode '+episode!.title+".");
+
+		if (this.isAlexaSkill()) {
+		    this.$alexaSkill!.$audioPlayer!
+			.setOffsetInMilliseconds(0)
+			.play(addUriUsage(episode!.url), `${currentDate}`)
+			.tell(this.$speech)
+		} else if (this.isGoogleAction()) {
+		    // NOTE: this.ask(), not this.tell(), because we want the
+		    // playback-completed callback, which requires it not be a
+		    // Final Response. However, that forces including
+		    // Suggestion Chips.
+		    this.$googleAction!.$mediaResponse!.play(addUriUsage(episode!.url), episode!.title);
+		    this.$googleAction!.showSuggestionChips(['pause', 'start over']);
+		    this.ask(this.$speech);
+		}
+	    }
+	} catch(e) {
+	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
+	    console.error("LastEpisodeIntent caught: ",e,trystack(e))
+	    throw e;
+	}
+    },
+
+    LowestNumberedEpisodeIntent: async function() {
+	try {
+            let episode = await Player.getEpisodeWithLowestEpisodeNumber();
+	    if(episode==null) {
+		console.error("LowestNumberedEpisodeIntent returned null. Empty DB?")
+	    	this.tell("Sorry, but the database appears to be empty right now. That shoudln't happen. Please try again later, and register a complaint if it persists.")
+		return;
+	    }
+	    // Quick note: "var a=b=c" declares a as var, but does NOT
+	    // so declare b; it's left in the default scope if not
+	    // already bound. Fine in this case, but a hazard to be
+	    // aware of.  Have I said recently that I hate Javascript?
+            var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
+            this.$speech.addText('Fetching episode '+episode.title+".");
+
+            if (this.isAlexaSkill()) {
+		this.$alexaSkill!.$audioPlayer!
+                    .setOffsetInMilliseconds(0)
+                    .play(addUriUsage(episode!.url), `${currentDate}`)
+                    .tell(this.$speech)
+            } else if (this.isGoogleAction()) {
+		// NOTE: this.ask(), not this.tell(), because we want the
+		// playback-completed callback, which requires it not be a
+		// Final Response. However, that forces including
+		// Suggestion Chips.
+		this.$googleAction!.$mediaResponse!.play(addUriUsage(episode!.url), episode!.title);
+		this.$googleAction!.showSuggestionChips(['pause', 'start over']);
+		this.ask(this.$speech);
+            }
+	} catch(e) {
+	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
+	    console.error("FirstEpisodeIntent caught: ",e,trystack(e))
+	    throw e;
+	}
+    },
+
+    async HighestNumberedEpisodeIntent() {
+	try {
+            let episode = await Player.getEpisodeWithHighestEpisodeNumber();
+	    if(episode==null)
+	    {
+		console.error("HighestNumberedEpisodeIntent returned null. Empty DB?")
+	    	this.tell("Sorry, but the database appears to be empty right now. That shoudln't happen. Please try again later, and register a complaint if it persists.")
+	    }
+	    else
+	    {
+		// GONK: This is boilerplate, isn't it. REFACTOR!
+		// (Sorry -- whittled code is prone to copypasta.)
 		var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
 		this.$speech.addText('Fetching episode '+episode!.title+".");
 
@@ -627,7 +700,7 @@ app.setHandler({
 	const episode=await Player.getEpisodeByNumber(episodeNumber)
 	if(episode!=null && episode !=undefined)
 	{
-	    const currentDate=Player.getEpisodeDate(episode) // Gonk: Clean up
+	    const currentDate=episode.broadcastDateMsec
 	    this.$user.$data.currentDate = currentDate;
 	    this.$speech.addText('Fetching episode '+episode.title+".");
 	    if (this.isAlexaSkill()) {
@@ -711,7 +784,7 @@ app.setHandler({
 	// GONK: Tells may need to be Asks for this to run as intended
 	// in Google. More multiple-path coding. Really wish Jovo
 	// encapsulated that.
-        this.$speech.addText("Debug hook baited. Here, fishie fishie fishie...")
+        this.$speech.addText("Debug hook baited. Awaiting fishies.")
 	return this.ask(this.$speech)
     },
 
