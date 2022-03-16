@@ -1,18 +1,29 @@
-/* New Sounds On Demand: Archive player, heavily modified from a Jovo
-   podcast-player sample to load its tables from the data driving the
-   newsounds.org website, and to offer enhanced behaviors.
+/* New Sounds On Demand: Archive player, drastically reimplemented and
+   expanded from a Jovo podcast-player sample to load its tables from
+   the data driving the newsounds.org website, and to offer enhanced
+   behaviors.
 
-   In the process of copying the website's database into my own, some
-   workarounds are applied to rectify deficits and irregularities.
+   CAVEAT: VERSION 1.0 IS WHITTLED CODE RATHER THAN DESIGNED CODE. I'm
+   very aware that there's a lot of copypasta which should be
+   refactored into subroutines, that at least some of the Promises
+   should be rewritten as async/await, and so on. Some is noted below,
+   not all.
+
+   CURRENT STATUS: As of this writing, I'm now successfully importing the
+   WNYC database into my own DynamoDB, cleaning up and restructuring for
+   my access patterns, and I've been able to run the app locally against
+   my own DynamoDB instance. I've been able to load an AWS DynamoDB
+   instance, but I haven't yet been able to run against it successfully;
+   apparently there's still at least one parameter not being set correctly
+   for the switch-over. Investigating.
+
 
    OPEN TASKS:
 
-   TODO #1: Confirm that episodedb rewrite is functioning, retarget to
-   hosted DynamoDB rather than local, then cut over to /new/ code.
-
-   TODO #2: Now that we're working from database, clean up the
-   Episode-versus-Index coding; always work with Episode object and
-   let Player do the mapping back to episodedb access.
+   GONK: When the word GONK appears in my files, that's an eyecatcher
+   which usually flags something I consider an unsolved design issue
+   but probably haven't included in this list. It may also flag work
+   currently in progress.
 
    BUG/ISSUE: Possible long delay on resume IF not already in Alexa's
    local cache, presumably due to the computational cost of
@@ -284,10 +295,10 @@ app.setHandler({
 
     FirstEpisodeIntent: async function() {
 	try {
-            let episode = await Player.getOldestEpisode()!; // never null
+            let episode = await Player.getOldestEpisode();
 	    if(episode==null) {
 		console.error("FirstEpisodeIntent returned null. Empty DB?")
-	    	this.tell("Sorry, but the database appears to be empty right now. That shoudln't happen. Please try again later, and register a complaint if it persists.")
+	    	this.tell("Sorry, but the database appears to be empty right now. That shouldn't happen. Please try again later, and register a complaint if it persists.")
 		return;
 	    }
 	    // Quick note: "var a=b=c" declares a as var, but does NOT
@@ -324,7 +335,7 @@ app.setHandler({
 	    if(episode==null)
 	    {
 		console.error("LatestEpisodeIntent returned null. Empty DB?")
-	    	this.tell("Sorry, but the database appears to be empty right now. That shoudln't happen. Please try again later, and register a complaint if it persists.")
+	    	this.tell("Sorry, but the database appears to be empty right now. That shouldn't happen. Please try again later, and register a complaint if it persists.")
 	    }
 	    else
 	    {
@@ -358,7 +369,7 @@ app.setHandler({
             let episode = await Player.getEpisodeWithLowestEpisodeNumber();
 	    if(episode==null) {
 		console.error("LowestNumberedEpisodeIntent returned null. Empty DB?")
-	    	this.tell("Sorry, but the database appears to be empty right now. That shoudln't happen. Please try again later, and register a complaint if it persists.")
+	    	this.tell("Sorry, but the database appears to be empty right now. That shouldn't happen. Please try again later, and register a complaint if it persists.")
 		return;
 	    }
 	    // Quick note: "var a=b=c" declares a as var, but does NOT
@@ -395,7 +406,7 @@ app.setHandler({
 	    if(episode==null)
 	    {
 		console.error("HighestNumberedEpisodeIntent returned null. Empty DB?")
-	    	this.tell("Sorry, but the database appears to be empty right now. That shoudln't happen. Please try again later, and register a complaint if it persists.")
+	    	this.tell("Sorry, but the database appears to be empty right now. That shouldn't happen. Please try again later, and register a complaint if it persists.")
 	    }
 	    else
 	    {
@@ -590,7 +601,7 @@ app.setHandler({
         let randomEpisode = await Player.getRandomEpisode()
 	if(!randomEpisode) {
 	    console.error("RandomIntent returned null. Empty DB?")
-	    return this.tell("Sorry, but I can't fetch a random episode right now. That shoudln't happen. Please try again later, and register a complaint if it persists.")
+	    return this.tell("Sorry, but I can't fetch a random episode right now. That shouldn't happen. Please try again later, and register a complaint if it persists.")
 	}
         let randomEpisodeDate = randomEpisode.broadcastDateMsec
         let currentDate = randomEpisodeDate;

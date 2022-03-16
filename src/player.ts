@@ -178,7 +178,7 @@ export class Player {
 	try {
 	    return getItemForEarliestDate(TABLENAME,PROGRAM)
 	} catch(err) {
-	    console.error("ERROR in getOldestEpisodeDate: date not found")
+	    console.error("ERROR in getOldestEpisode: not found:",err)
 	    return Promise.resolve(null);
 	}
     };
