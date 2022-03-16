@@ -791,11 +791,16 @@ app.setHandler({
     },
 
     // Hook for testing, normally inactive
-    DebugIntent() {
+    async DebugIntent() {
 	// GONK: Tells may need to be Asks for this to run as intended
 	// in Google. More multiple-path coding. Really wish Jovo
 	// encapsulated that.
         this.$speech.addText("Debug hook baited. Awaiting fishies.")
+	var nbd=await Player.getMostRecentBroadcastDate();
+	var hen=await Player.getHighestEpisodeNumber();
+	var oed=await Player.getOldestEpisodeDate();
+	var len=await Player.getFirstEpisodeNumber();
+	console.log("DebugIntent:",len,hen,oed,nbd)
 	return this.ask(this.$speech)
     },
 

@@ -6,6 +6,7 @@
 'use strict;'
 
 import got from 'got'
+const DEBUG=("DEBUG"==process.env.PLAYER_DEBUG)
 
 ////////////////////////////////////////////////////////////////
 // URI-related constants:
