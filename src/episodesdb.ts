@@ -50,7 +50,10 @@ export function set_AWS_endpoint(endpoint=DYNAMODB_ENDPOINT,region=DYNAMODB_REGI
     return AWS // mostly for testing
 }
 
-// Run that initialization as part of module loading.
+// AWS config must be set BEFORE DynamoDB connection is opened, sigh.
+// Definite risk in that we also open a DDB connection for Jovo state;
+// the two *must* agree. There's hazard in having those occur in different
+// files, not least the ordering issue.
 // TODO: Asynchrony risks?
 set_AWS_endpoint(DYNAMODB_ENDPOINT,DYNAMODB_REGION); 
 

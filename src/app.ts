@@ -143,6 +143,7 @@ import { GoogleHandler } from './google/handler';
 import { JovoDebugger } from 'jovo-plugin-debugger';
 import { Player } from './player';
 import { Project } from 'jovo-framework'
+import { set_AWS_endpoint } from './episodesdb'
 import { format } from 'date-fns'
 //import { utcToZonedTime } from 'date-fns-tz' // may be needed to report local date
 
@@ -195,11 +196,16 @@ app.use(
 
 // Tell Jovo to store user state on the DynamoDB instance, rather than
 // its default FileDB.
+//
 // Note that AWS region must be set before instantiating DynamoDB,
-// even if we're running against a local instance.
-const AWS_REGION =process.env.DYNAMODB_REGION || "us-east-1"
-const AWS = require('aws-sdk');
-AWS.config.update({region:AWS_REGION});
+// even if we're running against a local instance, and that since
+// we use it both here and in the episodesdb module we really want a
+// single shared configuration process. Currently, that's the
+// set_AWS_endpoint() operation, which may (safely) re-assert
+// existing values.
+// TODO: UGLY. CLEAN UP.
+
+const AWS = set_AWS_endpoint()
 const { DynamoDb } = require('jovo-db-dynamodb')
 app.use(
     new DynamoDb({
