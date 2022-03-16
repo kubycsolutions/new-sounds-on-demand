@@ -26,6 +26,9 @@ const Phonetics = require('phonetics')
 
 const AWS = require("aws-sdk");
 
+// This one's just a literal. TODO: Is it really worth handling this way?
+const ITEM_BY_EPISODE_INDEX = "ITEM_BY_EPISODE"
+
 // Environment variable configuiration, with defaults if not set
 // Defaults are as I've been running on my local machine for testing.
 // They can be overridden to target a DynamoDB service on AWS, and/or
@@ -34,9 +37,8 @@ const AWS = require("aws-sdk");
 // NOTE: Table name and program are currently passed in each time from
 // higher-level code. One or both may want to be stateful, eg as
 // object context, if we generalize this.
-const DYNAMODB_ENDPOINT = (process.env.DYNAMODB_ENDPOINT || "http://localhost:8000")
-const DYNAMODB_REGION = (process.env.DYNAMODB_REGION || "us-east-1")
-const ITEM_BY_EPISODE_INDEX = (process.env.ITEM_BY_EPISODE_INDEX || "ITEM_BY_EPISODE")
+const DYNAMODB_ENDPOINT = process.env.DYNAMODB_ENDPOINT || "http://localhost:8000"
+const DYNAMODB_REGION = process.env.DYNAMODB_REGION || "us-east-1"
 
 // Set default, but allow for convenient later
 export function set_AWS_endpoint(endpoint=DYNAMODB_ENDPOINT,region=DYNAMODB_REGION) {
@@ -48,17 +50,15 @@ export function set_AWS_endpoint(endpoint=DYNAMODB_ENDPOINT,region=DYNAMODB_REGI
     return AWS // mostly for testing
 }
 
-// AWS endpoint must be set before initializing the DynamoDB and DocumentClient instances.
-// NOTE that if we ever call this dynamically to change the endpoint,
-// we will need to obtain new instances thereof -- which is why these are
-// assigned to vars rather than consts.
-// 
-// TODO: Should that be a side-effect of set_AWS_endpoint?
-// TODO: Should this be renamed set_DDB_endpoint, to emphasize that?
+// Run that initialization as part of module loading.
+// TODO: Asynchrony risks?
 set_AWS_endpoint(DYNAMODB_ENDPOINT,DYNAMODB_REGION); 
 
+// Note that the DynamoDB factory depends on AWS Endpoint having
+// previously been set. BEWARE ASYNCHRONY!
 var dynamodb = new AWS.DynamoDB();
 var docClient = new AWS.DynamoDB.DocumentClient();
+
 
 
 export interface EpisodeRecord {

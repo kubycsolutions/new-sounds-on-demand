@@ -10,10 +10,9 @@ set NSOD_PROGRAM=
 
 cls
 
-: TSC is apparently a batchfile, and either needs to be CALLed or single-lined
-: to avoid ending the script prematurely.
+: Call needed to keep batchfiles from not returning and prematurely ending run.
+: (Alternative is to chain them with & in a single line.)
 call tsc
-
-jovo3 build
-jovo3 deploy %*
-jovo3 run
+call jovo3 build
+call jovo3 deploy %*
+call jovo3 run

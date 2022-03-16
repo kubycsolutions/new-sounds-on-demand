@@ -8,7 +8,7 @@ import {deleteTable, waitForNoTable, createTable, waitForTable,
 // parameterizing the station-database URI, or doing an all-shows
 // query thereupon if that's supported.
 
-const table=process.env.NSOD_EPISODES_TABLE || "episodes_debug" // Not the production table!
+const table=process.env.NSOD_EPISODES_TABLE || "episodes_debug"
 const program=process.env.NSOD_PROGRAM || "newsounds"
 
 // Since we're starting by emptying the table, depth of -1

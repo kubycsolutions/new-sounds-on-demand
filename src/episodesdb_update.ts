@@ -14,8 +14,8 @@ import {createTable, waitForTable,
 // API I've figured out isn't flexibile enough for more than paged
 // access.)
 
-const table="episodes_debug" // Not the production table!
-const program="newsounds"
+const table=process.env.NSOD_EPISODES_TABLE || "episodes_debug"
+const program=process.env.NSOD_PROGRAM || "newsounds"
 
 createAndLoad(-1) // TEST: Incremental
 
