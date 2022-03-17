@@ -29,7 +29,7 @@ async function recreateAndLoad(maxdepth:number) {
 	console.log("Awaiting removal of table",table)
 	await waitForNoTable(table);
 	console.log("Confirmed no table!")
-    } catch(err:any) {
+    } catch(err) {
 	console.log("Error removing table; hopefully means didn't exist:",err)
     }
     try {
@@ -39,7 +39,7 @@ async function recreateAndLoad(maxdepth:number) {
 	console.log("Table exists, starting load with maxdepth",maxdepth)
 	await callUpdateEpisodes(table,program,maxdepth)
     }
-    catch(err:any) {
+    catch(err) {
 	console.log("create/update error:",err)
     }
 }
@@ -48,7 +48,7 @@ async function callUpdateEpisodes(table:string,program:string,depth:number) {
     try {
 	updateEpisodes(table,depth) // 0 to force rebuild, < incremental, > to specified depth
     }
-    catch(e:any) {
+    catch(e) {
 	console.log("updateEpisodes:",e)
     }
 }

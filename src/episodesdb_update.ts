@@ -24,14 +24,15 @@ async function createAndLoad(maxdepth:number) {
     try {
     	try {
 	    await createTable(table)
-	} catch (e:any) {
+	} catch (e) {
 	    // TODO: Does TS handle typed alternative catches? How?
+	    // Or would I have to do my own ducktype instanceOf?
 	    console.log("Expected ResoureInUseException; pre-existing table.");
 	}
 	await waitForTable(table)
 	await callUpdateEpisodes(table,program,maxdepth)
     }
-    catch(err:any) {
+    catch(err) {
 	console.log("create/update error:",err)
     }
 }
@@ -40,7 +41,7 @@ async function callUpdateEpisodes(table:string,program:string,depth:number) {
     try {
 	updateEpisodes(table,depth) // 0 to force rebuild, < incremental, > to specified depth
     }
-    catch(e:any) {
+    catch(e) {
 	console.log("updateEpisodes:",e)
     }
 }

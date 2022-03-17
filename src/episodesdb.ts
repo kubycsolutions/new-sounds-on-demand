@@ -585,7 +585,7 @@ export async function updateEpisodes(table:string,maxdepth:number) {
 		.then( (response:any) => {
 		    return resolve(JSON.parse(response.body));
 		})
-		.catch( (e:any) => {
+		.catch( (e) => {
 		    console.error(e)
 		    if(e instanceof Error) {
 			let error:Error=e
@@ -636,7 +636,7 @@ export async function updateEpisodes(table:string,maxdepth:number) {
 				    .then(() => {
 					return resolve("NEW")
 				    })
-				    .catch( (err:any) => {
+				    .catch( (err) => {
 					return reject(err) 
 				    })
 			    } // end if episodeRecord converted OK

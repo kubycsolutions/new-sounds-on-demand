@@ -16,13 +16,20 @@ set NSOD_PROGRAM=newsounds
 
 : TSC is apparently a batchfile, and either needs to be CALLed or single-lined
 : to avoid ending the script prematurely.
-: Local stage means we will run the jovo code locally, even though
-: we are using the hosted database. To put everything out on AWS, see
-: lambdago
 
 cls
 call tsc
-call jovo3 build --stage local
-call jovo3 deploy --target local
-call jovo3 run
+call jovo3 build --stage lambda
 
+: There's currently a problem (at least on my box) where jovo deploy
+: is not producing and uploading the zipfile. This workaround produces it.
+: call jovo3 deploy --target lambda
+call npm run bundle:lambda
+
+: Since we aren't using Deploy, we need to upload the jarfile explicitly.
+: User (see output of  aws sts get-caller-identity) must have appropriate
+: permissions to allow this. For now I'm just doing manual uploadl
+
+: aws lambda update-function-code --function-name prod-new-sounds-on-demand --zip-file fileb://bundle.zip  --dry-run
+
+: No jovo3 run, since the lambda now handles execution.

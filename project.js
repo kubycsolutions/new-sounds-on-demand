@@ -3,6 +3,16 @@
 // ------------------------------------------------------------------
 
 module.exports = {
+    stages: {
+	local: {
+	    endpoint: '${JOVO_WEBHOOK_URL}'
+	},
+	lambda: {
+  	    arn: 'arn:aws:lambda:us-east-1:046935287063:function:prod-new-sounds-on-demand',
+ 	    askProfile: 'admin', // if left out: "default" profile is used
+	    endpoint: 'arn:aws:lambda:us-east-1:046935287063:function:prod-new-sounds-on-demand'
+	}
+    },
     alexaSkill: {
 	nlu: 'alexa',
 	manifest: {
@@ -23,8 +33,7 @@ module.exports = {
     },
 
     // MANUAL DEV/PROD SWITCHING: Comment out either endpoint: or host:.
-    endpoint: '${JOVO_WEBHOOK_URL}'
-    // host: {
+    //     host: {
     // 	lambda: {
     // 	    arn: 'arn:aws:lambda:us-east-1:046935287063:function:prod-new-sounds-on-demand',
     // 	    askProfile: 'admin', // if left out: "default" profile is used
@@ -35,7 +44,8 @@ module.exports = {
     // In production, the Jovo code will run on an AWS Lambda
     // This is supposed to replace the manual kluge above and 
     // switch back and forth automagically depending on the stage 
-    // we are building for. 
+    // we are building for.
+    // https://v3.jovo.tech/tutorials/staging-examples
     //
     // stages: {
     // 	dev: {
