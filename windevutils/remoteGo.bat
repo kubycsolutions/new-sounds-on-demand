@@ -18,7 +18,7 @@ set NSOD_PROGRAM=newsounds
 : to avoid ending the script prematurely.
 : Local stage means we will run the jovo code locally, even though
 : we are using the hosted database. To put everything out on AWS, see
-: lambdago
+: productionGo.bat
 
 cls
 call tsc
