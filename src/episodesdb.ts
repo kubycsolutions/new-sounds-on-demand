@@ -699,7 +699,7 @@ export async function updateEpisodes(table:string,maxdepth:number) {
     // Soundcheck etc. Just a matter of setting the show name, I think,
     // and having the app run against the right index files.
     handlePage(table)
-	.then( () => reportSnapshotStats(table))
+	.then( () => reportEpisodeStats(table))
 } // end update
 
 /* NOTE: Due to the asynchrony, results may be displayed in any
