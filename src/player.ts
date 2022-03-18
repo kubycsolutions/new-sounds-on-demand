@@ -322,6 +322,4 @@ export class Player {
 	return getRandomItem(TABLENAME,PROGRAM)
     };
 
-// Update refactored to episodesdb
-
 } // end exported module functions

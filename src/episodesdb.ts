@@ -707,7 +707,7 @@ export async function updateEpisodes(table:string,maxdepth:number) {
    appear sequential, but then this call would have to be declared async.
    Reordering is harmless; leave it for now.
    */
-function reportSnapshotStats(table:string,program:string="newsounds") {
+export function reportEpisodeStats(table:string,program:string="newsounds") {
     // Probe the updated table. Diagnostic logging. 
     console.log("STATISTICS DUMP for",program+":")
     getItemForHighestEpisode(table,program)
@@ -978,12 +978,12 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 
     // TODO: Try dynamically fetching the title field of the MP3's
     // metadate with https://github.com/Borewit/tokenizer-http.  
+    // This was used to probe episodes with missing database fields;
+    // it may not be in current use.
     //
     // USUAL PROBLEM: As network I/O, it must run async.  But since I
     // want to return the value, I would need to await -- and that can
-    // only be done from another async function. We're being called within
-    // an async context, several layers up, so that's doable, but...
-    // UGH.
+    // only be done from another async function. 
     //
     // Have I said recently that I hate Javascript?
     async function getMetadataTitleFromAudioURI(audioURI:String) {
