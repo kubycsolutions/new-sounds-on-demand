@@ -24,7 +24,7 @@ call jovo3 build --stage lambda
 : There's currently a problem (at least on my box) where jovo deploy
 : is not producing and uploading the zipfile. This workaround produces it.
 : call jovo3 deploy --target lambda
-call npm run bundle:lambda
+call npm run bundle
 
 : Since we aren't using Deploy, we need to upload the jarfile explicitly.
 : User (see output of  aws sts get-caller-identity) must have appropriate
