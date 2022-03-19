@@ -569,6 +569,7 @@ export function deleteItem(tableName:string,record:EpisodeRecord): Promise<Objec
 // whether promise or async/await was currently preferred Javascript
 // style. TODO: POLISH.
 export async function updateEpisodes(table:string,maxdepth:number) {
+    if(DEBUG) console.error("DEBUG: updateEpisodes(\""+table+"\","+maxdepth+")")
     console.log("Checking server for new episodes...")
 
     // Run Got HTTP query, returning object via a Promise
