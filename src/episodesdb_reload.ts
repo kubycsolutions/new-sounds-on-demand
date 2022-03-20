@@ -2,7 +2,7 @@ import {deleteTable, waitForNoTable, createTable, waitForTable,
        updateEpisodes
 } from "./episodesdb"
 
-// GONK: Need to think about whether to start loading/searching
+// TODO: Need to think about whether to start loading/searching
 // multiple shows to include Soundcheck, since it's the other
 // "recorded live" part of NewSounds... which will require
 // parameterizing the station-database URI, or doing an all-shows

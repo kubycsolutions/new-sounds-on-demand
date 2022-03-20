@@ -408,6 +408,7 @@ app.setHandler({
 	    {
 		// GONK: This is boilerplate, isn't it. REFACTOR!
 		// (Sorry -- whittled code is prone to copypasta.)
+		// Need to understand how Javascript scopes _this_...
 		var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
 		this.$speech.addText('Fetching episode '+episode.title+".");
 
@@ -471,7 +472,7 @@ app.setHandler({
 		let offset = this.$user.$data.offset;
 		let offsetMin=offset/60/1000;
 		if (offsetMin > 30) {
-		    // BUG TODO: If we need to reload Alexa cache
+		    // BUG TODO ISSUE: If we need to reload Alexa cache
 		    // before playing, resume may have a long delay as
 		    // it decompresses up to the offset point. I
 		    // haven't thought of a reliable way to advise the
@@ -480,7 +481,7 @@ app.setHandler({
 		    // Alexa has a solution, though short of breaking
 		    // into smaller MP3's so there are more frequent
 		    // decompression synch points I don't know what
-		    // one could do.  GONK?
+		    // one could do.
 		}
 		this.$alexaSkill!.$audioPlayer!
                     .setOffsetInMilliseconds(offset)
