@@ -30,14 +30,7 @@
    make a guess about whether other work might have intervened and
    flushed that cache. Is there any way to ask the device what has
    been preloaded?
-
-   TODO CLEANLINESS: Get rid of the TS ! non-null assertions; do
-   explicit tests. It isn't _likely_ that these will ever be null, but
-   better to have clean recovery in that case.
-
-   TODO NITPICK: Strip trailing "," from titles? It occurs
-   sometimes. It's probably harmless but might be affecting
-   speech-synth inflection.
+https://alexa.uservoice.com/forums/906892-alexa-skills-developer-voice-and-vote/suggestions/44933392-loading-audio-with-offset-can-be-slow-losing-audi
 
    TODO: "Who/what are we listening to" and "who/what is this" can't
    be precise for episodes with currently available data, but should
@@ -52,63 +45,57 @@
    music indexing object types and based on AMAZON.SearchAction,
    though they aren't a *great* match for what I want to offer.
 
-   TODO: Continue to improve speech interactions. I'm using
-   https://www.wbur.org/citrus/2020/07/27/alexa-utterances-python-auml-amazon
-   to generate some of the combinatorics, but ideally we should allow
-   slot completion dialogs, especially after "open" when users may not
-   realize they can/should specify date or ep#.
-
    TODO: Continue to improve speech interactions. It's supposedly
    possible to add nonprefixed commands for Alexa skill context, once
    the skill has been accepted. No idea what's possible in Google. See
    https://developer.amazon.com/en-US/docs/alexa/custom-skills/understand-name-free-interaction-for-custom-skills.html.
 
-   TODO: Review Jovo docs and bring up the Google version on
-   lambda. (And others?)  How much of this actually ports?
-
-   TODO: Forward/back (ff/rw, skip f/b, etc) by duration.
+   TODO: Forward/back (ff/rw, skip f/b, etc) by duration.  Note the
+   ISSUE of possible long delay... though knowing the audio is in
+   cache may help to some degree.
 
    TODO: Can we announce ep# when we auto-advance via queue without
    sometimes causing a glitch in the audio? Haven't found a perfect
    incantation yet. May require giving up using the Alexa queue, though
    that would slow ep-to-ep transition.
 
-   TODO: Generalize database lookup to support other shows?
-   (Specifically, make sure this code can run against Soundcheck and
-   bring up an instance for that. I don't know that I want to get into
-   fully parameterizing the feed reader or making it a plug-in...)
+   TODO: Parameterize for show name. Simply doing that would let us
+   offer additional skills for Soundcheck etc. without much work...
+   Better would be to work out VUI dialogs which let us navigate the
+   entire archive through a single skill.
 
    TODO: Set, and return to, named state bookmarks.  Poor man's
-   alternative to search and since, and being able to distinguish
-   between resuming stream, context, newest?
+   alternative to search and since.
 
-   TODO MAYBE: Track chrono play separately, permitting "resume with ones I
-   haven't heard yet" not disturbed by explicit navigation, without
-   the full tracking-every-slot or user having to say "since yesterday"
+   TODO MAYBE: Track calendar-order play separately, permitting poor
+   man's "play episodes I haven't heard yet" not disturbed by explicit
+   navigation, without the full tracking-every-slot or user having to
+   say "since yesterday". Conceptually related to bookmarks.
 
    TODO MAYBE: deHTML handling of accented character escapes (to
    unicode)?  Unclear if needed; I don't know how the smartspeaker
    systems handle rich text (they may already tolerate HTML; I
    *presume* they tolerate unicode... but gods know whether their
-   pronunciation of less-obvious names is at all close.)
+   pronunciation of less-obvious names or text is at all close.)
 
    TODO MAYBE: Play single ep? (Doable via sleep timer, so probably
    not, but "stop after this episode" might be worthwhile.) Repeat??
-   (Probably not.) Playlist? (Probably needed for keyword search.)
-   ... Basically additions to the inter-ep navigation modes.
+   (Probably not.) Playlist? (Probably needed when we implement
+   keyword search.)  ... Basically additions to the inter-ep
+   navigation modes. That'll take significant reworking of the player.
 
-   TODO MAYBE: Alternate navigation modes, persistent per user: Date,
-   ep#, livestream, fwd/bkwd, shuffle. WORK ON COMMAND LANGUAGE; can
-   we distinguish "most recently released" vs. "most recently
-   broadcast", or does that just want to be explicit mode? Currently,
-   ep# implies earliest broadcast of that episode, and random actually
-   randomizes date so rebroadcasts may show up under any of their
-   dates.
+   TODO MAYBE: Alternate auto-navigation modes, persistent per user:
+   Date, ep#, livestream, fwd/bkwd, shuffle (as opposed to current
+   random, which continues in calendar order from that point. WORK ON
+   COMMAND LANGUAGE.  Note that ep# currently implies earliest
+   broadcast of that episode and so works as publication-order, and
+   random actually randomizes date so rebroadcasts may show up under
+   any of their dates.
 
-   TODO SOMEDAY: "Play one I haven't heard before" as part of
-   random/surprise. More like a genuine shuffle, but requires tracking
+   TODO SOMEDAY: "Play one I haven't heard before". Requires tracking
    all usage for every user... Doesn't have to be obscenely huge if
-   it's a bitvector... How to handle partial plays?
+   it's a bitvector... Simpler to track only highest date/ep#
+   played... How to handle partial plays?
 
    TODO SOMEDAY: Smartspeakers with displays. The tease is probably
    wanted for this. Episode cover-pic too. Extracting the playlist
@@ -118,10 +105,12 @@
    TODO SOMEDAY: Tag searchability. Other music skills seem to handle
    bandname/recordname/trackname surprisingly well; is there something
    we can tap there, or is sounds-like matching the best we've got?
+   Ties into playlists, unless this is a single selection and user has
+   to work through the offerings.
 
    TODO SOMEDAY: MAYBE handle combined shows though a single
-   skill. Initially easier to just clone the skill (minor tweaks needed
-   to runtime parameters and voice model), but with combined
+   skill. Initially easier to just clone the skill (minor tweaks
+   needed to runtime parameters and voice model), but with combined
    database "next" over multiple becomes possible. It would make
    sense, at some level to combine New Sounds and Soundcheck into a
    single virtual content stream...  but I'd need to think about how

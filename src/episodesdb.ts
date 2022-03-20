@@ -10,7 +10,17 @@
     from environment. Any others that might want to be parameterized
     for reuse? App would also have values to be adjusted for that.
     (See below re AWS SDK env properties.)
+
+    TODO NITPICK: Strip trailing "," from titles, make sure there's a
+    colon after the number? It occurs
+    sometimes. It's probably harmless but might be affecting
+    speech-synth inflection.
+
+    TODO: Database can handle multiple programs, but we're currently
+    hardwired to populate only from New Sounds. That should be
+    parameterized, at least.
  */
+
 const DEBUG=("DEBUG"==process.env.EPISODESDB_DEBUG)
 
 import got from 'got'
