@@ -6,15 +6,13 @@
     time. Could wrap in object and keep some or all of those in
     instance properties. TODO: Consider.
 
-    TODO: Make endpoint, station URI, server/table, program settable
-    from environment. Any others that might want to be parameterized
-    for reuse? App would also have values to be adjusted for that.
-    (See below re AWS SDK env properties.)
+    TODO: Parameterize remaining references explicitly to "newsounds".
+    Any others that might want to be parameterized
+    for reuse?
 
     TODO NITPICK: Strip trailing "," from titles, make sure there's a
-    colon after the number? It occurs
-    sometimes. It's probably harmless but might be affecting
-    speech-synth inflection.
+    colon after the episode number. It occurs sometimes. It's mostly
+    harmless but affects prosody.
 
     TODO: Database can handle multiple programs, but we're currently
     hardwired to populate only from New Sounds. That should be
