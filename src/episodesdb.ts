@@ -180,16 +180,21 @@ interface StationEpisodeAttributes {
     "audio-may-download": boolean;
     "audio-may-embed": boolean;
     "audio-may-stream": boolean;
-    // Body is an (X?)HTML string. Parsing out the
-    // text description and playlist may be possible;
+    
+    // Body is a Microsoft Word-generated HTML string.  Ugh. Lots of
+    // unnecessary sloppy markup, harder to parse than it should be
+    // even for HTML.
+
+    // Parsing out the text description and playlist may be possible;
     // or we might want to display it on units with screens.
-    // Unfortunately playlist gives only run lengths; not
-    // offsets; so even if parsed we can't derive
-    // "what's playing now" from it. And unfortunately the
-    // recording-source URIs are of varying types (bandcamp;
-    // store; etc) and are not all current; so we can't
-    // easily implement "hey; put that on my shopping list".
+    //
+    // Unfortunately playlist gives only run lengths; not offsets; so
+    // even if parsed we can't derive "what's playing now" from
+    // it. And unfortunately the recording-source URIs are of varying
+    // types (bandcamp; store; etc) and are not all current; so we
+    // can't easily implement "hey; put that on my shopping list".
     body: string;
+
     "canonical-url": null|string;
     channel: null|string;
     "channel-title": null|string;
@@ -205,19 +210,19 @@ interface StationEpisodeAttributes {
     "header-donate-chunk": any; // null|string?
     "image-caption": null|string;
     "image-main": { // We may want to display this on SHOW-like devices
-	"alt-text": null|string;
-	name: null|string;
-	source: null|string;
-	url: null|string; // TODO: May want to display
-	h: number;
-	"is-display": boolean;
-	crop: string; // typ. containing number
-	caption: string;
-	"credits-url": string; 
-	template: string; // URI with substitution slots?
-	w: number;
-	id: number;
-	"credits-name": string; // eg "courtesy of the artist"
+        "alt-text": null|string;
+        name: null|string;
+        source: null|string;
+        url: null|string; // TODO: May want to display
+        h: number;
+        "is-display": boolean;
+        crop: string; // typ. containing number
+        caption: string;
+        "credits-url": string; 
+        template: string; // URI with substitution slots?
+        w: number;
+        id: number;
+        "credits-name": string; // eg "courtesy of the artist"
     };
     "item-type": string;
     "item-type-id": number;
@@ -227,9 +232,9 @@ interface StationEpisodeAttributes {
     playlist: any[]; // ?
     "podcast-links": any[]; //?
     "producing-organizations": [{ // TODO: Make org an interface?
-	url: string;
-	logo: any; // often null
-	name: string
+        url: string;
+        logo: any; // often null
+        name: string
     }];
     "publish-at": string; // containing ISO date/time/offset stamp
     "publish-status": string;
@@ -237,9 +242,9 @@ interface StationEpisodeAttributes {
     "show-tease": string; // HTML for "teaser" description of SHOW
     "show-title": string; // "New Sounds"
     "show-producing-orgs": [{ // TODO: Make org an interface?
-	url: string;
-	logo: any; // often null
-	name: string;
+        url: string;
+        logo: any; // often null
+        name: string;
     }];
     series: any[] // often empty
     segments: any[] // often empty
@@ -248,7 +253,7 @@ interface StationEpisodeAttributes {
     slug: string // Brief description eg "4569-late-night-jazz"
     slideshow: any[] // often empty
     tags: string[] // "artist_name", "music", ...
-    tease: string // NON-HTML brief episode descr. May be absent or truncated.
+    tease: string // NON-HTML brief episode descr. May be absent or truncated with elipsis
     template: string // editing guidance
     title: string // Includes ep#, eg "#4569, Late Night Jazz",
     transcript: string // usually empty for New Sounds
@@ -264,20 +269,21 @@ interface StationEpisodeDescription{
 }
 interface StationEpisodeData {
     links: {
-	first:string;
-	last:string;
-	next:string|null;
-	prev:string|null;
+        first:string;
+        last:string;
+        next:string|null;
+        prev:string|null;
     };
     data: StationEpisodeDescription[] // interface for clarity
     meta: {
-	pagination: {
-	    page: number
-	    pages: number
-	    count: number
-	}
+        pagination: {
+            page: number
+            pages: number
+            count: number
+        }
     }
 }
+
 // Type Guard for above interface, Typescript's answer to ducktype downcasting.
 // (http://www.typescriptlang.org/docs/handbook/advanced-types.html)
 function isStationEpisodeData(duckObject: any): duckObject is StationEpisodeData {
