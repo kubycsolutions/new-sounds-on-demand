@@ -133,7 +133,7 @@ import { GoogleHandler } from './google/handler';
 import { JovoDebugger } from 'jovo-plugin-debugger';
 import { Player } from './player';
 import { Project } from 'jovo-framework'
-import { set_AWS_endpoint } from './episodesdb'
+import { set_AWS_endpoint,EpisodeRecord } from './episodesdb'
 import { format } from 'date-fns'
 //import { utcToZonedTime } from 'date-fns-tz' // may be needed to report local date
 
@@ -806,53 +806,78 @@ app.setHandler({
 	return this.ask(this.$speech)
     },
 
-    // Amazon's "who sings this song"
-    "AMAZON.SearchAction<object@MusicRecording[byArtist.musicGroupMember]>"() {
+    // Amazon's "who sings this song".  For our purposes, we may want
+    // to make this synonymous with "who is playing this song".
+    async "AMAZON.SearchAction<object@MusicRecording[byArtist.musicGroupMember]>"() {
         var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
 	    this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
 	} else {
-	    this.$speech.addText("I'm afraid I can only get that metadata for the livestream.")
+	    var episode=await Player.getEpisodeByDate(currentDate)
+	    if(episode==null)
+		this.$speech.addText("Hmmm. I'm not sure which episode you're referring to.)")
+	    else			     
+		this.$speech.addText("For now I can only get that metadata for the livestream. But you can find the playlist by asking a web browser to show you New Sounds number "+episode.episode+".")
 	}
 	return this.tell(this.$speech)
     },
-    // Amazon's "who is playing this song"
-    "AMAZON.SearchAction<object@MusicRecording[byArtist]>"() {
+ 
+    // Amazon's "who is playing this song". For our purposes, we may want
+    // to make this synonymous with "who sings this song".
+    async "AMAZON.SearchAction<object@MusicRecording[byArtist]>"() {
         var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
 	    this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
 	} else {
-	    this.$speech.addText("I'm afraid I can only get that metadata for the livestream.")
+	    var episode=await Player.getEpisodeByDate(currentDate)
+	    if(episode==null)
+		this.$speech.addText("Hmmm. I'm not sure which episode you're referring to.)")
+	    else			     
+		this.$speech.addText("For now I can only get that metadata for the livestream. But you can find the playlist by asking a web browser to show you New Sounds number "+episode.episode+".")
 	}
 	return this.tell(this.$speech)
     },
+
     // Amazon's "how long is this song"
-    "AMAZON.SearchAction<object@MusicRecording[duration]>"() {
+    async "AMAZON.SearchAction<object@MusicRecording[duration]>"() {
         var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
 	    this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
 	} else {
-	    this.$speech.addText("I'm afraid I can only get that metadata for the livestream.")
+	    var episode=await Player.getEpisodeByDate(currentDate)
+	    if(episode==null)
+		this.$speech.addText("Hmmm. I'm not sure which episode you're referring to.)")
+	    else			     
+		this.$speech.addText("For now I can only get that metadata for the livestream. But you can find the playlist by asking a web browser to show you New Sounds number "+episode.episode+".")
 	}
 	return this.tell(this.$speech)
     },
+
     // Amazon's "what album is this song on"
-    "AMAZON.SearchAction<object@MusicRecording[inAlbum]>"() {
+    async "AMAZON.SearchAction<object@MusicRecording[inAlbum]>"() {
         var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
 	    this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
 	} else {
-	    this.$speech.addText("I'm afraid I can only get that metadata for the livestream.")
+	    var episode=await Player.getEpisodeByDate(currentDate)
+	    if(episode==null)
+		this.$speech.addText("Hmmm. I'm not sure which episode you're referring to.)")
+	    else			     
+		this.$speech.addText("For now I can only get that metadata for the livestream. But you can find the playlist by asking a web browser to show you New Sounds number "+episode.episode+".")
 	}
 	return this.tell(this.$speech)
     },
     // Amazon's "who produced this song"
-    "AMAZON.SearchAction<object@MusicRecording[producer]>"() {
+    async "AMAZON.SearchAction<object@MusicRecording[producer]>"() {
         var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
 	    this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
 	} else {
-	    this.$speech.addText("I'm afraid I can only get that metadata for the livestream.")
+	    var episode=await Player.getEpisodeByDate(currentDate)
+	    if(episode==null)
+		this.$speech.addText("Hmmm. I'm not sure which episode you're referring to.)")
+	    else			     
+		this.$speech.addText("For now I can only get that metadata for the livestream. But you can find the playlist by asking a web browser to show you New Sounds number "+episode.episode+".")
 	}
 	return this.tell(this.$speech)
     }
