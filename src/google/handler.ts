@@ -1,7 +1,7 @@
 import { Player } from '../player';
 import { Handler } from 'jovo-core';
 
-// TODO: TRY TO REPLICATE THE LOGIC BURIED IN THE ALEXA HANDLER.
+// TODO: TRY TO REPLICATE THE LOGIC SUPPLIED BY ALEXA.
 // Cancel? Pause? Start Over? Stopped (logging index/offset)?
 // Heck, Previous doesn't seem to work without "ask new sounds" prefix...
 

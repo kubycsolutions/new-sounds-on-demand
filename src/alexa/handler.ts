@@ -37,14 +37,18 @@ export const AlexaHandler: Handler = {
 
     'AMAZON.StartOverIntent': async function() {
 	// I have not been able to just "move the needle" on existing URI, so
-	// I've made it a full play operation. (Minus the episode ID voiceover.)
+	// I've made it a full play operation.
 	// Note implications for custom Rewind/FastForward implementation.
         let currentDate = this.$user.$data.currentDate;
 	if(currentDate==Player.getLiveStreamDate()) {
 	    return this.tell("You can't move forward or back in the livestream. That kind of control is only available when playing episodes.");
 	}
 	let episode=await Player.getEpisodeByDate(currentDate)
-	let uri=episode!.url // won't be null if we're already playing it!
+	if(!episode) {
+	    console.error("startOver returned null.")
+	    return this.ask("Sorry, but the I can't retrieve the last episode you were playing right now. That shouldn't happen, and I'll ask the programmers to investigate. Meanwhile, what else can I do for you?")
+	}
+	let uri=episode.url // won't be null if we're already playing it!
 	{
 	    // TODO: Finalize these and refactor to a single place
 	    const keshlam_uri_parameters="user=joe.kesselman&purpose=research.for.smartspeaker.app"
