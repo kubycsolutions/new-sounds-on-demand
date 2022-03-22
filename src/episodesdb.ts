@@ -587,125 +587,126 @@ export async function updateEpisodes(table:string,maxdepth:number) {
     console.log("Checking server for new episodes...")
 
     // Run Got HTTP query, returning object via a Promise
-    const getStationEpisodeData = (page:number) => {
+    async function getStationEpisodeData(page:number):Promise<any> {
 	console.log("  Fetch index page",page)
-	const page_size=50 // Number of results per fetch
-	return new Promise((resolve, reject) => {
-	    // Fetch a page from the list of episodes,
-	    // date-descending order This uses a function variable
-	    // because I think I want to move it out to a per-show
-	    // initialization file.
-	    var uri=formatEpisodeDatabaseQueryURI(page,page_size)
-	    got.get(uri) // default content-type is 'text'
-		.then( (response:any) => {
-		    return resolve(JSON.parse(response.body));
-		})
-		.catch( (e) => {
-		    console.error(e)
-		    if(e instanceof Error) {
-			let error:Error=e
-			return reject(error.message)
-		    }
-		    else {
-			return reject(e.toString())
-		    }
-		})
-	})
+	const page_size=50 // Number of results per fetch. Tuning param
+	var uri=formatEpisodeDatabaseQueryURI(page,page_size)
+	try {
+	    if(DEBUG) console.error("Calling got.get(\""+uri+"\")")
+	    var response=await got.get(uri) // default content-type is 'text'
+	    if(DEBUG) console.error("got.get returned:"+response)
+	    return JSON.parse(response.body);
+	}
+	catch(e) {
+	    console.error("ERROR: got.get() threw",e)
+	    throw e
+	}
     };
 
-    function handlePage(table:string,page:number=1): Promise<any> {
+    async function handlePage(table:string,page:number=1): Promise<any> {
 	// Issue query, wait for Promise to be completed,
 	// and handle. The while/await was needed so we could determine
 	// when incremental load had reached already-known data.
-	return getStationEpisodeData(page)
-	    .then( data => {
-		// Typescript's approach to ducktype-downcasting is
-		// apparently to condition upon a Type Guard.
-		if(! (isStationEpisodeData(data))) {
-		    console.error("vvvvvvvvvvvvvv")
-		    console.error("UNEXPECTED DATA STRUCTURE FROM STATION")
-		    console.error(JSON.stringify(data,null,2))
-		    console.error("^^^^^^^^^^^^^")
-		    return Promise.reject("unexpected");
-		}
-
-		// PROCESS EPISODES IN THIS CHUNK
-		var episodes=data.data
-		//for (let ep of episodes) {
-		var promises:Promise<string>[] = episodes.map( ep => {
-		    return new Promise<string> ( (resolve,reject) => {
-			if(ep==null) 
-			    resolve("null record")
-			else {
-			    // Note that this is a synchronous operation,
-			    // unlike most of this package.
-			    var episodeRecord:(EpisodeRecord|null) =
-				attributesToEpisodeRecord(ep.attributes)
-			    
-			    if(episodeRecord!=null)
-			    {
-				// If doing a full-depth scan, force replacement
-				// (because we may be restructuring data)
-				var putOperation= maxdepth==0 ? putItem : putNewItem
-				return putOperation(table,episodeRecord)
-				    .then(() => {
-					return resolve("NEW")
-				    })
-				    .catch( (err) => {
-					return reject(err) 
-				    })
-			    } // end if episodeRecord converted OK
-			    else {
-				return reject("Unconvertable data from station server.")
-			    }
-			}
-		    }) // end new Promise
-		}) // end episodes.map
-		return Promise.allSettled(promises)
-		    .then(results => {
-			if(results.some(r => r.status=="rejected"))
+	var data=await getStationEpisodeData(page)
+	try {
+	    // Typescript's approach to ducktype-downcasting is
+	    // apparently to condition upon a Type Guard.
+	    if(! (isStationEpisodeData(data))) {
+		console.error("vvvvvvvvvvvvvv")
+		console.error("UNEXPECTED DATA STRUCTURE FROM STATION")
+		console.error(JSON.stringify(data,null,2))
+		console.error("^^^^^^^^^^^^^")
+		return Promise.reject("unexpected");
+	    }
+	    
+	    // PROCESS EPISODES IN THIS CHUNK
+	    var episodes=data.data
+	    //for (let ep of episodes) {
+	    var promises:Promise<string>[] = episodes.map( ep => {
+		// apologies for the async arrow function;
+		// part of ongoing efforts to move to async/await
+		// for clarity/debuggability.
+		return new Promise<string> ( async (resolve,reject) => {
+		    if(ep==null) 
+			resolve("null record")
+		    else {
+			// Note that this is a synchronous operation,
+			// unlike most of this package.
+			var episodeRecord:(EpisodeRecord|null) =
+			    attributesToEpisodeRecord(ep.attributes)
+			
+			if(episodeRecord!=null)
 			{
-			    // Some rejection is normal when in overwrite mode.
-			    // In incremental, it means stop.
-			    if(maxdepth >=0 &&
-			       page!=maxdepth &&
-			       page!=data.meta.pagination.pages) { // more
-				return handlePage(table,page+1)
-				    .catch(err => {
-					Promise.reject("handlePage("+(page+1)+") failed a recursion: "+err)
-				    })
+			    // Conversion succeeded
+			    // If doing a full-depth scan, force replacement
+			    // (because we may be restructuring data)
+			    var putOperation= maxdepth==0 ? putItem : putNewItem
+			    try {
+				var putResult=await putOperation(table,episodeRecord)
+				return resolve("NEW")
 			    }
-			    else return Promise.resolve("done")
-			}
+			    catch( err) {
+				// Pre-existing is an expected exception,
+				// which we use to stop incremental load
+				// If something else happens, log and blow up.
+				if(! (err instanceof Error && err.name=='ConditionalCheckFailedException') ) {
+				    if(DEBUG)console.error("DEBUG: putResult threw",err)
+				    throw err
+				}
+				return reject(err)
+			    }
+			} // end if episodeRecord converted OK
 			else {
-			    // All successful. Stop only on depth or no-more
-			    if(page!=maxdepth && 
-			       page!=data.meta.pagination.pages) {
-				return handlePage(table,page+1)
-				    .catch( (err) => {
-					Promise.reject("handlePage("+(page+1)+") failed an update: "+err)
-				    })
-			    }
+			    return reject("Unconvertable data from station server.")
 			}
-			return Promise.resolve("done")
-		    })
-		    .catch(err => {
-			console.error("\nPaErr:",err)
-			// Should we continue scanning (full, and more remain)?
-			// ... I'm voting no for now; this is unexpected
-			return Promise.reject("Unexpected update failure: "+err)
-		    })
-	    }) // end Promise.all.then
-	    .catch(e => {
-		var stack;
-		if(e instanceof Error)
-		    stack=e.stack
-		else
-		    stack="(not Error, so no stack)"
-		console.error("Update failed on Page",page,"\n",e,stack)
-		// Recovery: Leave DB running with what we've previously loaded
-		return Promise.reject("Update failed on Page"+page+"\n"+e+stack)
-	    }) // end Promise.all.catch 
+		    }
+		}) // end new Promise
+	    }) // end episodes.map
+	    return Promise.allSettled(promises)
+		.then(results => {
+		    if(results.some(r => r.status=="rejected"))
+		    {
+			// Some rejection is normal when in overwrite mode.
+			// In incremental, it means stop.
+			if(maxdepth >=0 &&
+			   page!=maxdepth &&
+			   page!=data.meta.pagination.pages) { // more
+			    return handlePage(table,page+1)
+				.catch(err => {
+				    Promise.reject("handlePage("+(page+1)+") failed a recursion: "+err)
+				})
+			}
+			else return Promise.resolve("done")
+		    }
+		    else {
+			// All successful. Stop only on depth or no-more
+			if(page!=maxdepth && 
+			   page!=data.meta.pagination.pages) {
+			    return handlePage(table,page+1)
+				.catch( (err) => {
+				    Promise.reject("handlePage("+(page+1)+") failed an update: "+err)
+				})
+			}
+		    }
+		    return Promise.resolve("done")
+		})
+		.catch(err => {
+		    console.error("\nPaErr:",err)
+		    // Should we continue scanning (full, and more remain)?
+		    // ... I'm voting no for now; this is unexpected
+		    return Promise.reject("Unexpected update failure: "+err)
+		})
+	} // end try
+	catch(e) {
+	    var stack;
+	    if(e instanceof Error)
+		stack=e.stack
+	    else
+		stack="(not Error, so no stack)"
+	    console.error("Update failed on Page",page,"\n",e,stack)
+	    // Recovery: Leave DB running with what we've previously loaded
+	    return Promise.reject("Update failed on Page"+page+"\n"+e+stack)
+	}
     } // end handlePage
 
     // Launch sequenced async queries, eventually updating ep list.
