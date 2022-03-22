@@ -25,6 +25,12 @@ const maxdepth=-1 // // 0 to force rebuild, < incremental, > to specified depth
 
 // Minimal AWS Lambda entry point
 export const handler = async (event: any, context: any, callback: Function) => {
-    await updateEpisodes(table,maxdepth)
-    return "OK"
+    try {
+	var result=await updateEpisodes(table,maxdepth)
+	console.log("updateEpisodes returned",result)
+	return "Success?"
+    } catch(e) {
+	console.error("updateEpisodes threw",e)
+	throw e
+    }
 };

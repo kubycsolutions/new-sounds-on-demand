@@ -713,8 +713,14 @@ export async function updateEpisodes(table:string,maxdepth:number) {
     // Eventually we'll probably want to generalize this to handle
     // Soundcheck etc. Just a matter of setting the show name, I think,
     // and having the app run against the right index files.
-    handlePage(table)
-	.then( () => reportEpisodeStats(table))
+    try {
+	await handlePage(table)
+	reportEpisodeStats(table)
+	return "OK"
+    } catch(e) {
+	console.error("handlePage threw",e)
+	throw e
+    }
 } // end update
 
 /* NOTE: Due to the asynchrony, results may be displayed in any
