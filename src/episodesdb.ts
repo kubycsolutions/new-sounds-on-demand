@@ -210,7 +210,7 @@ interface StationEpisodeAttributes {
     "cms-pk": number;
     "comments-count": number;
     "enable-comments": boolean;
-    "date-line-ts": number; // msec since epoch?
+    "date-line-ts": number; // msec since epoch, date episode was produced
     "edit-link": string; // protected; I hope!
     "embed-code": string; // HTML for the iframe
     "estimated-duration": number; // seconds?
@@ -235,7 +235,7 @@ interface StationEpisodeAttributes {
     "item-type": string;
     "item-type-id": number;
     newscast: string;
-    newsdate: string; // containing ISO date/time/offset stamp
+    newsdate: string; // ISO date/time/offset, broadcast date
     "npr-analytics-dimensions": string[]; // mostly replicates
     playlist: any[]; // ?
     "podcast-links": any[]; //?
@@ -244,7 +244,7 @@ interface StationEpisodeAttributes {
         logo: any; // often null
         name: string
     }];
-    "publish-at": string; // containing ISO date/time/offset stamp
+    "publish-at": string; // ISO date/time/offset when added to station DB
     "publish-status": string;
     show: string; // PROGRAM
     "show-tease": string; // HTML for "teaser" description of SHOW
@@ -637,8 +637,8 @@ export async function updateEpisodes(table:string,maxdepth:number) {
 			
 			if(episodeRecord!=null)
 			{
-			    if(DEBUG)console.error("DEBUG: Parsed episode",episodeRecord.title)
 			    // Conversion succeeded
+			    console.log("Parsed episode",episodeRecord.title)
 			    // If doing a full-depth scan, force replacement
 			    // (because we may be restructuring data)
 			    var putOperation= maxdepth==0 ? putItem : putNewItem
@@ -721,7 +721,7 @@ export async function updateEpisodes(table:string,maxdepth:number) {
     // and having the app run against the right index files.
     try {
 	await handlePage(table)
-	reportEpisodeStats(table)
+	await reportEpisodeStats(table)
 	return "OK"
     } catch(e) {
 	console.error("handlePage threw",e)
@@ -729,31 +729,27 @@ export async function updateEpisodes(table:string,maxdepth:number) {
     }
 } // end update
 
-/* NOTE: Due to the asynchrony, results may be displayed in any
-   order. We could migrate to await as an easy way to make this
-   appear sequential, but then this call would have to be declared async.
-   Reordering is harmless; leave it for now.
-   */
-export function reportEpisodeStats(table:string,program:string="newsounds") {
+/* NOTE asynchrony. */
+export async function reportEpisodeStats(table:string,program:string="newsounds") {
     // Probe the updated table. Diagnostic logging. 
     console.log("STATISTICS DUMP for",program+":")
-    getItemForHighestEpisode(table,program)
+    await getItemForHighestEpisode(table,program)
 	.then (ep => {
 	    console.log("\tHighest numbered:",ep.title,
 			"at",new Date(ep.broadcastDateMsec).toUTCString())
 	})
-    getItemForLowestEpisode(table,program)
+    await getItemForLowestEpisode(table,program)
 	.then (ep => {
 	    console.log("\tLowest numbered:",ep.title,
 			"at",new Date(ep.broadcastDateMsec).toUTCString())
 	})
-    getItemForLatestDate(table,program)
+    await getItemForLatestDate(table,program)
 	.then (ep => {
 	    console.log("\tMost recent daily:",
 			ep.title,
 			"at",new Date(ep.broadcastDateMsec).toUTCString())
 	})
-    getItemForEarliestDate(table,program)
+    await getItemForEarliestDate(table,program)
 	.then (ep => {
 	    console.log("\tEarliest daily:",
 			ep.title,
@@ -762,9 +758,9 @@ export function reportEpisodeStats(table:string,program:string="newsounds") {
 		       )
 	})
     for(let i in [1,2,3,4,5]) {
-	getRandomItem(table,program)
+	await getRandomItem(table,program)
 	    .then (ep => {
-		console.log("\tRandom:",
+		console.log("\tRandom #"+i+":",
 			    ep.title,
 			    "at",
 			    new Date(ep.broadcastDateMsec).toUTCString()
@@ -816,16 +812,15 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// to cheat. As of this writing the database hasn't included
 	// URI parameters, but I'm not ruling that out.
 	//
-	// For New Sounds, this can actually be reconstructed from
-	// broadcast date, in form
-	// "https://pdst.fm/e/www.podtrac.com/pts/redirect.mp3/audio.wnyc.org/newsounds/newsounds072521.mp3"
-	// Haven't verified for Sound Check etc.  Could micro-optimize
-	// storage using that fact, but for this size database not worth it
-	// (and would violate NoSQL's assertion that storage is cheaper
-	// than computation).
+	// In Theory, the URI is supposed to incorporate the broadcast
+	// date as <showname>MMDDYY.  Unfortunately, the filenames are
+	// not as regular as one might hope, so the URI can not be
+	// generated from the date -- there are suffixes, MMDDYYYY,
+	// formatting variations, typoes, and undated URIs.
 	// 
-	// Occasionally these come thru as array and/or in odd format
-	// (historical accident?).  Be prepared to unpack that.
+	// Occasionally these come thru as array of length 1
+	// (historical data-entry accident?).  Be prepared to unpack
+	// that.
 	// 
 	var mp3url=attributes.audio
 	if(Array.isArray(mp3url)) {
@@ -871,47 +866,31 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// inserting this record.
 	var episodeNumber=parseInt(title.slice(1))
 
-	// Extract broadcast date from mp3url.  Note: In at least one
-	// case the database reports an unusually formed URI
-	// .../newsounds050610apod.mp3?awCollectionId=385&awEpisodeId=66200
-	// so be prepared to truncate after datestamp.
+	// Broadcast date. As noted above, this may not exactly map to
+	// the date field (if there is one) in the URI. Possible fields include
+	// date-line-ts (msec, numeric) and newsdate (string).
 	//
-	// Yes, this is ugly. But the alternatives are unreliable at
-	// this writing, sometimes off by years.
+	// publish-at (string) appears to be the date when the record was
+	// added to the database -- for example, the "undead unnumbered"
+	// Ravi Shankar interview has publish-at in 2012 despite predating
+	// Episode 1 with (believable) newsdate in 1986.
+	// 
+	// date-line-ts appears to be timestamp (in msec-since-epoch)
+	// for when the episode was recorded.
 	//
-	// Unfortunately, the URI has trouble too. Dates are sometimes
-	// entered in YYYYMMDD form, sometimes as seven digits (typo?),
-	// and sometimes the URI doesn't follow our pattern at all.
-	// Arggh.
-	
-	var urlDateFields=mp3url
-	    .replace(/.*\/newsounds_?([0-9]+).*/i,"$1")
-	    .match(/.{1,2}/g)
-	if(!urlDateFields || urlDateFields.length!=3) {
-	    // Null should never happen but Typescript wants us to promise
-	    // it won't. If it does, return null (parsing failed)
-	    //
-	    // The cases where we don't have MMDDYY become messy to handle
-	    // very quickly, especially with the one that's a pure typo
-	    // or the ones where the URI format is completely weird.
-	    // Just declare that they failed parse for now.
-	    // TODO: REVIEW (or get the source fixed).
-	    if(DEBUG)console.error("DEBUG: Date extraction failed for",mp3url)
-	    if(DEBUG)console.error("DEBUG: =>",urlDateFields)
-	    return null
-	}
-	// Sloppy mapping of 2-digit year back to 4-digit: 100-year bracket
-	// centered on today.
-	var year=parseInt(urlDateFields[2])+2000
-	if(year > new Date().getUTCFullYear())
-	    year=year-100
-	var broadcastDate=new Date(
-	    Date.UTC(
-		year,
-		parseInt(urlDateFields[0])-1, // 0-based
-		parseInt(urlDateFields[1])
-	    )
-	)
+	// newsdate SEEMS to be what I'm looking for, date of
+	// broadcast for this record, in string form.
+	//
+	// Note that Date object is used here for convenient rounding
+	// off to 00:00:00, though it appears that's how it's normally
+	// stored in the station's records anyway. In our own database
+	// we'll convert back to msec-since-epoch.
+	var newsdate:number=Date.parse(attributes.newsdate); 
+	var broadcastDate:Date=new Date( newsdate )
+	broadcastDate.setUTCHours(0)
+	broadcastDate.setUTCMinutes(0)
+	broadcastDate.setUTCHours(0)
+	broadcastDate.setUTCMilliseconds(0)
 
 	// For spoken description, take the one-phrase tease rather
 	// than the extended HTML-markup body. But NOTE: Tease
