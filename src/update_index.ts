@@ -28,7 +28,7 @@ export const handler = async (event: any, context: any, callback: Function) => {
     try {
 	var result=await updateEpisodes(table,maxdepth)
 	console.log("updateEpisodes returned",result)
-	return "Success?"
+	return "Ending normally."
     } catch(e) {
 	console.error("updateEpisodes threw",e)
 	throw e
