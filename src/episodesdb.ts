@@ -619,7 +619,7 @@ export async function updateEpisodes(table:string,maxdepth:number) {
 		return Promise.reject("unexpected");
 	    }
 	    
-	    // PROCESS EPISODES IN THIS CHUNK
+	    // PROCESS EPISODES IN THIS PAGE OF THE DATABASE READ
 	    var episodes=data.data
 	    //for (let ep of episodes) {
 	    var promises:Promise<string>[] = episodes.map( ep => {
@@ -637,6 +637,7 @@ export async function updateEpisodes(table:string,maxdepth:number) {
 			
 			if(episodeRecord!=null)
 			{
+			    if(DEBUG)console.error("DEBUG: Parsed episode",episodeRecord.title)
 			    // Conversion succeeded
 			    // If doing a full-depth scan, force replacement
 			    // (because we may be restructuring data)
@@ -651,7 +652,10 @@ export async function updateEpisodes(table:string,maxdepth:number) {
 				// If something else happens, log and blow up.
 				if(! (err instanceof Error && err.name=='ConditionalCheckFailedException') ) {
 				    if(DEBUG)console.error("DEBUG: putResult threw",err)
-				    throw err
+				    if(DEBUG)console.error("DEBUG: ... for data",JSON.stringify(episodeRecord))
+				    // Throw if we want to stop immediately,
+				    // just reject if we want to keep going
+				    //throw err
 				}
 				return reject(err)
 			    }
@@ -662,40 +666,41 @@ export async function updateEpisodes(table:string,maxdepth:number) {
 		    }
 		}) // end new Promise
 	    }) // end episodes.map
-	    return Promise.allSettled(promises)
-		.then(results => {
-		    if(results.some(r => r.status=="rejected"))
-		    {
-			// Some rejection is normal when in overwrite mode.
-			// In incremental, it means stop.
-			if(maxdepth >=0 &&
-			   page!=maxdepth &&
-			   page!=data.meta.pagination.pages) { // more
-			    return handlePage(table,page+1)
-				.catch(err => {
-				    Promise.reject("handlePage("+(page+1)+") failed a recursion: "+err)
-				})
-			}
-			else return Promise.resolve("done")
+	    try {
+		var results=await Promise.allSettled(promises)
+		if(DEBUG)console.error("DEBUG: page promises processed")
+		if(results.some(r => r.status=="rejected"))
+		{
+		    // Some rejection is normal when in overwrite mode.
+		    // In incremental, it means stop.
+		    if(maxdepth >=0 &&
+		       page!=maxdepth &&
+		       page!=data.meta.pagination.pages) { // more
+			return handlePage(table,page+1)
+			    .catch(err => {
+				Promise.reject("handlePage("+(page+1)+") failed a recursion: "+err)
+			    })
 		    }
-		    else {
-			// All successful. Stop only on depth or no-more
-			if(page!=maxdepth && 
-			   page!=data.meta.pagination.pages) {
-			    return handlePage(table,page+1)
-				.catch( (err) => {
-				    Promise.reject("handlePage("+(page+1)+") failed an update: "+err)
-				})
-			}
+		    else return Promise.resolve("done")
+		}
+		else {
+		    // All successful. Stop only on depth or no-more
+		    if(page!=maxdepth && 
+		       page!=data.meta.pagination.pages) {
+			return handlePage(table,page+1)
+			    .catch( (err) => {
+				Promise.reject("handlePage("+(page+1)+") failed an update: "+err)
+			    })
 		    }
-		    return Promise.resolve("done")
-		})
-		.catch(err => {
-		    console.error("\nPaErr:",err)
-		    // Should we continue scanning (full, and more remain)?
-		    // ... I'm voting no for now; this is unexpected
-		    return Promise.reject("Unexpected update failure: "+err)
-		})
+		}
+		return Promise.resolve("done")
+	    } // end try
+	    catch(err) {
+		console.error("\nPaErr:",err)
+		// Should we continue scanning (full, and more remain)?
+		// ... I'm voting no for now; this is unexpected
+		    return ("Unexpected update failure: "+err)
+	    }
 	} // end try
 	catch(e) {
 	    var stack;
@@ -871,32 +876,29 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// .../newsounds050610apod.mp3?awCollectionId=385&awEpisodeId=66200
 	// so be prepared to truncate after datestamp.
 	//
-	// Yes, this is ugly. But the alternatives are unreliable, for
-	// unknown reasons:
+	// Yes, this is ugly. But the alternatives are unreliable at
+	// this writing, sometimes off by years.
 	//
-	// .newsdate usually works but appears to sometimes differ
-	// from the URL-in-NYC fields by years (28 to 50K hours rather
-	// than the 4 or 5 expected. 
-	//
-	// .publish-at also usually works, but has similar excursions,
-	// sometimes negative.
-	//
-	// .npr-analytics-dimensions[11] is SOMETIMES another
-	// timestamp field.  It seems to have the same problems when
-	// it is present, plus sometimes being absent. Wrong direction.
-	//
-	// Looks like I'm stuck with pulling date back out of the URI,
-	// unless the folks at the studio have a better idea.
+	// Unfortunately, the URI has trouble too. Dates are sometimes
+	// entered in YYYYMMDD form, sometimes as seven digits (typo?),
+	// and sometimes the URI doesn't follow our pattern at all.
+	// Arggh.
 	
 	var urlDateFields=mp3url
-	    .replace(/.*\/newsounds([0-9]+)/i,"$1")
+	    .replace(/.*\/newsounds_?([0-9]+).*/i,"$1")
 	    .match(/.{1,2}/g)
-	if(! urlDateFields) {
-	    // Should never happen but Typescript wants us to promise
-	    // it won't. Might be able to use !. syntax instead, if
-	    // we're willing to have less-useful diagnostics if/when
-	    // this fails.
-	    throw new RangeError("invalid date in: "+mp3url)
+	if(!urlDateFields || urlDateFields.length!=3) {
+	    // Null should never happen but Typescript wants us to promise
+	    // it won't. If it does, return null (parsing failed)
+	    //
+	    // The cases where we don't have MMDDYY become messy to handle
+	    // very quickly, especially with the one that's a pure typo
+	    // or the ones where the URI format is completely weird.
+	    // Just declare that they failed parse for now.
+	    // TODO: REVIEW (or get the source fixed).
+	    if(DEBUG)console.error("DEBUG: Date extraction failed for",mp3url)
+	    if(DEBUG)console.error("DEBUG: =>",urlDateFields)
+	    return null
 	}
 	// Sloppy mapping of 2-digit year back to 4-digit: 100-year bracket
 	// centered on today.
