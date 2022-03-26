@@ -4,47 +4,42 @@
     AWS endpoint is persistant/shared state, though settable.
     Currently table and program names must be passed in every
     time. Could wrap in object and keep some or all of those in
-    instance properties. TODO: Consider.
+    instance properties, but unclear that works with expected
+    evolution. TODO: REVIEW.
 
     TODO: Parameterize remaining references explicitly to "newsounds".
-    Any others that might want to be parameterized
-    for reuse?
+    Any others that might want to be parameterized for reuse?
 
     TODO NITPICK: Strip trailing "," from titles, make sure there's a
-    colon after the episode number. It occurs sometimes. It's mostly
-    harmless but affects prosody.
+    colon (or comma?) after the episode number. The rare occurrances
+    are mostly harmless but affect prosody.
 
     TODO: Database can handle multiple programs, but we're currently
-    hardwired to populate only from New Sounds. That should be
+    hardwired to populate/update only from New Sounds. That should be
     parameterized, at least.
  */
 
 const DEBUG=("DEBUG"==process.env.EPISODESDB_DEBUG)
 
-import got from 'got'
+import got from 'got' // HTTP(s) fetch
 
 // Sounds-like processing, for tag searches, eventually.
 const Phonetics = require('phonetics')
 
 //================================================================
-
-////////////////////////////////////////////////////////////////
 // Open the box of Dominos. I mean, Dynamos.
-// Basic database interface config.
+// Basic database interface setup.
 
 const AWS = require("aws-sdk");
 
-// This one's just a literal. TODO: Is it really worth handling this way?
+// This one's just a literal. TODO: Is it really worth handling this
+// way?  I'm more likely to start a new table than a new primary
+// index. Manefest constants, style, mumble.
 const ITEM_BY_EPISODE_INDEX = "ITEM_BY_EPISODE"
 
 // Environment variable configuiration, with defaults if not set
 // Defaults are as I've been running on my local machine for testing.
-// They can be overridden to target a DynamoDB service on AWS, and/or
-// to switch between databases thereupon.
-// 
-// NOTE: Table name and program are currently passed in each time from
-// higher-level code. One or both may want to be stateful, eg as
-// object context, if we generalize this.
+// In production they are overridden to target a DynamoDB service on AWS.
 const DYNAMODB_ENDPOINT = process.env.DYNAMODB_ENDPOINT || "http://localhost:8000"
 const DYNAMODB_REGION = process.env.DYNAMODB_REGION || "us-east-1"
 
@@ -62,7 +57,7 @@ export function set_AWS_endpoint(endpoint=DYNAMODB_ENDPOINT,region=DYNAMODB_REGI
 // Definite risk in that we also open a DDB connection for Jovo state;
 // the two *must* agree. There's hazard in having those occur in different
 // files, not least the ordering issue.
-// TODO: Asynchrony risks?
+// TODO REVIEW: Are there any asynchrony risks?
 set_AWS_endpoint(DYNAMODB_ENDPOINT,DYNAMODB_REGION); 
 
 // Note that the DynamoDB factory depends on AWS Endpoint having
@@ -221,7 +216,7 @@ interface StationEpisodeAttributes {
         "alt-text": null|string;
         name: null|string;
         source: null|string;
-        url: null|string; // TODO: May want to display
+        url: null|string;
         h: number;
         "is-display": boolean;
         crop: string; // typ. containing number
@@ -230,7 +225,7 @@ interface StationEpisodeAttributes {
         template: string; // URI with substitution slots?
         w: number;
         id: number;
-        "credits-name": string; // eg "courtesy of the artist"
+        "credits-name": string; // For the image, eg "courtesy of the artist"
     };
     "item-type": string;
     "item-type-id": number;
@@ -239,21 +234,13 @@ interface StationEpisodeAttributes {
     "npr-analytics-dimensions": string[]; // mostly replicates
     playlist: any[]; // ?
     "podcast-links": any[]; //?
-    "producing-organizations": [{ // TODO: Make org an interface?
-        url: string;
-        logo: any; // often null
-        name: string
-    }];
+    "producing-organizations": OrganizationDescription[];
     "publish-at": string; // ISO date/time/offset when added to station DB
     "publish-status": string;
     show: string; // PROGRAM
     "show-tease": string; // HTML for "teaser" description of SHOW
     "show-title": string; // "New Sounds"
-    "show-producing-orgs": [{ // TODO: Make org an interface?
-        url: string;
-        logo: any; // often null
-        name: string;
-    }];
+    "show-producing-orgs": OrganizationDescription[];
     series: any[] // often empty
     segments: any[] // often empty
     "short-title": string // often empty
@@ -269,6 +256,11 @@ interface StationEpisodeAttributes {
     "twitter-handle": string // usually == show
     url: string // for episode description page. Display?
     video: null|string // usually null
+}
+interface OrganizationDescription {
+        url: string;
+        logo: any; // usually null
+        name: string
 }
 interface StationEpisodeDescription{
     type: string;
@@ -349,13 +341,11 @@ export function deleteTable(tableName:string): Promise<Object> {
 // program+date main key is unique, though multiple records may exist
 // per episode.
 //
-// TODO GONK: Rework as query for most recent <= the timestamp?
-// Before timestamp+almost_24_hours? Think about how that resolves.
-// (Goal would be to switch to using straight timestamps and rational
-// matching rather than the round-off-to-UTC-Zulu. Complication in how
-// we are obtaining the datestamps; I don't know that we have the
-// additional UTC precision needed to make this work in reality, and
-// while more elegant it *would* increase cost of database retrievals.)
+// TODO REVIEW: Could query for most recent <= a timestamp.  More
+// elegant, in terms of allowing us to use datestamps which include
+// time (which the station database doesn't)... but more expensive to
+// process. Not worth it, I think -- or make it a separate query
+// function.
 export function getItemForDate(tableName:string,program:string,date:number): Promise<QueryUniqueResult> {
     if(DEBUG) console.error("DEBUG: getItemForDate(\""+tableName+"\",\""+program+"\","+date+")")
     var params = {
@@ -581,7 +571,13 @@ export function deleteItem(tableName:string,record:EpisodeRecord): Promise<Objec
 // of Promises/asyncs. We might want to go back to an eplicit await
 // loop instead, which was my original sketch; I was confused about
 // whether promise or async/await was currently preferred Javascript
-// style. TODO: POLISH.
+// style. 
+
+// Since this is running in background, execution time is invisible to
+// the skill's users. When running incremental, it's unclear that
+// parallel-processing of large page_size is actually any faster than
+// the time saved by being able to stop at a smaller count, or which
+// costs fewer cycles. TODO: Consider tuning page_size 
 export async function updateEpisodes(table:string,maxdepth:number) {
     if(DEBUG) console.error("DEBUG: updateEpisodes(\""+table+"\","+maxdepth+")")
     console.log("Checking server for new episodes...")
@@ -589,7 +585,7 @@ export async function updateEpisodes(table:string,maxdepth:number) {
     // Run Got HTTP query, returning object via a Promise
     async function getStationEpisodeData(page:number):Promise<any> {
 	console.log("  Fetch index page",page)
-	const page_size=50 // Number of results per fetch. Tuning param
+	const page_size= (maxdepth<0) ? 10 : 50 // Number of results per fetch. Tuning param
 	var uri=formatEpisodeDatabaseQueryURI(page,page_size)
 	try {
 	    if(DEBUG) console.error("Calling got.get(\""+uri+"\")")
@@ -773,14 +769,14 @@ export async function reportEpisodeStats(table:string,program:string="newsounds"
 function deHTMLify(text:string):string {
     return text
 	.replace(/<.*>/gi," ") // Discard markup
-	.replace(/&nbsp;/gi," ")
+	.replace(/&nbsp;/gi," ") // Expand character entities AS ASCII
 	.replace(/&amp;/gi," & ")
 	.replace(/&[lr]squo;/gi,"'")
 	.replace(/&[lr]dquo;/gi,'"')
 	.replace(/&[lr]ndash;/gi," -- ")
-    // TODO: (case sensitive?) aelig, eacute, aacute, iacute, oacute,
-    // hellip, Uuml, uacute, auml, oslash -- unless speech synths
-    // handle them properly.
+    // TODO: Do we want to do something with (case sensitive?) aelig,
+    // eacute, aacute, iacute, oacute, hellip, Uuml, uacute, auml,
+    // oslash? Or will speech synthesis handle it well enough?
 
     // While we're here, convert newlines to spaces, then drop repeated spaces
 	.replace(/\n/g," ")
@@ -793,7 +789,7 @@ const APP_URI_PARAMETERS="user=keshlam@kubyc.solutions&nyprBrowserId=NewSoundsOn
 // newest-first. Page size can be up to 100 episodes per query. NOTE that this
 // doesn't issue the query, just produces the URI.
 //
-// TODO: Parameterize by show name?
+// TODO: Parameterize by show name, when we handle more than New Sounds
 function formatEpisodeDatabaseQueryURI(page:number,page_size:number) {
     return "https://api.wnyc.org/api/v3/story/?item_type=episode&ordering=-newsdate&show=newsounds&"+APP_URI_PARAMETERS+"&page="+page+"&page_size="+page_size
 }
@@ -833,11 +829,10 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// I'm not bothering to process "preempted" shows; I trust
 	// that they will have no audio and be dropped later.
 	//
-	// TODO: Some early titles were just entered in the station
+	// TODO: Some early titles were entered in the station
 	// database as "Program #1595" and the like. (Many in that
 	// range.)  There may be another field we can pull descriptive
-	// text from, such as the tease or slug. (See below re
-	// tease. Re-order?)
+	// text from, such as the tease. (See below re tease.)
 	var title=attributes.title
 	    .replace(/The Undead # ?[0-9.]*/gi," ")
 	    .replace(/The Undead/gi,"")
@@ -902,12 +897,15 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	    tease=deHTMLify(attributes.body+" ")
 	    .split(". ")[0]+"."
 
-	// TODO: Someday, is it worth parsing out the
+	// Playlist TODO: Someday, is it worth parsing out the
 	// ARTIST/WORK/SOURCE/INFO <span/>s from the HTML-markup body?
 	// Alas, can't map durations to offsets, since the duration
 	// table doesn't include John's commentary, so there isn't a
-	// lot the player can usefully do with that. It might eventually
-	// want to display the body on smartspeakers with screens, I s'pose...
+	// lot the player can usefully do with that. It might
+	// eventually want to display the body on smartspeakers with
+	// screens, I s'pose... Caryn reports that this data may exist
+	// in spreadsheet form, which would be much more reliable and
+	// easier to use; can that be automagically fetched?
 	
 	// Tag searchability: TODO.  Sounds-like handling can be
 	// achieved by matching under metaphone transformation.
@@ -918,6 +916,9 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// make this work as more than a one-shot, we'd need to go to
 	// a tag-filtered playlist mode.
 	//
+	// We should probably gather keywords from title as well as
+	// tags.
+	//
 	// Implementation thoughts: Can contains() be used in a
 	// DynamoDB keyCondition without giving up Query efficiency?
 	// If not, can we leverage attributeExists on structured
@@ -927,9 +928,10 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	var tags:string[]=[]
 	for(let tag of attributes.tags) {
 	    // TODO: Should we make this array for direct matching, or
-	    // reconcatentate into a string for contains matching?
-	    // Unclear which is more robust given possibly fuzzy
-	    // matching. String is more human-readable in JSON.
+	    // reconcatentate into a string for contains matching, or
+	    // make it a structure for child matching (which I think
+	    // DynamoDB may be able to do for us).  Unclear which is
+	    // more robust given possibly fuzzy matching.
 	    //
 	    // We want to both handle "redbone" finding Martha
 	    // Redbone, and distinguish Kronos Quartet from Mivos
@@ -950,8 +952,8 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	    for(let token of tag.split("_")) {
 		// Match on sounds-like.
 		token=Phonetics.metaphone(token)
-		// Could use double-metaphone and match against either,
-		// for increased fuzz plus and minus.
+		// Might use double-metaphone and match against either
+		// condensation, to address Yo Yo versus Yoyo...?
 		tagset=tagset+token+" "
 	    }
 	    tags.push(tagset)
@@ -979,15 +981,12 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	}
     }
 
-    // TODO: Try dynamically fetching the title field of the MP3's
-    // metadate with https://github.com/Borewit/tokenizer-http.  
-    // This was used to probe episodes with missing database fields;
-    // it may not be in current use.
+    // Experimental: dynamically fetch the title field of the MP3's
+    // metadate with https://github.com/Borewit/tokenizer-http.  This
+    // is used in development to probe episodes with missing database
+    // fields; it may not be in current use by the application.
     //
-    // USUAL PROBLEM: As network I/O, it must run async.  But since I
-    // want to return the value, I would need to await -- and that can
-    // only be done from another async function. 
-    //
+    // USUAL NUISANCE: As network I/O, it must run async.
     // Have I said recently that I hate Javascript?
     async function getMetadataTitleFromAudioURI(audioURI:String) {
 	const mm = require('music-metadata'); 
