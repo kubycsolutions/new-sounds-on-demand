@@ -11,32 +11,15 @@ const DEBUG=("DEBUG"==process.env.PLAYER_DEBUG)
 ////////////////////////////////////////////////////////////////
 // URI-related constants:
 //
-// TODO REVIEW: URI constants should probably be loaded from a config
-// file, since I *think* this code could handle the sibling shows too.
-// (One *could* have a unified skill and/or database for all of
-// them. I'm not sure that makes sense for user navigation, but we'll
-// see.)
+// TODO REVIEW: URI manifest constants may want to be overridable
 //
-// TODO REVIEW: We could cheat the livestream into our normal tables,
-// treating it as an Episode with null date and episode
-// number. Unclear that would actually be much cleaner; app.js still
-// needs to special-case it since we can't navigate to/from/within it.
+// Note: We could cheat the livestream into our normal tables,
+// treating it as an Episode with null date and episode number. But
+// since app still needs to special-case it for navigation, that
+// doesn't seem to be an improvement.
 const LIVE_STREAM_URI="https://q2stream.wqxr.org/q2-web?nyprBrowserId=NewSoundsOnDemand.smartspeaker.player"
 const LIVE_STREAM_DATE=0 // Reserved slot. Don't try to navigate it!
 const LIVE_STREAM_METADATA_URI="http://api.wnyc.org/api/v1/whats_on/q2"
-
-// TODO: Should probably have a constant for the DB query format
-
-// Politeness: Tell the station's servers (and the tracking systems
-// they're using) where these HTTP(S) queries are coming from, for
-// debugging and statistics. (And no, skipping the trackers does *not*
-// avoid the underwriting and identification boilerplate being
-// prepended to episode MP3s... and the length of those varies enough
-// that we can't get away with cheating the offset forward a known
-// amount.)
-//
-// TODO REVIEW: export/import addUriUsage, refactor as needed?
-const APP_URI_PARAMETERS="user=keshlam@kubyc.solutions&nyprBrowserId=NewSoundsOnDemand.smartspeaker.player"
 
 ////////////////////////////////////////////////////////////////
 // Database interface layer, currently bound to DynamoDB
@@ -56,39 +39,9 @@ import {set_AWS_endpoint,
        } from './episodesdb'
 
 // Pick up config from environment, with some safety-net defaults.
+// TODO: Program may eventually be dynamic to handle multiple shows.
 const TABLENAME=process.env.NSOD_EPISODES_TABLE || "episodes"
 const PROGRAM=process.env.NSOD_PROGRAM || "newsounds"
-
-///////////////////////////////////////////////////////////////////////////
-// Utility functions
-
-// Rough JSONification of object, useful when debugging
-//
-// TODO: EXPOSE AND IMPORT
-function objToString(obj:any, ndeep:number=0):string {
-    const MAX_OBJTOSTRING_DEPTH=10 // circular refs are possible
-
-    if(obj == null){ return String(obj); }
-    if(ndeep > MAX_OBJTOSTRING_DEPTH) {return "...(elided; recursion guard)..." }
-    switch(typeof obj){
-    case "string": return '"'+obj+'"';
-    case "function": return obj.name || obj.toString();
-    case "object":
-	let indent = Array(ndeep||1).join('  '), isArray = Array.isArray(obj);
-	return '{['[+isArray] 
-	    + Object.keys(obj).map(
-		function(key){
-		    return '\n' 
-			+ indent 
-			+ key + ': ' 
-			+ objToString(obj[key], (ndeep||1)+1);
-		}).join(',') 
-	    + '\n' 
-	    + indent 
-	    + '}]'[+isArray];
-    default: return obj.toString();
-    }
-}
 
 ///////////////////////////////////////////////////////////////////////////
 // Player logic: mechanisms for navigating and extracting our tables
