@@ -34,16 +34,15 @@ https://alexa.uservoice.com/forums/906892-alexa-skills-developer-voice-and-vote/
 
    TODO: "Who/what are we listening to" and "who/what is this" can't
    be precise for episodes with currently available data, but should
-   answer with "New Sounds On Demand is playing Episode..." (and the
-   tease). For the livestream, we can invoke the whos-on query -- but
-   be prepared to say "I'm not sure yet" if timestamp is before now;
-   it updates a bit slowly.  (And consider which fields to
+   answer with "New Sounds On Demand is now playing" and
+   ep#/title. For the livestream, we can invoke the whos-on query --
+   but be prepared to say "I'm not sure yet" if timestamp is before
+   now; that updates a bit slowly.  (And consider which fields to
    provide/queries to support; do the minimum, dump it all, have
-   alternative queries, do a "more?" interaction?) This _ought_ to be
-   a standard Amazon music-player Intent... there are multiple
-   categories of Music intents, mostly tied into Amazon's assumed
-   music indexing object types and based on AMAZON.SearchAction,
-   though they aren't a *great* match for what I want to offer.
+   alternative queries, do a "more?" interaction?) There are standard
+   Amazon intents for some of this; we may need custom intents to
+   handle it all and of course Google's narrower VUI parsing will
+   present limitations there.
 
    TODO: Continue to improve speech interactions. It's supposedly
    possible to add nonprefixed commands for Alexa skill context, once
@@ -51,13 +50,14 @@ https://alexa.uservoice.com/forums/906892-alexa-skills-developer-voice-and-vote/
    https://developer.amazon.com/en-US/docs/alexa/custom-skills/understand-name-free-interaction-for-custom-skills.html.
 
    TODO: Forward/back (ff/rw, skip f/b, etc) by duration.  Note the
-   ISSUE of possible long delay... though knowing the audio is in
-   cache may help to some degree.
+   open ISSUE of possible long delay... though knowing the audio is in
+   cache may reduce that risk to some degree.
 
    TODO: Can we announce ep# when we auto-advance via queue without
-   sometimes causing a glitch in the audio? Haven't found a perfect
-   incantation yet. May require giving up using the Alexa queue, though
-   that would slow ep-to-ep transition.
+   causing a glitch in the audio? Haven't found a perfect incantation
+   yet. Then again, even now we may walk on the first second or so...
+   Doing this really cleanly might require giving up using the Alexa
+   queue, though that would slow ep-to-ep transition.
 
    TODO: Parameterize for show name. Simply doing that would let us
    offer additional skills for Soundcheck etc. without much work...
@@ -79,10 +79,12 @@ https://alexa.uservoice.com/forums/906892-alexa-skills-developer-voice-and-vote/
    pronunciation of less-obvious names or text is at all close.)
 
    TODO MAYBE: Play single ep? (Doable via sleep timer, so probably
-   not, but "stop after this episode" might be worthwhile.) Repeat??
+   not, but "stop after this episode" might be worthwhile.) Repeat?
    (Probably not.) Playlist? (Probably needed when we implement
-   keyword search.)  ... Basically additions to the inter-ep
-   navigation modes. That'll take significant reworking of the player.
+   keyword search.) Shuffle? (Just starting with random has most of
+   the desired effect) ... Basically additions to the inter-ep
+   navigation modes. These may take significant reworking of the
+   player.
 
    TODO MAYBE: Alternate auto-navigation modes, persistent per user:
    Date, ep#, livestream, fwd/bkwd, shuffle (as opposed to current
@@ -99,8 +101,8 @@ https://alexa.uservoice.com/forums/906892-alexa-skills-developer-voice-and-vote/
 
    TODO SOMEDAY: Smartspeakers with displays. The tease is probably
    wanted for this. Episode cover-pic too. Extracting the playlist
-   from the HTML body is not impossible but is ugly... or just render
-   that body?
+   from the HTML body is not impossible but is ugly... Unfortunately
+   body: is probably too large to just render and declare done.
 
    TODO SOMEDAY: Tag searchability. Other music skills seem to handle
    bandname/recordname/trackname surprisingly well; is there something
@@ -109,12 +111,12 @@ https://alexa.uservoice.com/forums/906892-alexa-skills-developer-voice-and-vote/
    to work through the offerings.
 
    TODO SOMEDAY: MAYBE handle combined shows though a single
-   skill. Initially easier to just clone the skill (minor tweaks
-   needed to runtime parameters and voice model), but with combined
-   database "next" over multiple becomes possible. It would make
-   sense, at some level to combine New Sounds and Soundcheck into a
-   single virtual content stream...  but I'd need to think about how
-   the UI would present and manage that.
+   skill. Initially easier to just clone the skill and lambdas (minor
+   tweaks needed to runtime parameters and voice model), but with
+   combined database "next" over multiple shows becomes plausible. It
+   would make sense, at some level to combine New Sounds and
+   Soundcheck into a single virtual content stream...  but I'd need to
+   think about how the UI would present and manage that.
 
    TODO SOMEDAY: At the moment I'm using the same zipfile for both
    skill and database-update lambdas, with different entry-point
@@ -135,7 +137,6 @@ import { Player } from './player';
 import { Project } from 'jovo-framework'
 import { set_AWS_endpoint,EpisodeRecord } from './episodesdb'
 import { format } from 'date-fns'
-//import { utcToZonedTime } from 'date-fns-tz' // may be needed to report local date
 
 console.log('TODO: This implementation uses an outdated version of the Jovo Framework. When time permits, we will upgrade to Jovo v4. See https://www.jovo.tech/docs/migration-from-v3');
 
@@ -144,8 +145,10 @@ const ShowCredits="New Sounds is produced by New York Public Radio, W N Y C and 
 const AppCredits="The New Sounds On Demand player for smart speakers is being developed by Joe Kesselman and Cubic Solutions, K u b y c dot solutions. Source code is available on github."
 
 ////////////////////////////////////////////////////////////////
-// DEBUGGING
-// TODO: SHARE THIS via export and import, rather than duplicating.
+// NOTE: In most cases, JSON.stringify() is a better choice.  The
+// minor advantage of this one is that depth can be limited, which is
+// sometimes useful. Unclear I need it; keeping it for
+// now. TODO: REVIEW
 function objToString(obj:any, ndeep:number=0):string {
     const MAX_OBJTOSTRING_DEPTH=10 // circular refs are possible
     if(obj == null){ return String(obj); }
@@ -193,7 +196,7 @@ app.use(
 // single shared configuration process. Currently, that's the
 // set_AWS_endpoint() operation, which may (safely) re-assert
 // existing values.
-// TODO: UGLY. CLEAN UP.
+// TODO: REPEATED INVOCATION IS UGLY. Can we clean up?
 
 const AWS = set_AWS_endpoint()
 const { DynamoDb } = require('jovo-db-dynamodb')
@@ -210,7 +213,8 @@ app.use(
 // they're using) where these HTTP(S) queries are coming from, for
 // debugging and statistics.
 //
-// TODO REVIEW: refactor into Player? And/or per-show config?
+// TODO REVIEW: refactor into Player?
+// TODO REVIEW: If/when we support multiple shows, does this need to adjust?
 function addUriUsage(uri:string):string { 
     const app_uri_parameters="user=keshlam@kubyc.solutions&nyprBrowserId=NewSoundsOnDemand.smartspeaker.player"
     if (uri.includes("?"))
@@ -449,8 +453,11 @@ app.setHandler({
 	    else if(currentOffset<0) { // Stopped at last known ep; is there newer?
 		episode = await Player.getNextEpisodeByDate(currentDate); // May be null
 		if(!episode) {
-		    // TODO: This language may need to change depending on whether
-		    // we are playing in date or ep# sequence.
+		    // TODO: This language may need to change if/when
+		    // we offer the option of playing in date or ep#
+		    // order, or reverse order. It will definitely
+		    // need to be adapted if/when we support
+		    // search/playlist.
 		    return this.tell("You have already heard all of the most recent episode, so we can't resume right now. You can try again after a new episode gets released, or make a different request.");
 		}
 		currentDate=episode.broadcastDateMsec
@@ -472,16 +479,16 @@ app.setHandler({
 		let offset = this.$user.$data.offset;
 		let offsetMin=offset/60/1000;
 		if (offsetMin > 30) {
-		    // BUG TODO ISSUE: If we need to reload Alexa cache
-		    // before playing, resume may have a long delay as
-		    // it decompresses up to the offset point. I
-		    // haven't thought of a reliable way to advise the
-		    // user of this without unnecessary warnings (when
-		    // already in cache, it's fast).  Check whether
-		    // Alexa has a solution, though short of breaking
-		    // into smaller MP3's so there are more frequent
-		    // decompression synch points I don't know what
-		    // one could do.
+		    // BUG TODO ISSUE: If we need to reload Alexa
+		    // cache before playing, resume may have a long
+		    // delay as it decompresses up to the offset
+		    // point. I haven't thought of a reliable way to
+		    // advise the user of this without unnecessary
+		    // warnings (when already in cache, it's fast).
+		    // Check whether Alexa has a solution, though
+		    // short of breaking into smaller MP3's so there
+		    // are more frequent decompression synch/resume
+		    // points I don't know what one could do.
 		}
 		this.$alexaSkill!.$audioPlayer!
                     .setOffsetInMilliseconds(offset)
@@ -511,8 +518,8 @@ app.setHandler({
 	}
         let nextEpisode = await Player.getNextEpisodeByDate(currentDate);
         if (!nextEpisode) {
-	    // TODO: This language may need to change depending on whether
-	    // we are playing in date or ep# sequence.
+	    // TODO: See above re this possibly changing if we allow
+	    // other orderings/playlists.
 	    return this.tell('That was the most recent episode. You will have to wait until a new episode gets released, or ask for a different one.');
         }
         let nextEpisodeDate = nextEpisode.broadcastDateMsec
@@ -550,8 +557,8 @@ app.setHandler({
 	}
         let previousEpisode = await Player.getPreviousEpisodeByDate(currentDate);
         if (!previousEpisode) {
-	    // TODO: This language may need to change depending on whether
-	    // we are playing in date or ep# sequence.
+	    // TODO: See above re this possibly changing if we allow
+	    // other orderings/playlists.
 	    return this.tell('You are already at the oldest episode.');
         }
         let previousEpisodeDate = previousEpisode.broadcastDateMsec
@@ -746,7 +753,7 @@ app.setHandler({
     // separetely, and of course "resume" of livestream is from now
     // rather than from stop, so it's debatable. I lean toward keeping
     // it this way for user convenience after pause (eg for phone
-    // call), but this gets back to the "bookmarks" TODO item.
+    // call), but this gets back to the "bookmarks" wishlist item.
     //
     // TODO: acess the livestream's playlist, to be able to answer
     // "who/what is this"?.  Note that whos-on updates a bit slowly,
