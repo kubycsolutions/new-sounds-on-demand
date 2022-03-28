@@ -1,3 +1,6 @@
+// Reload the existing table. Mostly a development tool,
+// for use when data available from the station has changed.
+
 import {deleteTable, waitForNoTable, createTable, waitForTable,
        updateEpisodes
 } from "./episodesdb"
@@ -17,25 +20,10 @@ const INCREMENTAL_LOAD=-1
 const FULL_LOAD=0
 const TWO_PAGE_LOAD=2
 
-recreateAndLoad(FULL_LOAD) // TEST: REBUILD MY ENTIRE DATABASE.
+reLoad(FULL_LOAD) // TEST: REBUILD MY ENTIRE DATABASE.
 
-// Note: deleteTable and createTable return when the request has been
-// accepted. We need to wait for the operation to complete before
-// advancing to next operation; DynamoDB does NOT automatically have
-// operations block those which might depend upon them.
-async function recreateAndLoad(maxdepth:number) {
+async function reLoad(maxdepth:number) {
     try {
-	await deleteTable(table);
-	console.log("Awaiting removal of table",table)
-	await waitForNoTable(table);
-	console.log("Confirmed no table!")
-    } catch(err) {
-	console.log("Error removing table; hopefully means didn't exist:",err)
-    }
-    try {
-	await createTable(table)
-	console.log("Awaiting creation of table",table)
-	await waitForTable(table)
 	console.log("Table exists, starting load with maxdepth",maxdepth)
 	await callUpdateEpisodes(table,program,maxdepth)
     }
