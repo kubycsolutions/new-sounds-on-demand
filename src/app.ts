@@ -65,28 +65,22 @@ https://alexa.uservoice.com/forums/906892-alexa-skills-developer-voice-and-vote/
    entire archive through a single skill.
 
    TODO: Set, and return to, named state bookmarks.  Poor man's
-   alternative to search and since.
+   alternative to search?
 
    TODO MAYBE: Track calendar-order play separately, permitting poor
    man's "play episodes I haven't heard yet" not disturbed by explicit
    navigation, without the full tracking-every-slot or user having to
-   say "since yesterday". Conceptually related to bookmarks.
-
-   TODO MAYBE: deHTML handling of accented character escapes (to
-   unicode)?  Unclear if needed; I don't know how the smartspeaker
-   systems handle rich text (they may already tolerate HTML; I
-   *presume* they tolerate unicode... but gods know whether their
-   pronunciation of less-obvious names or text is at all close.)
+   say "since <date>". Conceptually related to bookmarks.
 
    TODO MAYBE: Play single ep? (Doable via sleep timer, so probably
    not, but "stop after this episode" might be worthwhile.) Repeat?
    (Probably not.) Playlist? (Probably needed when we implement
    keyword search.) Shuffle? (Just starting with random has most of
-   the desired effect) ... Basically additions to the inter-ep
-   navigation modes. These may take significant reworking of the
-   player.
+   the desired effect, otherwise a form of playlist) ... Basically
+   additions to the inter-ep navigation modes. These may take
+   significant reworking of the player.
 
-   TODO MAYBE: Alternate auto-navigation modes, persistent per user:
+   TODO MAYBE: Alternate auto-next modes, persistent per user:
    Date, ep#, livestream, fwd/bkwd, shuffle (as opposed to current
    random, which continues in calendar order from that point. WORK ON
    COMMAND LANGUAGE.  Note that ep# currently implies earliest
@@ -95,14 +89,15 @@ https://alexa.uservoice.com/forums/906892-alexa-skills-developer-voice-and-vote/
    any of their dates.
 
    TODO SOMEDAY: "Play one I haven't heard before". Requires tracking
-   all usage for every user... Doesn't have to be obscenely huge if
-   it's a bitvector... Simpler to track only highest date/ep#
-   played... How to handle partial plays?
+   all usage for every user, which might not be obscenely huge if it's
+   a bitvector or if it leverages ranges. Simpler to track only
+   highest date/ep# played, which addresses easy timeshifting... How
+   to handle partial plays?
 
    TODO SOMEDAY: Smartspeakers with displays. The tease is probably
-   wanted for this. Episode cover-pic too. Extracting the playlist
-   from the HTML body is not impossible but is ugly... Unfortunately
-   body: is probably too large to just render and declare done.
+   wanted for this. Episode cover-pic too. Extracting from the HTML
+   body is not impossible but is ugly... Unfortunately body: is too
+   large to just render and declare done.
 
    TODO SOMEDAY: Tag searchability. Other music skills seem to handle
    bandname/recordname/trackname surprisingly well; is there something
@@ -113,12 +108,13 @@ https://alexa.uservoice.com/forums/906892-alexa-skills-developer-voice-and-vote/
    TODO SOMEDAY: MAYBE handle combined shows though a single
    skill. Initially easier to just clone the skill and lambdas (minor
    tweaks needed to runtime parameters and voice model), but with
-   combined database "next" over multiple shows becomes plausible. It
-   would make sense, at some level to combine New Sounds and
-   Soundcheck into a single virtual content stream...  but I'd need to
-   think about how the UI would present and manage that.
+   combined database "next" over multiple shows becomes plausible. VUI
+   design required. BUT NOTE that much of the good stuff from Soundcheck,
+   New Sounds Live, and Le Poisson Rouge does eventually wind up in the
+   New Sounds feed, so it isn't clear accessing them directly is a huge
+   win vs. via keyword search.
 
-   TODO SOMEDAY: At the moment I'm using the same zipfile for both
+   TODO EVENTUALLY: At the moment I'm using the same zipfile for both
    skill and database-update lambdas, with different entry-point
    calls. That's massive overkill for the latter. But frankly,
    AWS gives me no incentive to optimize it; it wouldn't cut my
@@ -212,9 +208,6 @@ app.use(
 // Politeness: Tell the station's servers (and any tracking system
 // they're using) where these HTTP(S) queries are coming from, for
 // debugging and statistics.
-//
-// TODO REVIEW: refactor into Player?
-// TODO REVIEW: If/when we support multiple shows, does this need to adjust?
 function addUriUsage(uri:string):string { 
     const app_uri_parameters="user=keshlam@kubyc.solutions&nyprBrowserId=NewSoundsOnDemand.smartspeaker.player"
     if (uri.includes("?"))
@@ -548,7 +541,7 @@ app.setHandler({
     },
 
     PreviousIntent: async function() {
-	// GONK: Tells may need to be Asks for this to run as intended
+	// Tells may need to be Asks for this to run as intended
 	// in Google. More multiple-path coding. Really wish Jovo
 	// encapsulated that.
         let currentDate = this.$user.$data.currentDate;
@@ -587,7 +580,7 @@ app.setHandler({
 
     FastForwardIntent() {
 	// GONK: This one is being surprisingly problematic...
-	// GONK: Tells may need to be Asks for this to run as intended
+	// Tells may need to be Asks for this to run as intended
 	// in Google. More multiple-path coding. Really wish Jovo
 	// encapsulated that.
         var currentDate = this.$user.$data.currentDate;
@@ -754,11 +747,6 @@ app.setHandler({
     // rather than from stop, so it's debatable. I lean toward keeping
     // it this way for user convenience after pause (eg for phone
     // call), but this gets back to the "bookmarks" wishlist item.
-    //
-    // TODO: acess the livestream's playlist, to be able to answer
-    // "who/what is this"?.  Note that whos-on updates a bit slowly,
-    // so we may need to check timestamps for "ended before now" and
-    // be ready to say "I'm not sure yet."
     LiveStreamIntent() {
 	const streamURI=addUriUsage(Player.getLiveStreamURI())
 	const currentDate=Player.getLiveStreamDate()
@@ -791,7 +779,7 @@ app.setHandler({
     },
 
     CreditsIntent() {
-	// GONK: Tells may need to be Asks for this to run as intended
+	// Tells may need to be Asks for this to run as intended
 	// in Google. More multiple-path coding. Really wish Jovo
 	// encapsulated that.
         this.$speech.addText(ShowCredits)
@@ -799,22 +787,26 @@ app.setHandler({
 	return this.tell(this.$speech)
     },
 
-    // Hook for testing, normally inactive
+    // Hook for testing
     async DebugIntent() {
-        this.$speech.addText("Debug hook baited. Awaiting fishies.")
-	var nbd=await Player.getMostRecentBroadcastDate();
-	var hen=await Player.getHighestEpisodeNumber();
-	var oed=await Player.getOldestEpisodeDate();
-	var len=await Player.getFirstEpisodeNumber();
-	console.log("DebugIntent:",len,hen,oed,nbd)
-	// GONK: Tells may need to be Asks for this to run as intended
+        this.$speech.addText("Debug hook baited. Awaiting meta fishies.")
+	var meta=await Player.getLiveStreamMetaData()
+	console.log("DebugIntent:"+JSON.stringify(meta))
+	// Tells may need to be Asks for this to run as intended
 	// in Google. More multiple-path coding. Really wish Jovo
 	// encapsulated that.
 	return this.ask(this.$speech)
     },
 
+    ////////////////////////////////////////////////////////////////
+    // TODO: acess the livestream's playlist query (whos-on), to be
+    // able to answer "who/what is this"?.  Note that whos-on updates
+    // a bit slowly, so we may need to check timestamps for "ended
+    // before now" and be ready to say "I'm not sure yet."  
+
     // Amazon's "who sings this song".  For our purposes, we may want
-    // to make this synonymous with "who is playing this song".
+    // to make this synonymous with "who is playing this song"... or
+    // we may want to report only vocalist.
     async "AMAZON.SearchAction<object@MusicRecording[byArtist.musicGroupMember]>"() {
         var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {

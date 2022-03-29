@@ -62,6 +62,19 @@ const PROGRAM=process.env.NSOD_PROGRAM || "newsounds"
 export class Player {
     static getLiveStreamURI():string { return LIVE_STREAM_URI };
     static getLiveStreamDate():number { return LIVE_STREAM_DATE };
+    static async getLiveStreamMetaData():Promise<object> {
+	try {
+	    var uri=LIVE_STREAM_METADATA_URI
+	    if(DEBUG) console.error("Calling got.get(\""+uri+"\")")
+	    var response=await got.get(uri) // default content-type is 'text'
+	    return JSON.parse(response.body);
+	}
+	catch(e) {
+	    console.error("ERROR: got.get() threw",e)
+	    throw e
+	}
+
+    }
 
     static async getMostRecentBroadcastDate():Promise<number> {
 	try {

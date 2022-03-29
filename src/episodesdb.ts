@@ -12,7 +12,7 @@
 
     TODO NITPICK: Strip trailing "," from titles, make sure there's a
     colon (or comma?) after the episode number. The rare occurrances
-    are mostly harmless but affect prosody.
+    are mostly harmless but may affect prosody.
 
     TODO: Database can handle multiple programs, but we're currently
     hardwired to populate/update only from New Sounds. That should be
@@ -32,9 +32,8 @@ const Phonetics = require('phonetics')
 
 const AWS = require("aws-sdk");
 
-// This one's just a literal. TODO: Is it really worth handling this
-// way?  I'm more likely to start a new table than a new primary
-// index. Manefest constants, style, mumble.
+// Just a literal, but as a manefest constant we get syntax assist and
+// prevention of typos.
 const ITEM_BY_EPISODE_INDEX = "ITEM_BY_EPISODE"
 
 // Environment variable configuiration, with defaults if not set
@@ -57,7 +56,6 @@ export function set_AWS_endpoint(endpoint=DYNAMODB_ENDPOINT,region=DYNAMODB_REGI
 // Definite risk in that we also open a DDB connection for Jovo state;
 // the two *must* agree. There's hazard in having those occur in different
 // files, not least the ordering issue.
-// TODO REVIEW: Are there any asynchrony risks?
 set_AWS_endpoint(DYNAMODB_ENDPOINT,DYNAMODB_REGION); 
 
 // Note that the DynamoDB factory depends on AWS Endpoint having
@@ -341,11 +339,10 @@ export function deleteTable(tableName:string): Promise<Object> {
 // program+date main key is unique, though multiple records may exist
 // per episode.
 //
-// TODO REVIEW: Could query for most recent <= a timestamp.  More
-// elegant, in terms of allowing us to use datestamps which include
+// NOTE: Could query for most recent <= a timestamp.  That's more
+// "reliable", in terms of allowing us to use datestamps which include
 // time (which the station database doesn't)... but more expensive to
-// process. Not worth it, I think -- or make it a separate query
-// function.
+// process. Make it a separate query function if/when needed.
 export function getItemForDate(tableName:string,program:string,date:number): Promise<QueryUniqueResult> {
     if(DEBUG) console.error("DEBUG: getItemForDate(\""+tableName+"\",\""+program+"\","+date+")")
     var params = {
@@ -413,13 +410,8 @@ export function getAdjacentItemByDate(tableName:string,program:string,date:numbe
 // expression is used rather than TLU, this should still be faster than
 // a Scan with equivalent conditions.
 // 
-// TODO: Note that ordering here is by the episode number ... which
-// we're currently doing exact match on, so it's irrelevant. It
-// might be useful to have the group natively ordered by date, but
-// that gets a bit messy; to do episode#date as key it has to be
-// string, and to make that sort properly we'd need to left-pad both
-// numeric values. So optimization is possible, but arguably is overkill
-// for our needs.
+// NOTE: I've chosen not to do complex keying such as episode#date; we
+// don't need it for current functionality.
 export function getItemsForEpisode(tableName:string,program:string,episode:number,maxresults:number=Number.MAX_SAFE_INTEGER): Promise<QueryMultipleResults> {
     if(DEBUG) console.error("DEBUG: getItemsForEpisode(\""+tableName+"\",\""+program+"\","+episode+","+maxresults+")")
     var params = {
@@ -577,7 +569,9 @@ export function deleteItem(tableName:string,record:EpisodeRecord): Promise<Objec
 // the skill's users. When running incremental, it's unclear that
 // parallel-processing of large page_size is actually any faster than
 // the time saved by being able to stop at a smaller count, or which
-// costs fewer cycles. TODO: Consider tuning page_size 
+// costs fewer cycles. We may want to consider further tuning
+// page_size, which is currently just using an ad-hoc compromise assuming
+// that most incremental updates will be small.
 export async function updateEpisodes(table:string,maxdepth:number) {
     if(DEBUG) console.error("DEBUG: updateEpisodes(\""+table+"\","+maxdepth+")")
     console.log("Checking server for new episodes...")
@@ -776,13 +770,15 @@ function deHTMLify(text:string):string {
 	.replace(/&[lr]ndash;/gi," -- ")
     // TODO: Do we want to do something with (case sensitive?) aelig,
     // eacute, aacute, iacute, oacute, hellip, Uuml, uacute, auml,
-    // oslash? Or will speech synthesis handle it well enough?
+    // oslash? Or will speech synthesis handle these well enough?
 
     // While we're here, convert newlines to spaces, then drop repeated spaces
 	.replace(/\n/g," ")
 	.replace(/ */g," ")
 }
 
+// Appended to URI so station can distinguish our data updates from
+// queries originated by their webpages, if so desired.
 const APP_URI_PARAMETERS="user=keshlam@kubyc.solutions&nyprBrowserId=NewSoundsOnDemand.smartspeaker.player"
 
 // URI to query the station's episode database. Pages start from 1, ordered
@@ -830,14 +826,14 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// that they will have no audio and be dropped later.
 	//
 	// TODO: Some early titles were entered in the station
-	// database as "Program #1595" and the like. (Many in that
+	// database only as "Program #1595" and the like. (Many in that
 	// range.)  There may be another field we can pull descriptive
 	// text from, such as the tease. (See below re tease.)
 	var title=attributes.title
 	    .replace(/The Undead # ?[0-9.]*/gi," ")
 	    .replace(/The Undead/gi,"")
 	    .replace(/Undead # ?[0-9.]*/gi," ")
-	    .replace(/ Pt. /gi," Part ") // For pronouncability
+	    .replace(/ Pt. /gi," Part ") // For speech-synth pronouncability
 	// Deal with buried episode number (#nnnn:) by pulling it to
 	// front. 
 	if(!title.startsWith("#")) {
@@ -908,7 +904,7 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// easier to use; can that be automagically fetched?
 	
 	// Tag searchability: TODO.  Sounds-like handling can be
-	// achieved by matching under metaphone transformation.
+	// achieved by matching under, eg, metaphone transformation.
 	// Unfortunately we can't navigate to the specific tracks, but
 	// we could filter shows. Other music apps seem to be
 	// surprisingly good at recognizing performer and band and
@@ -916,15 +912,11 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// make this work as more than a one-shot, we'd need to go to
 	// a tag-filtered playlist mode.
 	//
-	// We should probably gather keywords from title as well as
+	// TODO: We should probably gather keywords from title as well as
 	// tags.
 	//
-	// Implementation thoughts: Can contains() be used in a
-	// DynamoDB keyCondition without giving up Query efficiency?
-	// If not, can we leverage attributeExists on structured
-	// values with sparse properties (keys rather than values,
-	// hashset style)? Or would we be forced to scan rather than
-	// query (more expensive, but this isn't a huge database).
+	// Implementation thoughts: How efficient can we make this
+	// fuzzy query? Can we avoid having to resort to Scan?
 	var tags:string[]=[]
 	for(let tag of attributes.tags) {
 	    // TODO: Should we make this array for direct matching, or
