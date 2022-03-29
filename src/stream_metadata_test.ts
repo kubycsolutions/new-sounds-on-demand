@@ -40,7 +40,7 @@ interface CatalogEntry {
     additional_ensembles:Someone[];
  }
 interface PlaylistItem {
-    start_time_ts: number; // Not meaningful?
+    start_time_ts: number; // seconds, not msec
     start_time: string; // NY time
     iso_start_time: string; // zulu, with 00:00 offset
     length: number; // in seconds?
@@ -62,7 +62,7 @@ interface ShowItem {
     description: string; // may be gratuitous HTML
     fullImage: Image;  // typ ns_social-avitar.jpg, the wave-linked notes
     start_ts: number
-    start_time_ts: number; // Not meaningful? 
+    start_time_ts: number; // Seconds, not msec
     iso_end: string; // with tz. For radio, ~ start time of switch to episode
     listImage: Image; // typ same as fullImage
     show_url: string; // webpage
