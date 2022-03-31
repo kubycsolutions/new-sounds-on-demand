@@ -34,14 +34,14 @@ KNOWN BUG ON ALEXA: "Play the highest numbered episode" is currently being misin
 
 **What's New**
 
-This skill is a skunkworks project, still in Alpha testing -- it's brand new, the back-end code is running on the developer's account and may be down at times, and we are still actively refining its capabilities and implementation. Alpha testing is in progress now, by invitation; I hope to submit it for approval as an official Alexa skill before the end of 2021.
+This skill is now live in the Alexa app collection, at https://www.amazon.com/dp/B09WJ3H657/ref=sr_1_1 ! Now "all I need to do" is get the attention of users. I've done a bit of low-key announcement on social media, but it's probably not going to take off -- if it ever does -- until the show's producers decide they want to publicize it.
 
 
 **Future Goals**
 
 There's a long wishlist of known bugs and desired features in the comments at the front of **source/app.js**. Now that I'm posting this on Github those are likely to move to a more official issues-tracker.
 
-The back-end database can track multiple shows, though it is currently only loading New Sounds. The front-end currently handles a single show at a time; it could be easily retargeted to other shows in that database, or we can work on developing a dialog structure to let the user select among the available shows. In fact it might be desirable to present New Sounds and Soundcheck, in particular, as a single combined program... To be determined.
+The back-end database can track multiple shows, though it is currently only loading New Sounds. The front-end currently handles a single show at a time; it could be easily retargeted to other shows in that database, or we can work on developing a dialog structure to let the user select among the available shows. Most of the other shows in the New Sounds family do have their best material eventually wind up incorporated into the flagship program, so this isn't a top priority right now.
 
 
 **Building and Running the New Sounds On Demand grammar and semantics service**
