@@ -94,7 +94,7 @@ async function doItAgain() {
     while(true) {
 	await doIt()
 	console.log("\n")
-	await sleep(15000)
+	await sleep(60000)
     }
 }
 
@@ -102,36 +102,46 @@ async function doIt() {
     var meta=await Player.getLiveStreamMetaData()
     if(isPlaylistMetadata(meta)) {
 	var cat=meta.current_playlist_item.catalog_entry
+
 	// Checking whether a datum is outdated requires that this
 	// machine's clock agree with that on the server...  and it
-	// looks like the server is about 10 sec late right now.
-	// Could build an "I'm not sure yet" buffer into the system to
-	// better tolerate clock skew...
+	// looks like the metadata server is a minute or two late
+	// right now.  That requires deskewing logic here.
 	//
-	// Fields are apparently in seconds, not msec.
+	// Fields are in seconds, not msec.
+	//
+	// ODDITY: There will sometimes be a late instance of an old
+	// response after three or so correct reponses. It's possible
+	// that the station has multiple servers responsing in
+	// round-robin, one of which is updating well after the
+	// others. I think it's OK to say "not sure" in this case,
+	// since it does correct itself on subsequent queries.
+	//
+	// Do we need to worry about skew the other way?
 	var startms:number=1000*meta.current_playlist_item.start_time_ts
 	var len:number=cat.length
 	var endms:number=startms+(1000*len)
 	var now:number=Date.now()
-	if(endms<=now) {
-	    console.log("CLOCK SKEW: past expected track end time")
+	if(endms<=now || startms>=now) {
+	    console.log("CLOCK SKEW: outside expected track time")
 	    console.log("\tstart "+new Date(startms))
 	    console.log("\tend ~ "+new Date(endms))
 	    console.log("\tlocal "+new Date())
+	    console.log("\tI'm not sure yet. Let me listen for another minute or two, then ask again.")
 	}
-
+	else
 	{
 	    var cat=meta.current_playlist_item.catalog_entry
 
 	    // Note: + concatenation is used here to prevent Node from
 	    // "helpfully" coloring the date dark purple. I often use
-	    // a black background for white text, so...
+	    // a black background with white text for commandline, so...
 	    console.log("Now playing:",cat.title, "(until "+new Date(endms)+")")
 	    
 	    console.log("Composed by:",cat.composer.name)
 	    var ac=cat.additional_composers
 	    if(ac && ac.length>0) {
-		console.log("\t with",ac[0].name)
+		console.log("\twith",ac[0].name)
 		for(let i=1;i<ac.length-1;++i)
 		    console.log("\t,",ac[i].name)
 		console.log("\tand",ac[ac.length-1].name)
@@ -142,7 +152,7 @@ async function doIt() {
 		console.log("Performed by",cat.ensemble.name)
 		var ae=cat.additional_ensembles
 		if(ae && ae.length>0) {
-		    console.log("\t with",ae[0].name)
+		    console.log("\twith",ae[0].name)
 		    for(let i=1;i<ae.length-1;++i)
 			console.log("\t,",ae[i].name)
 		    console.log("\tand",ae[ae.length-1].name)
@@ -157,40 +167,50 @@ async function doIt() {
 	}
     } else if (isEpisodeMetadata(meta)) {
 	// NOTE: For playlist items, this is *also* true, reporting
-	// the episode as belonging to New Sounds Radio.  Right now
-	// its iso_end reports as midnight EST, which is when the
-	// scheduled episode comes on...
-	console.log("Episode of",meta.current_show.title)
-	// expires doesn't seem to be anything useful. Server time?
-	// end_ts doesn't seem to be anything useful. for show Duration in msec?
+	// the episode as belonging to New Sounds Radio and giving as its
+	// iso_end the time when we switch to an episode.
+	//
+	// For actual episodes, meta.current_show.title reports the
+	// episode name, number and all. That's convenient.  (May want
+	// to copy the fix-nonstandard-title logic here, though recent
+	// episodes are probably more regularly named than old ones.)
+	console.log("DEBUG isEp:",JSON.stringify(meta))
+	console.log("New Sounds",meta.current_show.title)
 	console.log("iso_end:",meta.current_show.iso_end)
     } else {
 	console.error("\nvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv")
 	console.error("Ducktype failed")
 	console.error(JSON.stringify(meta,null,4))
-	console.error("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv\n")
+	console.error("I'm not sure. Try asking again in a minute or two.")
+	console.error("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n")
     }
 
 }
 
 function formatSoloists(sl:Soloist[]) {
     if(sl && sl.length>0) {
-	console.log("\t featuring")
+	console.log("featuring")
 	formatSoloist(sl[0])
 	for(let i=1;i<sl.length-1;++i){
 	    formatSoloist(sl[i])
 	}
 	if(sl.length>1) {
-	    console.log("\t and")
+	    console.log("\tand")
 	    formatSoloist(sl[sl.length-1])
 	}
     }
 }
 function formatSoloist(soloist:Soloist) {
+    // Note: Some records confuse these fields, trying to shove everything
+    // into name, or entering "soprano" in both role and instrument.
+    // We could try to detect the latter, at least, and suppress role when
+    // it's also listed as an instrument for that performer.
     console.log("\t",soloist.musician.name)
-    if(soloist.role) console.log("\t\t as",soloist.role)
+    if(soloist.role) console.log("\t\tin the role of",soloist.role)
     if(soloist.instruments && soloist.instruments.length>0) {
-	console.log("\t\t playing",soloist.instruments[0])
+	// This sounds a bit odd when the instrument is vocal.
+	// Any ideas for better phrasing?
+	console.log("\t\ton",soloist.instruments[0])
 	for(let i=1;i<soloist.instruments.length-1;++i)
 	    console.log("\t\t\t,",soloist.instruments[i])
 	if(soloist.instruments.length>1) 
