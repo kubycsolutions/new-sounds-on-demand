@@ -205,11 +205,12 @@ function formatSoloist(soloist:Soloist) {
     // into name, or entering "soprano" in both role and instrument.
     // We could try to detect the latter, at least, and suppress role when
     // it's also listed as an instrument for that performer.
+    //
+    // "on" sounds a bit odd when the instrument is vocal.
+    // Any ideas for better phrasing?
     console.log("\t",soloist.musician.name)
-    if(soloist.role) console.log("\t\tin the role of",soloist.role)
+    if(soloist.role) console.log("\t\tas",soloist.role)
     if(soloist.instruments && soloist.instruments.length>0) {
-	// This sounds a bit odd when the instrument is vocal.
-	// Any ideas for better phrasing?
 	console.log("\t\ton",soloist.instruments[0])
 	for(let i=1;i<soloist.instruments.length-1;++i)
 	    console.log("\t\t\t,",soloist.instruments[i])
