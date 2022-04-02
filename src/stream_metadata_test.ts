@@ -9,8 +9,7 @@ async function sleep(ms:number):Promise<any> {
 doItAgain()
 
 ////////////////////////////////////////////////////////////////
-// GONK: Having some duck-typing failures.
-// If a property is optional, use ?:
+// For ducktyping, if a property is optional use ?: rather than :
 
 interface Someone {
     url:string;
@@ -59,17 +58,19 @@ interface Image {
 }
 interface ShowItem {
     iso_start: string; // with timezone
-    description: string; // may be gratuitous HTML
-    fullImage: Image;  // typ ns_social-avitar.jpg, the wave-linked notes
+    description: string; // may be gratuitously HTML, may be simple text.
+    // For stream, typically ns_social-avitar.jpg, the wave-linked notes.
+    // For episode, typically the artist image
+    fullImage: Image;  
     start_ts: number
     start_time_ts: number; // Seconds, not msec
     iso_end: string; // with tz. For radio, ~ start time of switch to episode
-    listImage: Image; // typ same as fullImage
+    listImage: Image; // typ same as fullImage, but smaller size specified.
     show_url: string; // webpage
-    title: string;
+    title: string; // For episode, "#nnnn, Short Title"
     url: string; // typ same as show_url
     end_ts: number;
-    detailImage: Image;  // typ same as fullImage
+    detailImage: Image;  // typ same as listImage
     start: string // with offset
 }
 interface EpisodeMetadata {
@@ -94,7 +95,7 @@ async function doItAgain() {
     while(true) {
 	await doIt()
 	console.log("\n")
-	await sleep(60000)
+	await sleep(30000)
     }
 }
 
@@ -136,15 +137,16 @@ async function doIt() {
 	    // Note: + concatenation is used here to prevent Node from
 	    // "helpfully" coloring the date dark purple. I often use
 	    // a black background with white text for commandline, so...
-	    console.log("Now playing:",cat.title, "(until "+new Date(endms)+")")
+	    console.log("Now playing:",cat.title)
 	    
 	    console.log("Composed by:",cat.composer.name)
 	    var ac=cat.additional_composers
 	    if(ac && ac.length>0) {
-		console.log("\twith",ac[0].name)
+		console.log("\t",ac[0].name)
 		for(let i=1;i<ac.length-1;++i)
 		    console.log("\t,",ac[i].name)
-		console.log("\tand",ac[ac.length-1].name)
+		if(ac.length>1)
+		    console.log("\tand",ac[ac.length-1].name)
 	    }
 
 	    if(cat.ensemble)
@@ -158,7 +160,7 @@ async function doIt() {
 		    console.log("\tand",ae[ae.length-1].name)
 		}
 	    }
-	    
+
 	    if(cat.soloists) {
 		formatSoloists(cat.soloists)
 	    }
@@ -174,15 +176,23 @@ async function doIt() {
 	// episode name, number and all. That's convenient.  (May want
 	// to copy the fix-nonstandard-title logic here, though recent
 	// episodes are probably more regularly named than old ones.)
-	console.log("DEBUG isEp:",JSON.stringify(meta))
+	//
+	// GONK: OPEN ISSUE: The livestream meta server is sometimes
+	// *not* reporting the right episode's title/description. Not
+	// much I can do about that except to say only "an episode of
+	// the daily New Sounds program" and leave it at that. This
+	// one has to be fixed by the station's IT folks.
+
+	//console.log("DEBUG isEp:",JSON.stringify(meta))
+	console.log("SUSPECT DATA:")
 	console.log("New Sounds",meta.current_show.title)
-	console.log("iso_end:",meta.current_show.iso_end)
+	console.log(meta.current_show.description)
     } else {
 	console.error("\nvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv")
-	console.error("Ducktype failed")
+	console.error("Ducktype failed; data not in expected format")
 	console.error(JSON.stringify(meta,null,4))
-	console.error("I'm not sure. Try asking again in a minute or two.")
 	console.error("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n")
+	console.error("I'm not sure. Try asking again in a minute or two.")
     }
 
 }
@@ -201,13 +211,13 @@ function formatSoloists(sl:Soloist[]) {
     }
 }
 function formatSoloist(soloist:Soloist) {
-    // Note: Some records confuse these fields, trying to shove everything
-    // into name, or entering "soprano" in both role and instrument.
-    // We could try to detect the latter, at least, and suppress role when
-    // it's also listed as an instrument for that performer.
+    // Note: Some records confuse/entangle these fields.
+    // We could try to detect that, but I think there's 
+    // significant risk of making matters worse rather than better.
+    // We could at least detect role==instrument...
     //
-    // "on" sounds a bit odd when the instrument is vocal.
-    // Any ideas for better phrasing?
+    // "On" or "playing" sounds a bit odd when the instrument is vocal.
+    // Any ideas for better phrasing? I'm currently using "as" for role.
     console.log("\t",soloist.musician.name)
     if(soloist.role) console.log("\t\tas",soloist.role)
     if(soloist.instruments && soloist.instruments.length>0) {
