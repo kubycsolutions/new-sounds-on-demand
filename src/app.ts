@@ -579,10 +579,18 @@ app.setHandler({
     },
 
     FastForwardIntent() {
-	// GONK: This one is being surprisingly problematic...
-	// Tells may need to be Asks for this to run as intended
-	// in Google. More multiple-path coding. Really wish Jovo
-	// encapsulated that.
+	// GONK: Alexa apprently suggests prefixless next/previous
+	// intents with a slot: next/previous/skip/skip forward/skip
+	// back <duration>. However: "Note: The standard built-in
+	// intents can't include any slots. If you need slots, you
+	// create a custom intent and write your own sample
+	// utterances." On the other other hand, predefined intents in
+	// other categories (not "standard") may have slots. TODO
+	// REVIEW: CONFUSING!
+	//
+	// GONK: This one was being surprisingly problematic...
+	// Theoretically, it *should* just be a matter of playing from
+	// a recalculated offset.
         var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
 	    return this.tell("You can't move forward or back in the livestream. That kind of control is only available when playing episodes.");

@@ -1,5 +1,5 @@
 import { Player } from './player';
-import got from 'got' // HTTP(s) fetch
+import got from 'got' // HTTP/HTTPS fetch
 
 // Kluge for CUI
 async function sleep(ms:number):Promise<any> {
@@ -128,49 +128,26 @@ async function doIt() {
 	    console.log("\tstart "+new Date(startms))
 	    console.log("\tend ~ "+new Date(endms))
 	    console.log("\tlocal "+new Date())
-	    console.log("\tI'm not sure yet. Let me listen for another minute or two, then ask again.")
+	    console.log("\tI'm not sure. Let me listen for another minute or two, then ask again.")
 	}
 	else
 	{
 	    var cat=meta.current_playlist_item.catalog_entry
 
-	    // Note: + concatenation is used here to prevent Node from
-	    // "helpfully" coloring the date dark purple. I often use
-	    // a black background with white text for commandline, so...
-	    console.log("Now playing:",cat.title)
-	    
-	    console.log("Composed by:",cat.composer.name)
-	    var ac=cat.additional_composers
-	    if(ac && ac.length>0) {
-		console.log("\t",ac[0].name)
-		for(let i=1;i<ac.length-1;++i)
-		    console.log("\t,",ac[i].name)
-		if(ac.length>1)
-		    console.log("\tand",ac[ac.length-1].name)
-	    }
+	    console.log("\""+cat.title+"\"")
 
-	    if(cat.ensemble)
-	    {
-		console.log("Performed by",cat.ensemble.name)
-		var ae=cat.additional_ensembles
-		if(ae && ae.length>0) {
-		    console.log("\twith",ae[0].name)
-		    for(let i=1;i<ae.length-1;++i)
-			console.log("\t,",ae[i].name)
-		    console.log("\tand",ae[ae.length-1].name)
-		}
-	    }
+	    formatAllComposers(cat)
+	    formatAllEnsembles(cat)
+	    formatSoloists(cat)
 
-	    if(cat.soloists) {
-		formatSoloists(cat.soloists)
-	    }
 	    if(cat.conductor)
 		console.log("Under the direction of",cat.conductor.name)
 	}
     } else if (isEpisodeMetadata(meta)) {
 	// NOTE: For playlist items, this is *also* true, reporting
 	// the episode as belonging to New Sounds Radio and giving as its
-	// iso_end the time when we switch to an episode.
+	// iso_end the time when we switch to an episode. Not useful for my
+	// purposes right now.
 	//
 	// For actual episodes, meta.current_show.title reports the
 	// episode name, number and all. That's convenient.  (May want
@@ -183,10 +160,10 @@ async function doIt() {
 	// the daily New Sounds program" and leave it at that. This
 	// one has to be fixed by the station's IT folks.
 
-	//console.log("DEBUG isEp:",JSON.stringify(meta))
-	console.log("SUSPECT DATA:")
-	console.log("New Sounds",meta.current_show.title)
-	console.log(meta.current_show.description)
+	console.error("SUSPECT DATA: It's an episode, but probably not the one stated unless the server bug has been fixed.")
+	// console.log("New Sounds",meta.current_show.title)
+	// console.log(meta.current_show.description)
+	console.log("An episode of the New Sounds daily show.")
     } else {
 	console.error("\nvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv")
 	console.error("Ducktype failed; data not in expected format")
@@ -197,7 +174,8 @@ async function doIt() {
 
 }
 
-function formatSoloists(sl:Soloist[]) {
+function formatSoloists(cat:CatalogEntry) {
+    var sl=cat.soloists;
     if(sl && sl.length>0) {
 	console.log("featuring")
 	formatSoloist(sl[0])
@@ -227,4 +205,32 @@ function formatSoloist(soloist:Soloist) {
 	if(soloist.instruments.length>1) 
 	    console.log("\t\t\tand",soloist.instruments[soloist.instruments.length-1])
     }
+}
+
+function formatAllComposers(cat:CatalogEntry) {
+    	    if(cat.composer) {
+	    	console.log("Composed by:",cat.composer.name)
+		var ac=cat.additional_composers
+		if(ac && ac.length>0) {
+		    console.log("\t",ac[0].name)
+		    for(let i=1;i<ac.length-1;++i)
+			console.log("\t,",ac[i].name)
+		    if(ac.length>1)
+			console.log("\tand",ac[ac.length-1].name)
+		}
+	    }
+}
+
+function formatAllEnsembles(cat:CatalogEntry) {
+    	    if(cat.ensemble)
+	    {
+		console.log("Performed by",cat.ensemble.name)
+		var ae=cat.additional_ensembles
+		if(ae && ae.length>0) {
+		    console.log("\twith",ae[0].name)
+		    for(let i=1;i<ae.length-1;++i)
+			console.log("\t,",ae[i].name)
+		    console.log("\tand",ae[ae.length-1].name)
+		}
+	    }
 }
