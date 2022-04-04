@@ -3,7 +3,7 @@ import got from 'got' // HTTP/HTTPS fetch
 
 // Kluge for CUI
 async function sleep(ms:number):Promise<any> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 doItAgain()
@@ -37,7 +37,7 @@ interface CatalogEntry {
     length:number;
     ensemble: Someone;
     additional_ensembles:Someone[];
- }
+}
 interface PlaylistItem {
     start_time_ts: number; // seconds, not msec
     start_time: string; // NY time
@@ -134,14 +134,19 @@ async function doIt() {
 	{
 	    var cat=meta.current_playlist_item.catalog_entry
 
-	    console.log("\""+cat.title+"\"")
+	    var title=cat.title
+	    var composers=formatAllComposers(cat)
+	    var ensembles=formatAllEnsembles(cat)
+	    var soloists=formatSoloists(cat)
+	    var conductor=cat.conductor
 
-	    formatAllComposers(cat)
-	    formatAllEnsembles(cat)
-	    formatSoloists(cat)
+	    var buffer="Now playing: \""+title+"\""
+	    if(composers) buffer+=", composed by "+composers
+	    if(ensembles) buffer+=", performed by "+ensembles
+	    if(soloists) buffer+=", featuring "+soloists
+	    if(conductor) buffer+=", under the direction of"+conductor.name
 
-	    if(cat.conductor)
-		console.log("Under the direction of",cat.conductor.name)
+	    console.log(buffer)
 	}
     } else if (isEpisodeMetadata(meta)) {
 	// NOTE: For playlist items, this is *also* true, reporting
@@ -174,21 +179,21 @@ async function doIt() {
 
 }
 
-function formatSoloists(cat:CatalogEntry) {
+function formatSoloists(cat:CatalogEntry):(string|null) {
+    var s:(string|null)=null
     var sl=cat.soloists;
     if(sl && sl.length>0) {
-	console.log("featuring")
-	formatSoloist(sl[0])
-	for(let i=1;i<sl.length-1;++i){
-	    formatSoloist(sl[i])
-	}
+	s=formatSoloist(sl[0])
+	for(let i=1;i<sl.length-1;++i)
+	    s+="; "+formatSoloist(sl[i])
 	if(sl.length>1) {
-	    console.log("\tand")
-	    formatSoloist(sl[sl.length-1])
+	    s+=" and "+formatSoloist(sl[sl.length-1])
 	}
     }
+    return s
 }
-function formatSoloist(soloist:Soloist) {
+
+function formatSoloist(soloist:Soloist):(string|null) {
     // Note: Some records confuse/entangle these fields.
     // We could try to detect that, but I think there's 
     // significant risk of making matters worse rather than better.
@@ -196,41 +201,46 @@ function formatSoloist(soloist:Soloist) {
     //
     // "On" or "playing" sounds a bit odd when the instrument is vocal.
     // Any ideas for better phrasing? I'm currently using "as" for role.
-    console.log("\t",soloist.musician.name)
-    if(soloist.role) console.log("\t\tas",soloist.role)
+    var s:(string|null)=soloist.musician.name
+    if(soloist.role) s+=" as "+soloist.role
     if(soloist.instruments && soloist.instruments.length>0) {
-	console.log("\t\ton",soloist.instruments[0])
+	s+=" on "+soloist.instruments[0]
 	for(let i=1;i<soloist.instruments.length-1;++i)
-	    console.log("\t\t\t,",soloist.instruments[i])
+	    s+=", "+soloist.instruments[i]
 	if(soloist.instruments.length>1) 
-	    console.log("\t\t\tand",soloist.instruments[soloist.instruments.length-1])
+	    s+=" and"+soloist.instruments[soloist.instruments.length-1]
     }
+    return s
 }
 
-function formatAllComposers(cat:CatalogEntry) {
-    	    if(cat.composer) {
-	    	console.log("Composed by:",cat.composer.name)
-		var ac=cat.additional_composers
-		if(ac && ac.length>0) {
-		    console.log("\t",ac[0].name)
-		    for(let i=1;i<ac.length-1;++i)
-			console.log("\t,",ac[i].name)
-		    if(ac.length>1)
-			console.log("\tand",ac[ac.length-1].name)
-		}
-	    }
+function formatAllComposers(cat:CatalogEntry):(string|null) {
+    var s:(string|null)=null
+    if(cat.composer) {
+	s=cat.composer.name
+	var ac=cat.additional_composers
+	if(ac && ac.length>0) {
+	    s+=", "+ac[0].name
+	    for(let i=1;i<ac.length-1;++i)
+		s+=", "+ac[i].name
+	    if(ac.length>1)
+		s+=" and "+ac[ac.length-1].name
+	}
+    }
+    return s
 }
 
-function formatAllEnsembles(cat:CatalogEntry) {
-    	    if(cat.ensemble)
-	    {
-		console.log("Performed by",cat.ensemble.name)
-		var ae=cat.additional_ensembles
-		if(ae && ae.length>0) {
-		    console.log("\twith",ae[0].name)
-		    for(let i=1;i<ae.length-1;++i)
-			console.log("\t,",ae[i].name)
-		    console.log("\tand",ae[ae.length-1].name)
-		}
-	    }
+function formatAllEnsembles(cat:CatalogEntry):(string|null) {
+    var s:(string|null)=null
+    if(cat.ensemble)
+    {
+	s=cat.ensemble.name
+	var ae=cat.additional_ensembles
+	if(ae && ae.length>0) {
+	    s+=", with "+ae[0].name
+	    for(let i=1;i<ae.length-1;++i)
+		s+=", "+ae[i].name
+	    s+=" and "+ae[ae.length-1].name
+	}
+    }
+    return s
 }
