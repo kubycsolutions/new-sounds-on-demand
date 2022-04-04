@@ -144,7 +144,7 @@ async function doIt() {
 	    if(composers) buffer+=", composed by "+composers
 	    if(ensembles) buffer+=", performed by "+ensembles
 	    if(soloists) buffer+=", featuring "+soloists
-	    if(conductor) buffer+=", under the direction of"+conductor.name
+	    if(conductor) buffer+=", under the direction of "+conductor.name
 
 	    console.log(buffer)
 	}
