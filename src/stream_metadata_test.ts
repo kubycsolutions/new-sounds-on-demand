@@ -1,7 +1,9 @@
 import { Player } from './player';
 import got from 'got' // HTTP/HTTPS fetch
 
-// Kluge for CUI
+const DEBUG=("DEBUG"==process.env.STREAM_METADATA_TEST_DEBUG)
+
+// Kluge; JS has no official sleep function but it does have timeout.
 async function sleep(ms:number):Promise<any> {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -27,7 +29,7 @@ interface RecLabel {
     name: string;
 }
 interface CatalogEntry {
-    reclabel: RecLabel;
+    reclabel: RecLabel; // Unfortunately, album title is not provided.
     conductor: Someone; // may be null
     composer: Someone;
     additional_composers: Someone[];
@@ -93,14 +95,21 @@ function isEpisodeMetadata(duckObject: any): duckObject is EpisodeMetadata {
 
 async function doItAgain() {
     while(true) {
-	await doIt()
-	console.log("\n")
+	try {
+	    await doIt()
+	    console.log("\n")
+	}
+	catch (e) {
+	    console.error(e)
+	    console.error("... Continuing timed loop")
+	}
 	await sleep(30000)
     }
 }
 
 async function doIt() {
     var meta=await Player.getLiveStreamMetaData()
+    if(DEBUG) console.error("\nDEBUG:",JSON.stringify(meta,null,4),"\n")
     if(isPlaylistMetadata(meta)) {
 	var cat=meta.current_playlist_item.catalog_entry
 
@@ -111,16 +120,14 @@ async function doIt() {
 	//
 	// Fields are in seconds, not msec.
 	//
-	// ODDITY: There will sometimes be a late instance of an old
-	// response after three or so correct reponses. It's possible
-	// that the station has multiple servers responsing in
-	// round-robin, one of which is updating well after the
-	// others. I think it's OK to say "not sure" in this case,
-	// since it does correct itself on subsequent queries.
+	// ODDITY: Clock skew?  I think it's OK to say "not sure" in
+	// this case, since it does correct itself on subsequent
+	// queries.
 	//
 	// Do we need to worry about skew the other way?
 	var startms:number=1000*meta.current_playlist_item.start_time_ts
 	var len:number=cat.length
+	
 	var endms:number=startms+(1000*len)
 	var now:number=Date.now()
 	if(endms<=now || startms>=now) {
@@ -128,6 +135,7 @@ async function doIt() {
 	    console.log("\tstart "+new Date(startms))
 	    console.log("\tend ~ "+new Date(endms))
 	    console.log("\tlocal "+new Date())
+
 	    console.log("\tI'm not sure. Let me listen for another minute or two, then ask again.")
 	}
 	else
@@ -139,13 +147,15 @@ async function doIt() {
 	    var ensembles=formatAllEnsembles(cat)
 	    var soloists=formatSoloists(cat)
 	    var conductor=cat.conductor
+	    var pub=formatPublisher(cat)
 
 	    var buffer="Now playing: \""+title+"\""
 	    if(composers) buffer+=", composed by "+composers
 	    if(ensembles) buffer+=", performed by "+ensembles
 	    if(soloists) buffer+=", featuring "+soloists
 	    if(conductor) buffer+=", under the direction of "+conductor.name
-
+	    if(pub) buffer+=". Published by "+pub
+	    buffer+="."
 	    console.log(buffer)
 	}
     } else if (isEpisodeMetadata(meta)) {
@@ -208,7 +218,7 @@ function formatSoloist(soloist:Soloist):(string|null) {
 	for(let i=1;i<soloist.instruments.length-1;++i)
 	    s+=", "+soloist.instruments[i]
 	if(soloist.instruments.length>1) 
-	    s+=" and"+soloist.instruments[soloist.instruments.length-1]
+	    s+=" and "+soloist.instruments[soloist.instruments.length-1]
     }
     return s
 }
@@ -243,4 +253,13 @@ function formatAllEnsembles(cat:CatalogEntry):(string|null) {
 	}
     }
     return s
+}
+
+function formatPublisher(cat:CatalogEntry):(string|null) {
+    if(cat.reclabel 
+       && cat.reclabel.name 
+       && cat.reclabel.name.length>0)
+	return cat.reclabel.name;
+    else
+	return null;
 }
