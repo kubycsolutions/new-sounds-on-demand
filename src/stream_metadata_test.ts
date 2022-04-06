@@ -175,10 +175,14 @@ async function doIt() {
 	// the daily New Sounds program" and leave it at that. This
 	// one has to be fixed by the station's IT folks.
 
-	console.error("SUSPECT DATA: It's an episode, but probably not the one stated unless the server bug has been fixed.")
-	// console.log("New Sounds",meta.current_show.title)
-	// console.log(meta.current_show.description)
+	// console.error("\n"+JSON.stringify(meta,null,4))
+	console.error("SUSPECT DATA: It's an episode, but not the one stated unless the server bug has been fixed.")
+	console.error("CLAIMS TO BE: New Sounds",meta.current_show.title)
 	console.log("An episode of the New Sounds daily show.")
+	// GONK: Are streamed episodes always rebroadcasts? If not, we
+	// can check episodeDB to see whether it is today's
+	// episode... IF/WHEN we get the right ep#. (6PM seems to be
+	// yesterday's daily. Midnight seems to be other...)
     } else {
 	console.error("\nvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv")
 	console.error("Ducktype failed; data not in expected format")
