@@ -5036,12 +5036,7 @@
             "name": "CreditsIntent",
             "phrases": [
                 "Roll the credits",
-                "Read the credits",
-                "Who created this",
-                "Who thought of this",
-                "Who wrote this",
-                "Where did this come from",
-                "Who is the host"
+                "Read the credits"
             ]
         },
         {
@@ -5072,23 +5067,71 @@
                     },
                     {
                         "name": "AMAZON.SearchAction<object@MusicRecording[byArtist.musicGroupMember]>",
-                        "samples": []
+                        "samples": [
+			    "Who sings this song",
+			    "Who is singing this song",
+			    "Who sings this track",
+			    "Who is singing this track",
+			    "Who sings this piece",
+			    "Who is singing this piece",
+			    "Who sings this composition",
+			    "Who is singing this composition",
+			    "Who is singing"
+			]
                     },
                     {
                         "name": "AMAZON.SearchAction<object@MusicRecording[byArtist]>",
-                        "samples": []
+                        "samples": [
+			    "Who is playing this song",
+			    "Who performs this song",
+			    "Who is playing this track",
+			    "Who performs this track",
+			    "Who is playing this piece",
+			    "Who performs this piece",
+			    "Who is playing this composition",
+			    "Who performs this composition",
+			    "Who is performing",
+			    "Who are we listing to",
+			    "Who is this"
+			]
                     },
                     {
                         "name": "AMAZON.SearchAction<object@MusicRecording[duration]>",
-                        "samples": []
+                        "samples": [
+			    "How long is this song",
+			    "How long is this track",
+			    "How long is this piece",
+			    "How long is this composition",
+			    "How long is this?"
+			]
                     },
                     {
                         "name": "AMAZON.SearchAction<object@MusicRecording[inAlbum]>",
-                        "samples": []
+                        "samples": [
+			    "What album is this song on",
+			    "What album is this track on",
+			    "What album is this composition on",
+			    "What album is this piece on",
+			    "What album is this song from",
+			    "What album is this track from",
+			    "What album is this composition from",
+			    "What album is this piece from",
+			    "What album is this on",
+			    "What album is this from",
+			    "Where can I find this song",
+			    "Where can I find this track",
+			    "Where can I find this piece",
+			    "Where can I find this composition"
+			]
                     },
                     {
                         "name": "AMAZON.SearchAction<object@MusicRecording[producer]>",
-                        "samples": []
+                        "samples": [
+			    "Who produced this song",
+			    "Who produced this track",
+			    "Who produced this piece",
+			    "Who produced this composition"
+			]
                     }
                 ]
             }

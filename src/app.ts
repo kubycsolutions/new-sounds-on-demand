@@ -132,6 +132,7 @@ import { JovoDebugger } from 'jovo-plugin-debugger';
 import { Player } from './player';
 import { Project } from 'jovo-framework'
 import { set_AWS_endpoint,EpisodeRecord } from './episodesdb'
+import { getStreamMetadataText } from "./stream_metadata"
 import { format } from 'date-fns'
 
 console.log('TODO: This implementation uses an outdated version of the Jovo Framework. When time permits, we will upgrade to Jovo v4. See https://www.jovo.tech/docs/migration-from-v3');
@@ -252,10 +253,8 @@ function parseISO8601Duration (iso8601Duration:string):ParsedDate|null {
 // ------------------------------------------------------------------
 // APP LOGIC FOLLOWS
 //
-// Note: Javascript default exception handling does not report stack
-// trace.  It appears that if I want that logged, I need a
-// try/catch/print/rethrow in every entry point (and possibly every
-// async).
+// Note: Javascript/Jovo default exception handling may not report stack
+// trace. Hence the try/catch{print;rethrow} here.
 // ------------------------------------------------------------------
 
 app.setHandler({
@@ -818,7 +817,8 @@ app.setHandler({
     async "AMAZON.SearchAction<object@MusicRecording[byArtist.musicGroupMember]>"() {
         var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
-	    this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	    //this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	    this.$speech.addText(await getStreamMetadataText())
 	} else {
 	    var episode=await Player.getEpisodeByDate(currentDate)
 	    if(episode==null)
@@ -834,7 +834,8 @@ app.setHandler({
     async "AMAZON.SearchAction<object@MusicRecording[byArtist]>"() {
         var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
-	    this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	    // this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	    this.$speech.addText(await getStreamMetadataText())
 	} else {
 	    var episode=await Player.getEpisodeByDate(currentDate)
 	    if(episode==null)
@@ -849,7 +850,8 @@ app.setHandler({
     async "AMAZON.SearchAction<object@MusicRecording[duration]>"() {
         var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
-	    this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	    // this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	    this.$speech.addText(await getStreamMetadataText())
 	} else {
 	    var episode=await Player.getEpisodeByDate(currentDate)
 	    if(episode==null)
@@ -864,7 +866,8 @@ app.setHandler({
     async "AMAZON.SearchAction<object@MusicRecording[inAlbum]>"() {
         var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
-	    this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	    //this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	    this.$speech.addText(await getStreamMetadataText())
 	} else {
 	    var episode=await Player.getEpisodeByDate(currentDate)
 	    if(episode==null)
@@ -878,7 +881,8 @@ app.setHandler({
     async "AMAZON.SearchAction<object@MusicRecording[producer]>"() {
         var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
-	    this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	    //this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
+	    this.$speech.addText(await getStreamMetadataText())
 	} else {
 	    var episode=await Player.getEpisodeByDate(currentDate)
 	    if(episode==null)
