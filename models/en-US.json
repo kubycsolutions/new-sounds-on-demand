@@ -1,6 +1,6 @@
 {
     "invocation": "new sounds on demand",
-    "comment": "Grammar examples from WBUR's AUML combinatorial generator, a bit sloppy, should be cleaned up at some point. Note that I'm hoping the systems are able to fairly reliably distinguish later from latest; if not, one or the other may need to drop out.",
+    "comment": "Grammar example generation was assisted by  WBUR's AUML combinatorial generator. Note that I'm hoping the systems are able to fairly reliably distinguish later from latest; if not, one or the other may need to drop out.",
     "intents": [
         {
             "name": "DialogIntent",
@@ -5076,7 +5076,8 @@
 			    "Who is singing this piece",
 			    "Who sings this composition",
 			    "Who is singing this composition",
-			    "Who is singing"
+			    "Who is singing",
+			    "Who is the singer"
 			]
                     },
                     {
@@ -5092,6 +5093,8 @@
 			    "Who performs this composition",
 			    "Who is performing",
 			    "Who are we listing to",
+			    "who we are listening to",
+			    "who this is",
 			    "Who is this"
 			]
                     },
@@ -5102,7 +5105,12 @@
 			    "How long is this track",
 			    "How long is this piece",
 			    "How long is this composition",
-			    "How long is this?"
+			    "How long is this",
+			    "How long this song is",
+			    "How long this track is",
+			    "How long this piece is",
+			    "How long this composition is",
+			    "How long this is"
 			]
                     },
                     {
@@ -5121,7 +5129,21 @@
 			    "Where can I find this song",
 			    "Where can I find this track",
 			    "Where can I find this piece",
-			    "Where can I find this composition"
+			    "Where can I find this composition",
+			    "What album this song is on",
+			    "What album this track is on",
+			    "What album this composition is on",
+			    "What album this piece is on",
+			    "What album this song is from",
+			    "What album this track is from",
+			    "What album this composition is from",
+			    "What album this piece is from",
+			    "What album this is on",
+			    "What album this is from",
+			    "Where I can find this song",
+			    "Where I can find this track",
+			    "Where I can find this piece",
+			    "Where I can find this composition"
 			]
                     },
                     {
@@ -5130,7 +5152,12 @@
 			    "Who produced this song",
 			    "Who produced this track",
 			    "Who produced this piece",
-			    "Who produced this composition"
+			    "Who is the producer",
+			    "Who the producer is",
+			    "Who is the producer for this song",
+			    "Who the producer is for this song",
+			    "Who is the producer for this track",
+			    "Who the producer is for this track"
 			]
                     }
                 ]
