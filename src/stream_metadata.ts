@@ -142,7 +142,7 @@ export async function getStreamMetadataText():Promise<string> {
 	    if(conductor) buffer+=", under the direction of "+conductor.name
 	    if(pub) buffer+=". Published by "+pub
 	    buffer+="."
-	    buffer+=" It runs "+len+" seconds."
+	    buffer+=" It runs "+Math.floor(len/60)+" minutes and "+len%60+" seconds."
 	    
 	    return buffer;
 	}
@@ -252,9 +252,15 @@ function formatPublisher(cat:CatalogEntry):(string|null) {
 
 // Known pronunciation problem patcher.  Javascript doesn't have a map
 // literal, but this essentially compiles to one.
+//
+// There are also a lot of typos in the database where someone
+// misspelled cantaloupe; since I have this hook, I'm fixing some of
+// that here.
 function pronounceMap(name:string):string {
-    switch(name) {
-    case "jwmusic.org": return "j w music dot org" // not "jewmusic dot org"
+    switch(name.toLowerCase()) {
+    case "jwmusic.org": return "J W Music dot org" // not "jewmusic dot org";
+    case "canalope music": return "Cantaloupe Music
+	
     default: return name
     }
 }

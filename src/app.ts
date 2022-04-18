@@ -199,8 +199,8 @@ const AWS = set_AWS_endpoint()
 const { DynamoDb } = require('jovo-db-dynamodb')
 app.use(
     new DynamoDb({
-	// TODO: Get value as eg process.env.USER_TABLE with default;
-	// in Typescript, add "as string"
+	// TODO: Get value as eg process.env.NSOD_USER_TABLE with default;
+	// see examples in episodedb.ts.
 	tableName: "UserState"
     }),
 );
@@ -249,6 +249,11 @@ function parseISO8601Duration (iso8601Duration:string):ParsedDate|null {
     };
 };
 
+function buildPrompt(obj:any,text:(string|null),audioURI:(string|null)) {
+    console.log("buildPrompt: this is", Object.prototype.toString.call(obj))
+    var typeDetermination:number=obj.nonExtantField
+}
+
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 // APP LOGIC FOLLOWS
@@ -275,6 +280,7 @@ app.setHandler({
     },
 
     DialogIntent() {
+    	buildPrompt(this,"would",null)
 	try {
             this.$speech.addText('Would you like to resume where you left off, listen to the newest or oldest episode, play from a date or episode number, play a random episode, or play the live stream?')
             this.ask(this.$speech);
@@ -796,7 +802,7 @@ app.setHandler({
 
     // Hook for testing
     async DebugIntent() {
-        this.$speech.addText("Debug hook baited. Awaiting meta fishies.")
+        this.$speech.addText("Debug hook baited. Awaiting micro fishies.")
 	var meta=await Player.getLiveStreamMetaData()
 	console.log("DebugIntent:"+JSON.stringify(meta))
 	// Tells may need to be Asks for this to run as intended
@@ -806,16 +812,23 @@ app.setHandler({
     },
 
     ////////////////////////////////////////////////////////////////
-    // TODO: acess the livestream's playlist query (whos-on), to be
-    // able to answer "who/what is this"?.  Note that whos-on updates
-    // a bit slowly, so we may need to check timestamps for "ended
-    // before now" and be ready to say "I'm not sure yet."  
+    // TODO: access the livestream's playlist query (whos-on), to be
+    // able to answer "who/what is this"?.  Note that whos-on update
+    // has glitches, so we may need to be ready to say "I'm not sure yet."
+    //
+    // Jovo and/or Amazon doesn't let us prove sample phrases in the
+    // model for these queries, so there are two entry points: the
+    // standard "ask NSOD", plus the one called by Amazon's builtin
+    // grammar if/when prefixless is enabled.
 
     // Amazon's "who sings this song".  For our purposes, we may want
     // to make this synonymous with "who is playing this song"... or
     // we may want to report only vocalist.
     async "AMAZON.SearchAction<object@MusicRecording[byArtist.musicGroupMember]>"() {
-        var currentDate = this.$user.$data.currentDate;
+	return this.toIntent('QuerySingerIntent')
+    },
+    async QuerySingerIntent() {
+	var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
 	    //this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
 	    this.$speech.addText(await getStreamMetadataText())
@@ -832,6 +845,9 @@ app.setHandler({
     // Amazon's "who is playing this song". For our purposes, we may want
     // to make this synonymous with "who sings this song".
     async "AMAZON.SearchAction<object@MusicRecording[byArtist]>"() {
+	return this.toIntent('QueryArtistIntent')
+    },
+    async QueryArtistIntent() {
         var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
 	    // this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
@@ -848,6 +864,9 @@ app.setHandler({
 
     // Amazon's "how long is this song"
     async "AMAZON.SearchAction<object@MusicRecording[duration]>"() {
+	return this.toIntent('QueryDurationIntent')
+    },
+    async QueryDurationIntent() {
         var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
 	    // this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
@@ -855,7 +874,7 @@ app.setHandler({
 	} else {
 	    var episode=await Player.getEpisodeByDate(currentDate)
 	    if(episode==null)
-		this.$speech.addText("Hmmm. I'm not sure which episode you're referring to.)")
+		this.$speech.addText("Hmmm. I'm not sure which episode you're referring to.")
 	    else			     
 		this.$speech.addText("For now I can only get that metadata for the livestream. But you can find the playlist by asking a web browser to show you New Sounds number "+episode.episode+".")
 	}
@@ -864,6 +883,9 @@ app.setHandler({
 
     // Amazon's "what album is this song on"
     async "AMAZON.SearchAction<object@MusicRecording[inAlbum]>"() {
+	return this.toIntent('QueryAlbumIntent')
+    },
+    async QueryAlbumIntent() {
         var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
 	    //this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
@@ -871,14 +893,18 @@ app.setHandler({
 	} else {
 	    var episode=await Player.getEpisodeByDate(currentDate)
 	    if(episode==null)
-		this.$speech.addText("Hmmm. I'm not sure which episode you're referring to.)")
+		this.$speech.addText("Hmmm. I'm not sure which episode you're referring to.")
 	    else			     
 		this.$speech.addText("For now I can only get that metadata for the livestream. But you can find the playlist by asking a web browser to show you New Sounds number "+episode.episode+".")
 	}
 	return this.tell(this.$speech)
     },
+
     // Amazon's "who produced this song"
     async "AMAZON.SearchAction<object@MusicRecording[producer]>"() {
+	return this.toIntent('QueryProducerIntent')
+    },
+    async QueryProducerIntent() {
         var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
 	    //this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
@@ -886,7 +912,7 @@ app.setHandler({
 	} else {
 	    var episode=await Player.getEpisodeByDate(currentDate)
 	    if(episode==null)
-		this.$speech.addText("Hmmm. I'm not sure which episode you're referring to.)")
+		this.$speech.addText("Hmmm. I'm not sure which episode you're referring to.")
 	    else			     
 		this.$speech.addText("For now I can only get that metadata for the livestream. But you can find the playlist by asking a web browser to show you New Sounds number "+episode.episode+".")
 	}

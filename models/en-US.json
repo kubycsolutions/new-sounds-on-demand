@@ -5040,6 +5040,104 @@
             ]
         },
         {
+            "name": "QuerySingerIntent",
+            "phrases": [
+		"Who is singing this song",
+		"Who sings this track",
+		"Who is singing this track",
+		"Who sings this piece",
+		"Who is singing this piece",
+		"Who sings this composition",
+		"Who is singing this composition",
+		"Who is singing",
+		"Who is the singer",
+		"who the singer is"
+            ]
+        },
+        {
+            "name": "QueryArtistIntent",
+            "phrases": [
+		"Who is playing this song",
+		"Who performs this song",
+		"Who is playing this track",
+		"Who performs this track",
+		"Who is playing this piece",
+		"Who performs this piece",
+		"Who is playing this composition",
+		"Who performs this composition",
+		"Who is performing",
+		"Who is playing",
+		"Who are we listing to",
+		"who we are listening to",
+		"who this is",
+		"Who is this"
+            ]
+        },
+        {
+            "name": "QueryDurationIntent",
+            "phrases": [
+		"How long is this piece",
+		"How long is this composition",
+		"How long is this",
+		"How long this song is",
+		"How long this track is",
+		"How long this piece is",
+		"How long this composition is",
+		"How long this is"
+	    ]
+        },
+        {
+            "name": "QueryAlbumIntent",
+            "phrases": [
+		"What album is this composition on",
+		"What album is this piece on",
+		"What album is this song from",
+		"What album is this track from",
+		"What album is this composition from",
+		"What album is this piece from",
+		"What album is this on",
+		"What album is this from",
+		"Where can I find this song",
+		"Where can I find this track",
+		"Where can I find this piece",
+		"Where can I find this composition",
+		"What album this song is on",
+		"What album this track is on",
+		"What album this composition is on",
+		"What album this piece is on",
+		"What album this song is from",
+		"What album this track is from",
+		"What album this composition is from",
+		"What album this piece is from",
+		"What album this is on",
+		"What album this is from",
+		"Where I can find this song",
+		"Where I can find this track",
+		"Where I can find this piece",
+		"Where I can find this composition"
+            ]
+        },
+        {
+            "name": "QueryProducerIntent",
+            "phrases": [
+		"Who is the producer for this piece",
+		"Who is the producer for this song",
+		"Who is the producer for this track",
+		"Who is the producer",
+		"Who is this piece's producer",
+		"Who is this song's producer",
+		"Who is this track's producer",
+		"Who produced this piece",
+		"Who the producer is for this piece",
+		"Who the producer is for this song",
+		"Who the producer is for this track",
+		"Who the producer is",
+		"Who this piece was produced by",
+		"Who this song was produced by",
+		"Who this track was produced by"
+            ]
+        },
+        {
             "name": "DebugIntent",
             "phrases": [
                 "Test",
@@ -5067,98 +5165,23 @@
                     },
                     {
                         "name": "AMAZON.SearchAction<object@MusicRecording[byArtist.musicGroupMember]>",
-                        "samples": [
-			    "Who sings this song",
-			    "Who is singing this song",
-			    "Who sings this track",
-			    "Who is singing this track",
-			    "Who sings this piece",
-			    "Who is singing this piece",
-			    "Who sings this composition",
-			    "Who is singing this composition",
-			    "Who is singing",
-			    "Who is the singer"
-			]
+                        "samples": []
                     },
                     {
                         "name": "AMAZON.SearchAction<object@MusicRecording[byArtist]>",
-                        "samples": [
-			    "Who is playing this song",
-			    "Who performs this song",
-			    "Who is playing this track",
-			    "Who performs this track",
-			    "Who is playing this piece",
-			    "Who performs this piece",
-			    "Who is playing this composition",
-			    "Who performs this composition",
-			    "Who is performing",
-			    "Who are we listing to",
-			    "who we are listening to",
-			    "who this is",
-			    "Who is this"
-			]
+                        "samples": []
                     },
                     {
                         "name": "AMAZON.SearchAction<object@MusicRecording[duration]>",
-                        "samples": [
-			    "How long is this song",
-			    "How long is this track",
-			    "How long is this piece",
-			    "How long is this composition",
-			    "How long is this",
-			    "How long this song is",
-			    "How long this track is",
-			    "How long this piece is",
-			    "How long this composition is",
-			    "How long this is"
-			]
+                        "samples": []
                     },
                     {
                         "name": "AMAZON.SearchAction<object@MusicRecording[inAlbum]>",
-                        "samples": [
-			    "What album is this song on",
-			    "What album is this track on",
-			    "What album is this composition on",
-			    "What album is this piece on",
-			    "What album is this song from",
-			    "What album is this track from",
-			    "What album is this composition from",
-			    "What album is this piece from",
-			    "What album is this on",
-			    "What album is this from",
-			    "Where can I find this song",
-			    "Where can I find this track",
-			    "Where can I find this piece",
-			    "Where can I find this composition",
-			    "What album this song is on",
-			    "What album this track is on",
-			    "What album this composition is on",
-			    "What album this piece is on",
-			    "What album this song is from",
-			    "What album this track is from",
-			    "What album this composition is from",
-			    "What album this piece is from",
-			    "What album this is on",
-			    "What album this is from",
-			    "Where I can find this song",
-			    "Where I can find this track",
-			    "Where I can find this piece",
-			    "Where I can find this composition"
-			]
+                        "samples": []
                     },
                     {
                         "name": "AMAZON.SearchAction<object@MusicRecording[producer]>",
-                        "samples": [
-			    "Who produced this song",
-			    "Who produced this track",
-			    "Who produced this piece",
-			    "Who is the producer",
-			    "Who the producer is",
-			    "Who is the producer for this song",
-			    "Who the producer is for this song",
-			    "Who is the producer for this track",
-			    "Who the producer is for this track"
-			]
+                        "samples": []
                     }
                 ]
             }
