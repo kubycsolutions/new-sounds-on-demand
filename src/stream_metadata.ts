@@ -259,8 +259,7 @@ function formatPublisher(cat:CatalogEntry):(string|null) {
 function pronounceMap(name:string):string {
     switch(name.toLowerCase()) {
     case "jwmusic.org": return "J W Music dot org" // not "jewmusic dot org";
-    case "canalope music": return "Cantaloupe Music
-	
+    case "canalope music": return "Cantaloupe Music" // distracted intern
     default: return name
     }
 }
