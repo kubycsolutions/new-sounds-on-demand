@@ -677,9 +677,15 @@ app.setHandler({
 	// takes "the second" as "the next 2nd of whatever-month". It
 	// may not be clear to the user whether "last Monday" means
 	// this week or last week. And the user could actually ask for
-	// a future date. Simplest recovery is to ask them to rephrase
-	// when it's a date we don't know anything about. That avoids
-	// the risk of our guessing differently from other apps.
+	// a future date, though we won't have anything for
+	// those. Simplest recovery is to ask them to rephrase when
+	// it's a date we don't know anything about. That avoids the
+	// risk of our guessing differently from other apps, but at the
+	// cost of making the user jump through arguably unnecessary hoops.
+	//
+	// (At a low level, Alexa supposedly makes raw-ish forms available
+	// as such, eg 3031-SU or XX:01:2021. I don't see any way to access
+	// those in Jovo's intent object.)
 	if(utcDatestamp>Date.now())
 	{
 	    this.$speech.addText("That came through as a future date. Could you rephrase your request?")
