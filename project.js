@@ -8,9 +8,9 @@ module.exports = {
 	    endpoint: '${JOVO_WEBHOOK_URL}'
 	},
 	lambda: {
-  	    arn: 'arn:aws:lambda:us-east-1:046935287063:function:prod-new-sounds-on-demand',
+  	    arn: 'arn:aws:lambda:us-east-1:046935287063:function:dev-new-sounds-on-demand',
  	    askProfile: 'admin', // if left out: "default" profile is used
-	    endpoint: 'arn:aws:lambda:us-east-1:046935287063:function:prod-new-sounds-on-demand'
+	    endpoint: 'arn:aws:lambda:us-east-1:046935287063:function:dev-new-sounds-on-demand'
 	}
     },
     alexaSkill: {
@@ -35,7 +35,7 @@ module.exports = {
     // MANUAL DEV/PROD SWITCHING: Comment out either endpoint: or host:.
     //     host: {
     // 	lambda: {
-    // 	    arn: 'arn:aws:lambda:us-east-1:046935287063:function:prod-new-sounds-on-demand',
+    // 	    arn: 'arn:aws:lambda:us-east-1:046935287063:function:dev-new-sounds-on-demand',
     // 	    askProfile: 'admin', // if left out: "default" profile is used
     // 	}
     // }
@@ -55,7 +55,7 @@ module.exports = {
     // 	    endpoint: null,
     // 	    host: {
     // 		lambda: {
-    // 		    arn: 'arn:aws:lambda:us-east-1:046935287063:function:prod-new-sounds-on-demand',
+    // 		    arn: 'arn:aws:lambda:us-east-1:046935287063:function:dev-new-sounds-on-demand',
     // 		    askProfile: 'admin', // if left out: "default" profile is used
     // 		}
     // 	    }

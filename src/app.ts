@@ -810,7 +810,7 @@ app.setHandler({
 	// encapsulated that.
 	return this.ask(this.$speech)
     },
-
+   
     ////////////////////////////////////////////////////////////////
     // TODO: access the livestream's playlist query (whos-on), to be
     // able to answer "who/what is this"?.  Note that whos-on update
@@ -830,7 +830,6 @@ app.setHandler({
     async QuerySingerIntent() {
 	var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
-	    //this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
 	    this.$speech.addText(await getStreamMetadataText())
 	} else {
 	    var episode=await Player.getEpisodeByDate(currentDate)
@@ -850,7 +849,6 @@ app.setHandler({
     async QueryArtistIntent() {
         var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
-	    // this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
 	    this.$speech.addText(await getStreamMetadataText())
 	} else {
 	    var episode=await Player.getEpisodeByDate(currentDate)
@@ -869,7 +867,6 @@ app.setHandler({
     async QueryDurationIntent() {
         var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
-	    // this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
 	    this.$speech.addText(await getStreamMetadataText())
 	} else {
 	    var episode=await Player.getEpisodeByDate(currentDate)
@@ -888,7 +885,6 @@ app.setHandler({
     async QueryAlbumIntent() {
         var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
-	    //this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
 	    this.$speech.addText(await getStreamMetadataText())
 	} else {
 	    var episode=await Player.getEpisodeByDate(currentDate)
