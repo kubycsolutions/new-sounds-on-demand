@@ -135,7 +135,10 @@ import { set_AWS_endpoint,EpisodeRecord } from './episodesdb'
 import { getStreamMetadataText } from "./stream_metadata"
 import { format } from 'date-fns'
 
-console.log('TODO: This implementation uses an outdated version of the Jovo Framework. When time permits, we will upgrade to Jovo v4. See https://www.jovo.tech/docs/migration-from-v3');
+const DEBUG=("DEBUG"==process.env.APP_DEBUG)
+
+// Nag message. Really should make time.
+console.log('TODO: This implementation still uses the outdated Jovo3 Framework. When time permits, we will upgrade to Jovo v4. See https://www.jovo.tech/docs/migration-from-v3');
 
 ////////////////////////////////////////////////////////////////
 const ShowCredits="New Sounds is produced by New York Public Radio, W N Y C and W Q X R. The host and creator of the show is John Schaefer. His team includes Caryn Havlik, Helga Davis, Rosa Gollan, Justin Sergi, and Irene Trudel. More information about these folks, and about the show, can be found on the web at New Sounds dot org."
@@ -249,10 +252,6 @@ function parseISO8601Duration (iso8601Duration:string):ParsedDate|null {
     };
 };
 
-function buildPrompt(obj:any,text:(string|null),audioURI:(string|null)) {
-    console.log("buildPrompt: this is", Object.prototype.toString.call(obj))
-    var typeDetermination:number=obj.nonExtantField
-}
 
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -280,7 +279,6 @@ app.setHandler({
     },
 
     DialogIntent() {
-    	buildPrompt(this,"would",null)
 	try {
             this.$speech.addText('Would you like to resume where you left off, listen to the newest or oldest episode, play from a date or episode number, play a random episode, or play the live stream?')
             this.ask(this.$speech);
@@ -914,7 +912,6 @@ app.setHandler({
 	}
 	return this.tell(this.$speech)
     }
-
 });
 
 ////////////////////////////////////////////////////////////////////
