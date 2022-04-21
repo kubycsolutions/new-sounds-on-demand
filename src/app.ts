@@ -130,7 +130,7 @@ import { GoogleAssistant } from 'jovo-platform-googleassistant';
 import { GoogleHandler } from './google/handler';
 import { JovoDebugger } from 'jovo-plugin-debugger';
 import { Player } from './player';
-import { Project } from 'jovo-framework'
+import { Project,Jovo,SpeechBuilder } from 'jovo-framework'
 import { set_AWS_endpoint,EpisodeRecord } from './episodesdb'
 import { getStreamMetadataText } from "./stream_metadata"
 import { format } from 'date-fns'
@@ -252,6 +252,61 @@ function parseISO8601Duration (iso8601Duration:string):ParsedDate|null {
     };
 };
 
+////////////////////////////////////////////////////////////////
+// Jovo, alas, doesn't fully bury the need to be aware of which platform
+// we are interacting with. But we can implement some of that here.
+// Alas, Javascript's only marginally OO (or at least I don't know how
+// to make it more so), so the Jovo team's best suggestion for
+// refactoring was to explicitly pass the handler's "this" value
+// into the subroutine.
+//
+// Note that the responses (.tell etc) act by writing into a Jovo-level
+// $output object, which is then acted on appropriately when the handler
+// returns control to Jovo.
+//
+// Note: `${varname}` is a "safe" generic toString idiom -- that is,
+// no matter what you throw at it, including null and undefined, the result
+// will be a string. Overkill for my needs, inherited from reference code
+// and kept because it's a kluge worth remembering.
+//
+// Note: I'm keeping addUriUsage here because it's universal for my app.
+//
+// BUG TODO ISSUE: If we need to reload Alexa cache before playing,
+// resume may have a long delay as it decompresses up to the offset
+// point. I haven't thought of a reliable way to advise the user of
+// this without unnecessary warnings (when already in cache, it's
+// fast).  Check whether Alexa has a solution, though short of
+// breaking into smaller MP3's so there are more frequent
+// decompression synch/resume points I don't know what one could do.
+//
+// Note: Google apparently can't handle offsets. But google handles
+// pause/resume without involving us at all, so that should be OK for
+// now.
+
+function setAudioResponse(that:Jovo,text:(string | string[] | SpeechBuilder),audioURI:string,audioOffset:number,audioDate:number,audioTitle:string) {
+    if (that.isAlexaSkill()) {
+	that.$alexaSkill!.$audioPlayer! // guaranteed non-null by test
+            .setOffsetInMilliseconds(audioOffset)
+            .play(addUriUsage(audioURI), `${audioDate}`)
+            .tell(text)
+    } else if (that.isGoogleAction()) {
+	// NOTE: We use that.ask(), not that.tell(), because we want
+	// google to send us the playback-completed callback, which
+	// requires that this not be a Final Response. However, that
+	// forces including Suggestion Chips. (Which isn't an awful
+	// thing, as we work toward screen support.)
+	that.$googleAction! // guaranteed non-null by test
+	    .$mediaResponse! // guaranteed non-null
+	    .play(addUriUsage(audioURI), audioTitle);
+	that.$googleAction!.showSuggestionChips(['pause', 'start over']);
+	that.ask(text);
+    }
+    else {
+	console.error("Unexpected action type",objToString(that))
+    }
+
+}
+
 
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -304,20 +359,7 @@ app.setHandler({
             var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
             this.$speech.addText('Fetching episode '+episode.title+".");
 
-            if (this.isAlexaSkill()) {
-		this.$alexaSkill!.$audioPlayer!
-                    .setOffsetInMilliseconds(0)
-                    .play(addUriUsage(episode.url), `${currentDate}`)
-                    .tell(this.$speech)
-            } else if (this.isGoogleAction()) {
-		// NOTE: this.ask(), not this.tell(), because we want the
-		// playback-completed callback, which requires it not be a
-		// Final Response. However, that forces including
-		// Suggestion Chips.
-		this.$googleAction!.$mediaResponse!.play(addUriUsage(episode.url), episode.title);
-		this.$googleAction!.showSuggestionChips(['pause', 'start over']);
-		this.ask(this.$speech);
-            }
+	    setAudioResponse(this,this.$speech,episode.url,0,currentDate,episode.title)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	    console.error("FirstEpisodeIntent caught: ",e,trystack(e))
@@ -338,20 +380,7 @@ app.setHandler({
 		var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
 		this.$speech.addText('Fetching episode '+episode.title+".");
 
-		if (this.isAlexaSkill()) {
-		    this.$alexaSkill!.$audioPlayer!
-			.setOffsetInMilliseconds(0)
-			.play(addUriUsage(episode.url), `${currentDate}`)
-			.tell(this.$speech)
-		} else if (this.isGoogleAction()) {
-		    // NOTE: this.ask(), not this.tell(), because we want the
-		    // playback-completed callback, which requires it not be a
-		    // Final Response. However, that forces including
-		    // Suggestion Chips.
-		    this.$googleAction!.$mediaResponse!.play(addUriUsage(episode.url), episode.title);
-		    this.$googleAction!.showSuggestionChips(['pause', 'start over']);
-		    this.ask(this.$speech);
-		}
+		setAudioResponse(this,this.$speech,episode.url,0,currentDate,episode.title)
 	    }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
@@ -375,20 +404,7 @@ app.setHandler({
             var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
             this.$speech.addText('Fetching episode '+episode.title+".");
 
-            if (this.isAlexaSkill()) {
-		this.$alexaSkill!.$audioPlayer!
-                    .setOffsetInMilliseconds(0)
-                    .play(addUriUsage(episode.url), `${currentDate}`)
-                    .tell(this.$speech)
-            } else if (this.isGoogleAction()) {
-		// NOTE: this.ask(), not this.tell(), because we want the
-		// playback-completed callback, which requires it not be a
-		// Final Response. However, that forces including
-		// Suggestion Chips.
-		this.$googleAction!.$mediaResponse!.play(addUriUsage(episode.url), episode.title);
-		this.$googleAction!.showSuggestionChips(['pause', 'start over']);
-		this.ask(this.$speech);
-            }
+	    setAudioResponse(this,this.$speech,episode.url,0,currentDate,episode.title)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	    console.error("FirstEpisodeIntent caught: ",e,trystack(e))
@@ -412,20 +428,7 @@ app.setHandler({
 		var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
 		this.$speech.addText('Fetching episode '+episode.title+".");
 
-		if (this.isAlexaSkill()) {
-		    this.$alexaSkill!.$audioPlayer!
-			.setOffsetInMilliseconds(0)
-			.play(addUriUsage(episode.url), `${currentDate}`)
-			.tell(this.$speech)
-		} else if (this.isGoogleAction()) {
-		    // NOTE: this.ask(), not this.tell(), because we want the
-		    // playback-completed callback, which requires it not be a
-		    // Final Response. However, that forces including
-		    // Suggestion Chips.
-		    this.$googleAction!.$mediaResponse!.play(addUriUsage(episode.url), episode.title);
-		    this.$googleAction!.showSuggestionChips(['pause', 'start over']);
-		    this.ask(this.$speech);
-		}
+		setAudioResponse(this,this.$speech,episode.url,0,currentDate,episode.title)
 	    }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
@@ -471,35 +474,8 @@ app.setHandler({
 	    }
             this.$speech.addText('Loading and resuming episode '+episode.title+".")
 
-            if (this.isAlexaSkill()) {
-		let offset = this.$user.$data.offset;
-		let offsetMin=offset/60/1000;
-		if (offsetMin > 30) {
-		    // BUG TODO ISSUE: If we need to reload Alexa
-		    // cache before playing, resume may have a long
-		    // delay as it decompresses up to the offset
-		    // point. I haven't thought of a reliable way to
-		    // advise the user of this without unnecessary
-		    // warnings (when already in cache, it's fast).
-		    // Check whether Alexa has a solution, though
-		    // short of breaking into smaller MP3's so there
-		    // are more frequent decompression synch/resume
-		    // points I don't know what one could do.
-		}
-		this.$alexaSkill!.$audioPlayer!
-                    .setOffsetInMilliseconds(offset)
-                    .play(addUriUsage(episode.url), `${currentDate}`)
-                    .tell(this.$speech);
-            } else if (this.isGoogleAction()) {
-		// NOTE: this.ask(), not this.tell(), because we want the
-		// playback-completed callback, which requires it not be a
-		// Final Response. However, that forces including
-		// Suggestion Chips.
-		console.log("GOOGLE: Resume,",addUriUsage(episode.url))
-		this.$googleAction!.$mediaResponse!.play(addUriUsage(episode.url), episode.title);
-		this.$googleAction!.showSuggestionChips(['pause', 'start over']);
-		this.ask(this.$speech);
-            }
+	    let offset = this.$user.$data.offset;
+	    setAudioResponse(this,this.$speech,episode.url,offset,currentDate,episode.title)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	    console.error("ResumeIntent caught: ",e,trystack(e))
@@ -510,37 +486,21 @@ app.setHandler({
     async NextIntent() {
         let currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
-	    return this.tell("You can't move forward or back in the livestream. That kind of control is only available when playing episodes.");
+	    this.tell("You can't move forward or back in the livestream. That kind of control is only available when playing episodes.");
+	    return
 	}
         let nextEpisode = await Player.getNextEpisodeByDate(currentDate);
         if (!nextEpisode) {
 	    // TODO: See above re this possibly changing if we allow
 	    // other orderings/playlists.
-	    return this.tell('That was the most recent episode. You will have to wait until a new episode gets released, or ask for a different one.');
+	    this.tell('That was the most recent episode. You will have to wait until a new episode gets released, or ask for a different one.');
+	    return
         }
         let nextEpisodeDate = nextEpisode.broadcastDateMsec
         currentDate = nextEpisodeDate;
         this.$user.$data.currentDate = currentDate;
         this.$speech.addText('Fetching episode '+nextEpisode.title+".");
-        if (this.isAlexaSkill()) {
-	    this.tell(this.$speech)
-	    return this.$alexaSkill!.$audioPlayer!
-		.setOffsetInMilliseconds(0)
-		.play(addUriUsage(nextEpisode.url), `${currentDate}`)
-        } else if (this.isGoogleAction()) {
-	    // NOTE: this.ask(), not this.tell(), because we want the
-	    // playback-completed callback, which requires it not be a
-	    // Final Response. However, that forces including
-	    // Suggestion Chips.
-	    console.log("GOOGLE: Next,",addUriUsage(nextEpisode.url))
-	    this.$googleAction!.$mediaResponse!.play(addUriUsage(nextEpisode.url), nextEpisode.title);
-	    this.$googleAction!.showSuggestionChips(['pause', 'start over']);
-	    return this.ask(this.$speech);
-        }
-	else {
-	    console.error("Unexpected action type",objToString(this))
-	    return this; // should never happen, but for type consistency
-	}
+	setAudioResponse(this,this.$speech,nextEpisode.url,0,currentDate,nextEpisode.title)
     },
 
     PreviousIntent: async function() {
@@ -549,36 +509,21 @@ app.setHandler({
 	// encapsulated that.
         let currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
-	    return this.tell("You can't move forward or back in the livestream. That kind of control is only available when playing episodes.");
+	    this.tell("You can't move forward or back in the livestream. That kind of control is only available when playing episodes.");
+	    return
 	}
         let previousEpisode = await Player.getPreviousEpisodeByDate(currentDate);
         if (!previousEpisode) {
 	    // TODO: See above re this possibly changing if we allow
 	    // other orderings/playlists.
-	    return this.tell('You are already at the oldest episode.');
+	    this.tell('You are already at the oldest episode.');
+	    return
         }
         let previousEpisodeDate = previousEpisode.broadcastDateMsec
         currentDate = previousEpisodeDate;
         this.$user.$data.currentDate = currentDate;
         this.$speech.addText('Fetching episode '+previousEpisode.title+".");
-        if (this.isAlexaSkill()) {
-	    this.tell(this.$speech)
-	    return this.$alexaSkill!.$audioPlayer!
-		.setOffsetInMilliseconds(0)
-		.play(addUriUsage(previousEpisode.url), `${currentDate}`)
-        } else if (this.isGoogleAction()) {
-	    // NOTE: this.ask(), not this.tell(), because we want the
-	    // playback-completed callback, which requires it not be a
-	    // Final Response. However, that forces including
-	    // Suggestion Chips.
-	    this.$googleAction!.$mediaResponse!.play(addUriUsage(previousEpisode.url), previousEpisode.title);
-	    this.$googleAction!.showSuggestionChips(['pause', 'start over']);
-	    return this.ask(this.$speech);
-        }
-	else {
-	    console.error("Unexpected action type",objToString(this))
-	    return this; // should never happen, but for type consistency
-	}
+	setAudioResponse(this,this.$speech,previousEpisode.url,0,currentDate,previousEpisode.title)
     },
 
     FastForwardIntent() {
@@ -614,30 +559,13 @@ app.setHandler({
         let randomEpisode = await Player.getRandomEpisode()
 	if(!randomEpisode) {
 	    console.error("RandomIntent returned null. Empty DB?")
-	    return this.tell("Sorry, but I can't fetch a random episode right now. That shouldn't happen. Please try again later, and register a complaint if it persists.")
+	    this.tell("Sorry, but I can't fetch a random episode right now. That shouldn't happen. Please try again later, and register a complaint if it persists.")
 	}
         let randomEpisodeDate = randomEpisode.broadcastDateMsec
         let currentDate = randomEpisodeDate;
         this.$user.$data.currentDate = currentDate;
         this.$speech.addText('Fetching episode '+randomEpisode.title+".");
-        if (this.isAlexaSkill()) {
-	    this.tell(this.$speech)
-	    return this.$alexaSkill!.$audioPlayer!
-		.setOffsetInMilliseconds(0)
-		.play(addUriUsage(randomEpisode.url), `${currentDate}`)
-        } else if (this.isGoogleAction()) {
-	    // NOTE: this.ask(), not this.tell(), because we want the
-	    // playback-completed callback, which requires it not be a
-	    // Final Response. However, that forces including
-	    // Suggestion Chips.
-	    this.$googleAction!.$mediaResponse!.play(addUriUsage(randomEpisode.url), randomEpisode.title);
-	    this.$googleAction!.showSuggestionChips(['pause', 'start over']);
-	    return this.ask(this.$speech)
-        }
-	else {
-	    console.error("Unexpected action type",objToString(this))
-	    return this; // should never happen, but for type consistency
-	}
+	setAudioResponse(this,this.$speech,randomEpisode.url,0,currentDate,randomEpisode.title)
     },
 
     IncompleteDateIntent() {
@@ -689,7 +617,7 @@ app.setHandler({
 	if(utcDatestamp>Date.now())
 	{
 	    this.$speech.addText("That came through as a future date. Could you rephrase your request?")
-	    return this.ask(this.$speech)
+	    this.ask(this.$speech)
 	}
 
 	let episode=await Player.getEpisodeByDate(utcDatestamp)
@@ -700,28 +628,11 @@ app.setHandler({
 
 	    this.$speech.addText("Fetching the show from "+format(localDate,"PPPP")+": episode "+episode.title+".");
 
-	    if (this.isAlexaSkill()) {
-		this.tell(this.$speech)
-		return this.$alexaSkill!.$audioPlayer!
-		    .setOffsetInMilliseconds(0)
-		    .play(addUriUsage(episode.url), `${currentDate}`)
-	    } else if (this.isGoogleAction()) {
-		// NOTE: this.ask(), not this.tell(), because we want the
-		// playback-completed callback, which requires it not be a
-		// Final Response. However, that forces including
-		// Suggestion Chips.
-		this.$googleAction!.$mediaResponse!.play(addUriUsage(episode.url), episode.title);
-		this.$googleAction!.showSuggestionChips(['pause', 'start over']);
-		return this.ask(this.$speech)
-	    }
-	    else {
-		console.error("Unexpected action type",objToString(this))
-		return this; // should never happen, but for type consistency
-	    }
+	    setAudioResponse(this,this.$speech,episode.url,0,currentDate,episode.title)
 	}
 	else {
 	    this.$speech.addText("An episode broadcast on "+format(localDate,"PPPP")+" does not seem to be available in the vault. What would you like me to do instead?")
-	    return this.ask(this.$speech)
+	    this.ask(this.$speech)
 	}
     },
 
@@ -733,28 +644,11 @@ app.setHandler({
 	    const currentDate=episode.broadcastDateMsec
 	    this.$user.$data.currentDate = currentDate;
 	    this.$speech.addText('Fetching episode '+episode.title+".");
-	    if (this.isAlexaSkill()) {
-		this.tell(this.$speech)
-		return this.$alexaSkill!.$audioPlayer!
-		    .setOffsetInMilliseconds(0)
-		    .play(addUriUsage(episode.url), `${currentDate}`)
-	    } else if (this.isGoogleAction()) {
-		// NOTE: this.ask(), not this.tell(), because we want the
-		// playback-completed callback, which requires it not be a
-		// Final Response. However, that forces including
-		// Suggestion Chips.
-		this.$googleAction!.$mediaResponse!.play(addUriUsage(episode.url), episode.title);
-		this.$googleAction!.showSuggestionChips(['pause', 'start over']);
-		return this.ask(this.$speech)
-	    }
-	    else {
-		console.error("Unexpected action type",objToString(this))
-		return this; // should never happen, but for type consistency
-	    }
+	    setAudioResponse(this,this.$speech,episode.url,0,currentDate,episode.title)
 	}
 	else {
 	    this.$speech.addText("Episode number "+episodeNumber+" does not seem to be available in the vault. What would you like me to do instead?")
-	    return this.ask(this.$speech)
+	    this.ask(this.$speech)
 	}
     },
 
@@ -765,28 +659,10 @@ app.setHandler({
     // it this way for user convenience after pause (eg for phone
     // call), but this gets back to the "bookmarks" wishlist item.
     LiveStreamIntent() {
-	const streamURI=addUriUsage(Player.getLiveStreamURI())
 	const currentDate=Player.getLiveStreamDate()
         this.$user.$data.currentDate = currentDate;
         this.$speech.addText("Playing the New Sounds livestream.");
-        if (this.isAlexaSkill()) {
-	    return this.$alexaSkill!.$audioPlayer!
-		.setOffsetInMilliseconds(0)
-		.play(streamURI, `${currentDate}`)
-	        .tell(this.$speech)
-        } else if (this.isGoogleAction()) {
-	    // NOTE: this.ask(), not this.tell(), because we want the
-	    // playback-completed callback, which requires it not be a
-	    // Final Response. However, that forces including
-	    // Suggestion Chips.
-	    this.$googleAction!.$mediaResponse!.play(streamURI,"New Sounds On Demand Live Stream");
-	    this.$googleAction!.showSuggestionChips(['pause']);
-	    return this.ask(this.$speech)
-        }
-	else {
-	    console.error("Unexpected action type",objToString(this))
-	    return this; // should never happen, but for type consistency
-	}
+	setAudioResponse(this,this.$speech,Player.getLiveStreamURI(),0,currentDate,"New Sounds On Demand live stream")
     },
 
     HelpIntent() {
