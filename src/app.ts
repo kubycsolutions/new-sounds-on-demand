@@ -284,10 +284,11 @@ function parseISO8601Duration (iso8601Duration:string):ParsedDate|null {
 // now.
 
 function setAudioResponse(that:Jovo,text:(string | string[] | SpeechBuilder),audioURI:string,audioOffset:number,audioDate:number,audioTitle:string) {
+    var taggedURI=addUriUsage(audioURI)
     if (that.isAlexaSkill()) {
 	that.$alexaSkill!.$audioPlayer! // guaranteed non-null by test
             .setOffsetInMilliseconds(audioOffset)
-            .play(addUriUsage(audioURI), `${audioDate}`)
+            .play(taggedURI, `${audioDate}`)
             .tell(text)
     } else if (that.isGoogleAction()) {
 	// NOTE: We use that.ask(), not that.tell(), because we want
@@ -297,14 +298,13 @@ function setAudioResponse(that:Jovo,text:(string | string[] | SpeechBuilder),aud
 	// thing, as we work toward screen support.)
 	that.$googleAction! // guaranteed non-null by test
 	    .$mediaResponse! // guaranteed non-null
-	    .play(addUriUsage(audioURI), audioTitle);
+	    .play(taggedURI, audioTitle);
 	that.$googleAction!.showSuggestionChips(['pause', 'start over']);
 	that.ask(text);
     }
     else {
 	console.error("Unexpected action type",objToString(that))
     }
-
 }
 
 
