@@ -684,15 +684,13 @@ app.setHandler({
     },
    
     ////////////////////////////////////////////////////////////////
-    // TODO: access the livestream's playlist query (whos-on), to be
-    // able to answer "who/what is this"?.  Note that whos-on update
-    // has glitches, so we may need to be ready to say "I'm not sure yet."
+    // Jovo and/or Amazon doesn't let us provide sample phrases in the
+    // model for the built-in queries, so there are two entry points:
+    // the standard "ask NSOD", plus the one called by Amazon's
+    // builtin grammar if/when prefixless can be enabled. NOTE:
+    // Prefixless may require supporting the canHandle interaction,
+    // which Jovo currently does not.
     //
-    // Jovo and/or Amazon doesn't let us prove sample phrases in the
-    // model for these queries, so there are two entry points: the
-    // standard "ask NSOD", plus the one called by Amazon's builtin
-    // grammar if/when prefixless can be enabled. NOTE: Prefixless may require
-    // supporting the canHandle interaction, which Jovo currently does not.
     // TODO: Implement name-free when Amazon lets me do so.
 
     async FullMetadataIntent() {
