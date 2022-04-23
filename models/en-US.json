@@ -5036,12 +5036,16 @@
             "name": "CreditsIntent",
             "phrases": [
                 "Roll the credits",
-                "Read the credits"
+                "Read the credits",
+		"Who created New Sounds",
+		"Who produces New Sounds",
+		"Who created this show",
+		"Who produces this show"
             ]
         },
-        {
-            "name": "QuerySingerIntent",
-            "phrases": [
+	{
+	    "name":"QuerySingerIntent",
+	    "phrases": [
 		"Who is singing this song",
 		"Who sings this track",
 		"Who is singing this track",
@@ -5051,7 +5055,31 @@
 		"Who is singing this composition",
 		"Who is singing",
 		"Who is the singer",
-		"who the singer is"
+		"who the singer is"		]
+	},
+	{
+            "name": "CreditsIntent",
+            "phrases": [
+                "Roll the credits",
+                "Read the credits",
+		"Who created New Sounds",
+		"Who produces New Sounds",
+		"Who created this show",
+		"Who produces this show"
+            ]
+	},
+        {
+            "name": "FullMetadataIntent",
+            "phrases": [
+		"What is playing",
+		"About this track",
+		"About this song",
+		"About this piece",
+		"About this composition",
+		"What I am listening to",
+		"What am I listening to",
+		"What we are listening to",
+		"What are we listening to"
             ]
         },
         {
@@ -5076,6 +5104,8 @@
         {
             "name": "QueryDurationIntent",
             "phrases": [
+		"How long is this track",
+		"How long is this song",
 		"How long is this piece",
 		"How long is this composition",
 		"How long is this",

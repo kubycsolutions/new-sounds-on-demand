@@ -283,7 +283,7 @@ function parseISO8601Duration (iso8601Duration:string):ParsedDate|null {
 // pause/resume without involving us at all, so that should be OK for
 // now.
 
-function setAudioResponse(that:Jovo,text:(string | string[] | SpeechBuilder),audioURI:string,audioOffset:number,audioDate:number,audioTitle:string) {
+function setAudioResponse(that:Jovo, text:(string|string[]|SpeechBuilder), audioURI:string, audioOffset:number, audioDate:number, audioTitle:string) {
     var taggedURI=addUriUsage(audioURI)
     if (that.isAlexaSkill()) {
 	that.$alexaSkill!.$audioPlayer! // guaranteed non-null by test
@@ -672,9 +672,6 @@ app.setHandler({
     },
 
     CreditsIntent() {
-	// Tells may need to be Asks for this to run as intended
-	// in Google. More multiple-path coding. Really wish Jovo
-	// encapsulated that.
         this.$speech.addText(ShowCredits)
         this.$speech.addText(AppCredits)
 	return this.tell(this.$speech)
@@ -683,11 +680,6 @@ app.setHandler({
     // Hook for testing
     async DebugIntent() {
         this.$speech.addText("Debug hook baited. Awaiting micro fishies.")
-	var meta=await Player.getLiveStreamMetaData()
-	console.log("DebugIntent:"+JSON.stringify(meta))
-	// Tells may need to be Asks for this to run as intended
-	// in Google. More multiple-path coding. Really wish Jovo
-	// encapsulated that.
 	return this.ask(this.$speech)
     },
    
@@ -699,7 +691,26 @@ app.setHandler({
     // Jovo and/or Amazon doesn't let us prove sample phrases in the
     // model for these queries, so there are two entry points: the
     // standard "ask NSOD", plus the one called by Amazon's builtin
-    // grammar if/when prefixless is enabled.
+    // grammar if/when prefixless can be enabled. NOTE: Prefixless may require
+    // supporting the canHandle interaction, which Jovo currently does not.
+    // TODO: Implement name-free when Amazon lets me do so.
+
+    async FullMetadataIntent() {
+	// TODO: Probably want to refactor this into a subroutine, and have
+	// it and getStreamMetadataText() take parameters saying which
+	// field(s) have been requested.
+	var currentDate = this.$user.$data.currentDate;
+	if (currentDate==Player.getLiveStreamDate()) {
+	    this.$speech.addText(await getStreamMetadataText())
+	} else {
+	    var episode=await Player.getEpisodeByDate(currentDate)
+	    if(episode==null)
+		this.$speech.addText("I'm confused. I'm not sure what you are listening to right now.")
+	    else			     
+		this.$speech.addText("Now playing the daily New Sounds program, episode "+episode.episode+". I don't have a playlist for that yet, so that's all I can tell you.")
+	}
+	return this.tell(this.$speech)
+    },
 
     // Amazon's "who sings this song".  For our purposes, we may want
     // to make this synonymous with "who is playing this song"... or
@@ -708,17 +719,7 @@ app.setHandler({
 	return this.toIntent('QuerySingerIntent')
     },
     async QuerySingerIntent() {
-	var currentDate = this.$user.$data.currentDate;
-	if (currentDate==Player.getLiveStreamDate()) {
-	    this.$speech.addText(await getStreamMetadataText())
-	} else {
-	    var episode=await Player.getEpisodeByDate(currentDate)
-	    if(episode==null)
-		this.$speech.addText("Hmmm. I'm not sure which episode you're referring to.)")
-	    else			     
-		this.$speech.addText("For now I can only get that metadata for the livestream. But you can find the playlist by asking a web browser to show you New Sounds number "+episode.episode+".")
-	}
-	return this.tell(this.$speech)
+	return this.toIntent("FullMetadataIntent") // stopgap
     },
  
     // Amazon's "who is playing this song". For our purposes, we may want
@@ -727,17 +728,7 @@ app.setHandler({
 	return this.toIntent('QueryArtistIntent')
     },
     async QueryArtistIntent() {
-        var currentDate = this.$user.$data.currentDate;
-	if (currentDate==Player.getLiveStreamDate()) {
-	    this.$speech.addText(await getStreamMetadataText())
-	} else {
-	    var episode=await Player.getEpisodeByDate(currentDate)
-	    if(episode==null)
-		this.$speech.addText("Hmmm. I'm not sure which episode you're referring to.)")
-	    else			     
-		this.$speech.addText("For now I can only get that metadata for the livestream. But you can find the playlist by asking a web browser to show you New Sounds number "+episode.episode+".")
-	}
-	return this.tell(this.$speech)
+	return this.toIntent('FullMetadataIntent')
     },
 
     // Amazon's "how long is this song"
@@ -745,17 +736,7 @@ app.setHandler({
 	return this.toIntent('QueryDurationIntent')
     },
     async QueryDurationIntent() {
-        var currentDate = this.$user.$data.currentDate;
-	if (currentDate==Player.getLiveStreamDate()) {
-	    this.$speech.addText(await getStreamMetadataText())
-	} else {
-	    var episode=await Player.getEpisodeByDate(currentDate)
-	    if(episode==null)
-		this.$speech.addText("Hmmm. I'm not sure which episode you're referring to.")
-	    else			     
-		this.$speech.addText("For now I can only get that metadata for the livestream. But you can find the playlist by asking a web browser to show you New Sounds number "+episode.episode+".")
-	}
-	return this.tell(this.$speech)
+	return this.toIntent('FullMetadataIntent')
     },
 
     // Amazon's "what album is this song on"
@@ -763,17 +744,7 @@ app.setHandler({
 	return this.toIntent('QueryAlbumIntent')
     },
     async QueryAlbumIntent() {
-        var currentDate = this.$user.$data.currentDate;
-	if (currentDate==Player.getLiveStreamDate()) {
-	    this.$speech.addText(await getStreamMetadataText())
-	} else {
-	    var episode=await Player.getEpisodeByDate(currentDate)
-	    if(episode==null)
-		this.$speech.addText("Hmmm. I'm not sure which episode you're referring to.")
-	    else			     
-		this.$speech.addText("For now I can only get that metadata for the livestream. But you can find the playlist by asking a web browser to show you New Sounds number "+episode.episode+".")
-	}
-	return this.tell(this.$speech)
+	return this.toIntent('FullMetadataIntent')
     },
 
     // Amazon's "who produced this song"
@@ -781,18 +752,7 @@ app.setHandler({
 	return this.toIntent('QueryProducerIntent')
     },
     async QueryProducerIntent() {
-        var currentDate = this.$user.$data.currentDate;
-	if (currentDate==Player.getLiveStreamDate()) {
-	    //this.$speech.addText("I'm sorry, I haven't yet learned how to answer that.")
-	    this.$speech.addText(await getStreamMetadataText())
-	} else {
-	    var episode=await Player.getEpisodeByDate(currentDate)
-	    if(episode==null)
-		this.$speech.addText("Hmmm. I'm not sure which episode you're referring to.")
-	    else			     
-		this.$speech.addText("For now I can only get that metadata for the livestream. But you can find the playlist by asking a web browser to show you New Sounds number "+episode.episode+".")
-	}
-	return this.tell(this.$speech)
+	return this.toIntent('FullMetadataIntent')
     }
 });
 
