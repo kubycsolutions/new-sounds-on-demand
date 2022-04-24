@@ -282,6 +282,16 @@ function parseISO8601Duration (iso8601Duration:string):ParsedDate|null {
 // Note: Google apparently can't handle offsets. But google handles
 // pause/resume without involving us at all, so that should be OK for
 // now.
+//
+// NOTE: There is some evidence that using a unique UUID for each playback
+// may reduce the incidence of audio resuming on the wrong device. That would
+// of course require storing the current-playback UUID into the user state,
+// so we can reference it later when screening out late events from previous
+// playback. TODO: REVIEW.
+//
+// NOTE: Given that audio* are all obtained from episode (except for
+// livestream), just pass in episode? Maybe not since live is currently
+// an exception rather than "really" episode 0. TODO: REVIEW.
 
 function setAudioResponse(that:Jovo, text:(string|string[]|SpeechBuilder), audioURI:string, audioOffset:number, audioDate:number, audioTitle:string) {
     var taggedURI=addUriUsage(audioURI)

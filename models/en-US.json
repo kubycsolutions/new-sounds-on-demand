@@ -24,41 +24,26 @@
                 }
             ],
             "phrases": [
-                "Play something",
-                "I want to play something else",
-                "I want to hear something else",
-                "I want to listen to something else",
-                "I want something else",
-                "I would like to play something else",
-                "I would like to hear something else",
-                "I would like to listen to something else",
-                "I would like something else",
-                "I would prefer to play something else",
-                "I would prefer to hear something else",
-                "I would prefer to listen to something else",
-                "I would prefer something else",
-                "Do something else",
-                "Go to something else",
-                "Play something",
-                "I want to play something",
-                "I want to hear something",
-                "I want to listen to something",
-                "I want something",
-                "I would like to play something",
-                "I would like to hear something",
-                "I would like to listen to something",
-                "I would like something",
-                "I would prefer to play something",
-                "I would prefer to hear something",
-                "I would prefer to listen to something",
-                "I would prefer something",
-                "Do something",
-                "Go to something",
+                "Do {something}",
+                "Go to {something}",
+                "I don't like that",
+                "I want to hear {something}",
+                "I want to listen to {something}",
+                "I want to play {something}",
+                "I want {something}",
+                "I would like to hear {something}",
+                "I would like to listen to {something}",
+                "I would like to play {something}",
+                "I would like {something}",
+                "I would prefer to hear {something}",
+                "I would prefer to listen to {something}",
+                "I would prefer to play {something}",
+                "I would prefer {something}",
                 "I'm bored",
-                "I don't like that"
+                "Play {something}"
             ]
         },
-        {
+	{
             "name": "NextIntent",
             "alexa": {
                 "name": "AMAZON.NextIntent",
@@ -726,7 +711,7 @@
                 "skip to the next show"
             ]
         },
-        {
+	{
             "name": "PreviousIntent",
             "alexa": {
                 "name": "AMAZON.PreviousIntent",
@@ -1432,7 +1417,7 @@
                 "skip to the previous show"
             ]
         },
-        {
+	{
             "name": "RestartIntent",
             "alexa": {
                 "name": "AMAZON.StartOverIntent",
@@ -1708,7 +1693,7 @@
                 "the start of the show"
             ]
         },
-        {
+	{
             "name": "RewindIntent",
             "phrases": [
                 "go back by {duration}",
@@ -1717,7 +1702,7 @@
                 "{duration} earlier"
             ],
             "inputs": [
-                {
+		{
                     "name": "duration",
                     "type": {
                         "alexa": "AMAZON.DURATION",
@@ -1729,7 +1714,7 @@
             ]
 
         },
-        {
+	{
             "name": "RandomIntent",
             "phrases": [
                 "I want a random broadcast",
@@ -2216,7 +2201,7 @@
                 "surprise"
             ]
         },
-        {
+	{
             "name": "LatestEpisodeIntent",
             "COMMENT": "Alexa reserves LAST to mean previous. Asymmetric with FIRST; consider killing that too unless we consider it part of number nav. TODO.",
             "phrases": [
@@ -2885,7 +2870,7 @@
                 "skip to the newest show"
             ]
         },
-        {
+	{
             "name": "FirstEpisodeIntent",
             "phrases": [
                 "I want earliest",
@@ -3443,7 +3428,7 @@
 	    ]
 	},
 
-        {
+	{
             "name": "DateIntent",
             "phrases": [
                 "{date}",
@@ -4243,7 +4228,7 @@
                 "skip to {date}"
             ],
             "inputs": [
-                {
+		{
                     "name": "date",
                     "type": {
                         "alexa": "AMAZON.DATE",
@@ -4254,7 +4239,7 @@
             ]
         },
 
-        {
+	{
             "name": "HighestNumberedEpisodeIntent",
             "COMMENT": "Alexa reserves LAST to mean previous. Asymmetric with FIRST; consider killing that too unless we consider it part of number nav. TODO.",
             "phrases": [
@@ -4428,7 +4413,7 @@
                 "skip to the highest numbered show"
             ]
         },
-        {
+	{
             "name": "LowestNumberedEpisodeIntent",
             "COMMENT": "Alexa reserves LAST to mean previous. Asymmetric with FIRST; consider killing that too unless we consider it part of number nav. TODO.",
             "phrases": [
@@ -4603,7 +4588,7 @@
             ]
         },
 
-        {
+	{
             "name": "EpisodeNumberIntent",
             "phrases": [
                 "{episodeNumber}",
@@ -4779,7 +4764,7 @@
                 "skip to show {episodeNumber}"
             ],
             "inputs": [
-                {
+		{
                     "name": "episodeNumber",
                     "type": {
                         "alexa": "AMAZON.NUMBER",
@@ -4789,7 +4774,7 @@
                 }
             ]
         },
-        {
+	{
             "name": "ResumeIntent",
             "alexa": {
                 "name": "AMAZON.ResumeIntent",
@@ -4853,7 +4838,7 @@
                 "skip to resume where I left off"
             ]
         },
-        {
+	{
             "name": "LiveStreamIntent",
             "phrases": [
                 "I want live broadcast",
@@ -5028,7 +5013,7 @@
                 "skip to webcast"
             ]
         },
-        {
+	{
             "name": "HelpIntent",
             "alexa": {
                 "name": "AMAZON.HelpIntent",
@@ -5050,7 +5035,7 @@
                 "what are my options"
             ]
         },
-        {
+	{
             "name": "CreditsIntent",
             "phrases": [
                 "Roll the credits",
@@ -5075,7 +5060,7 @@
 		"Who is the singer",
 		"who the singer is"		]
 	},
-        {
+	{
             "name": "FullMetadataIntent",
             "phrases": [
 		"What is playing",
@@ -5089,7 +5074,7 @@
 		"What are we listening to"
             ]
         },
-        {
+	{
             "name": "QueryArtistIntent",
             "phrases": [
 		"Who is playing this song",
@@ -5108,7 +5093,7 @@
 		"Who is this"
             ]
         },
-        {
+	{
             "name": "QueryDurationIntent",
             "phrases": [
 		"How long is this track",
@@ -5123,7 +5108,7 @@
 		"How long this is"
 	    ]
         },
-        {
+	{
             "name": "QueryAlbumIntent",
             "phrases": [
 		"What album is this composition on",
@@ -5154,7 +5139,7 @@
 		"Where I can find this composition"
             ]
         },
-        {
+	{
             "name": "QueryProducerIntent",
             "phrases": [
 		"Who is the producer for this piece",
@@ -5174,7 +5159,7 @@
 		"Who this track was produced by"
             ]
         },
-        {
+	{
             "name": "DebugIntent",
             "phrases": [
                 "Test",
