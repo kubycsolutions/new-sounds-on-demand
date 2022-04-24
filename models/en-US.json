@@ -1,12 +1,30 @@
 {
     "invocation": "new sounds on demand",
     "comment": "Grammar example generation was assisted by  WBUR's AUML combinatorial generator. Note that I'm hoping the systems are able to fairly reliably distinguish later from latest; if not, one or the other may need to drop out.",
+    "inputTypes": [
+	{ "name": "something",
+	  "values": [
+              {"value": "something"},
+              {"value": "something else"}
+	  ]
+	}
+    ],
     "intents": [
         {
             "name": "DialogIntent",
             "comment": "Go back into prompted interactions",
+            "inputs": [
+                {
+                    "name": "something",
+                    "type": {
+                        "alexa": "something",
+                        "dialogflow": "something",
+			"googleAssistant": "something"
+                    }
+                }
+            ],
             "phrases": [
-                "Play something else",
+                "Play something",
                 "I want to play something else",
                 "I want to hear something else",
                 "I want to listen to something else",
@@ -5056,17 +5074,6 @@
 		"Who is singing",
 		"Who is the singer",
 		"who the singer is"		]
-	},
-	{
-            "name": "CreditsIntent",
-            "phrases": [
-                "Roll the credits",
-                "Read the credits",
-		"Who created New Sounds",
-		"Who produces New Sounds",
-		"Who created this show",
-		"Who produces this show"
-            ]
 	},
         {
             "name": "FullMetadataIntent",
