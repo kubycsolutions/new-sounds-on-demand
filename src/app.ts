@@ -575,8 +575,14 @@ app.setHandler({
 
     // Note: Alexa doesn't want us using the word "shuffle", except as
     // that refers to the handler's Alexa.ShuffleOnIntent. (And Off,
-    // of course.) For now, avoid using that term in the language
-    // model.
+    // of course.) And Random isn't quite Shuffle yet. I could make it so
+    // by saving that in user state and using it in the auto-advance
+    // code... TODO: REVIEW.
+    //
+    // Grr: Currently "Shuffle off to Buffalo" is interpreted by Alexa as
+    // "play My Soundtrack", not "Shuffle Off" or even "Play Shuffle Off To
+    // Buffalo". That's what happens when you try too hard to guess what the
+    // user might have intended...
     RandomIntent: async function() {
         let randomEpisode = await Player.getRandomEpisode()
 	if(!randomEpisode) {
