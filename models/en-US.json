@@ -5071,7 +5071,11 @@
 		"What I am listening to",
 		"What am I listening to",
 		"What we are listening to",
-		"What are we listening to"
+		"What are we listening to",
+		"Who I am listening to",
+		"Who am I listening to",
+		"Who we are listening to",
+		"Who are we listening to"
             ]
         },
 	{
@@ -5095,9 +5099,8 @@
         },
 	{
             "name": "QueryDurationIntent",
+	    "comment": "'how long is this song/track' conflict with builtin",
             "phrases": [
-		"How long is this track",
-		"How long is this song",
 		"How long is this piece",
 		"How long is this composition",
 		"How long is this",

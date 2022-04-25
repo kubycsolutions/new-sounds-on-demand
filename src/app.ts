@@ -32,22 +32,20 @@
    been preloaded?
 https://alexa.uservoice.com/forums/906892-alexa-skills-developer-voice-and-vote/suggestions/44933392-loading-audio-with-offset-can-be-slow-losing-audi
 
-   TODO: "Who/what are we listening to" and "who/what is this" can't
-   be precise for episodes with currently available data, but should
-   answer with "New Sounds On Demand is now playing" and
-   ep#/title. For the livestream, we can invoke the whos-on query --
-   but be prepared to say "I'm not sure yet" if timestamp is before
-   now; that updates a bit slowly.  (And consider which fields to
-   provide/queries to support; do the minimum, dump it all, have
-   alternative queries, do a "more?" interaction?) There are standard
-   Amazon intents for some of this; we may need custom intents to
-   handle it all and of course Google's narrower VUI parsing will
-   present limitations there.
+   TODO: Display improvements. Episode image? (Database update needed?)
+   Better formatting (can we reduce font size on Show?)
 
-   TODO: Continue to improve speech interactions. It's supposedly
-   possible to add nonprefixed commands for Alexa skill context, once
-   the skill has been accepted. No idea what's possible in Google. See
-   https://developer.amazon.com/en-US/docs/alexa/custom-skills/understand-name-free-interaction-for-custom-skills.html.
+   TODO: Metadata improvements. Full dump or specific response?
+   Stop/pause/end should set user flag saying _not_ playing so we can
+   report that.  Name-Free Interactions possible on Amazon? Anything
+   useful on Google?
+
+   TODO: Continue to improve speech interactions. Name-Free Interaction,
+   if/when possible. Figure out what Google can do; possibly different
+   parser. 
+
+   TODO: (Investigating) Can custom slots be used as a better way to
+   express synonym combinatorics?
 
    TODO: Forward/back (ff/rw, skip f/b, etc) by duration.  Note the
    open ISSUE of possible long delay... though knowing the audio is in
@@ -55,9 +53,8 @@ https://alexa.uservoice.com/forums/906892-alexa-skills-developer-voice-and-vote/
 
    TODO: Can we announce ep# when we auto-advance via queue without
    causing a glitch in the audio? Haven't found a perfect incantation
-   yet. Then again, even now we may walk on the first second or so...
-   Doing this really cleanly might require giving up using the Alexa
-   queue, though that would slow ep-to-ep transition.
+   yet.  Doing this really cleanly might require giving up using the
+   Alexa queue, though that would slow ep-to-ep transition.
 
    TODO: Parameterize for show name. Simply doing that would let us
    offer additional skills for Soundcheck etc. without much work...
@@ -143,6 +140,11 @@ console.log('TODO: This implementation still uses the outdated Jovo3 Framework. 
 ////////////////////////////////////////////////////////////////
 const ShowCredits="New Sounds is produced by New York Public Radio, W N Y C and W Q X R. The host and creator of the show is John Schaefer. His team includes Caryn Havlik, Helga Davis, Rosa Gollan, Justin Sergi, and Irene Trudel. More information about these folks, and about the show, can be found on the web at New Sounds dot org."
 const AppCredits="The New Sounds On Demand player for smart speakers is being developed by Joe Kesselman and Cubic Solutions, K u b y c dot solutions. Source code is available on github."
+
+// For use on displays; see https://v3.jovo.tech/docs/output/visual-output
+// Better rendering currently requires platform-specific coding again, alas;
+// consider wrappering that too.
+const NewSoundsLogoURI="https://media.wnyc.org/i/600/600/l/80/1/ns_showcard-newsounds.png"
 
 ////////////////////////////////////////////////////////////////
 // NOTE: In most cases, JSON.stringify() is a better choice.  The
@@ -690,6 +692,8 @@ app.setHandler({
     // Hook for testing
     async DebugIntent() {
         this.$speech.addText("Debug hook baited. Awaiting micro fishies.")
+	//this.showSimpleCard("New Sounds On Demand","Open your ears and say 'ahhh'!")
+	this.showImageCard("New Sounds On Demand","Hear a little something!",NewSoundsLogoURI)
 	return this.ask(this.$speech)
     },
    
@@ -709,13 +713,21 @@ app.setHandler({
 	// field(s) have been requested.
 	var currentDate = this.$user.$data.currentDate;
 	if (currentDate==Player.getLiveStreamDate()) {
-	    this.$speech.addText(await getStreamMetadataText())
+	    let response=await getStreamMetadataText()
+	    this.showImageCard("New Sounds On Demand -- Live Stream",response,NewSoundsLogoURI)
+	    this.$speech.addText(response)
 	} else {
 	    var episode=await Player.getEpisodeByDate(currentDate)
-	    if(episode==null)
-		this.$speech.addText("I'm confused. I'm not sure what you are listening to right now.")
-	    else			     
-		this.$speech.addText("Now playing the daily New Sounds program, episode "+episode.episode+". I don't have a playlist for that yet, so that's all I can tell you.")
+	    if(episode==null) {
+		let response="Sorry, but I'm not sure what you are listening to right now."
+		this.showImageCard("New Sounds On Demand",response,NewSoundsLogoURI)
+		this.$speech.addText(response)
+	    }
+	    else {
+	    	let response="Now playing Episode "+episode.title+"."
+		this.showImageCard("New Sounds On Demand -- Daily Show",response,NewSoundsLogoURI)
+		this.$speech.addText(response)
+	    }
 	}
 	return this.tell(this.$speech)
     },
