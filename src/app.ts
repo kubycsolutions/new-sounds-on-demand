@@ -32,8 +32,12 @@
    been preloaded?
 https://alexa.uservoice.com/forums/906892-alexa-skills-developer-voice-and-vote/suggestions/44933392-loading-audio-with-offset-can-be-slow-losing-audi
 
-   TODO: Display improvements. Episode image? (Database update needed?)
-   Better formatting (can we reduce font size on Show?)
+   TODO: Starting to add display 'cards' for screen-equipped
+   devices. Currently hardcoded show icon, Jovo generic
+   layout. Consider updating database with per-ep images, now that we
+   have a place to use them. Add cards to other interactions. Can
+   display change at rollover? Record not-playing state to improve
+   whats-on responses.
 
    TODO: Metadata improvements. Full dump or specific response?
    Stop/pause/end should set user flag saying _not_ playing so we can
@@ -149,8 +153,8 @@ const NewSoundsLogoURI="https://media.wnyc.org/i/600/600/l/80/1/ns_showcard-news
 ////////////////////////////////////////////////////////////////
 // NOTE: In most cases, JSON.stringify() is a better choice.  The
 // minor advantage of this one is that depth can be limited, which is
-// sometimes useful. Unclear I need it; keeping it for
-// now. TODO: REVIEW
+// sometimes useful. Unclear I need it; retaining it for now. TODO:
+// REVIEW
 function objToString(obj:any, ndeep:number=0):string {
     const MAX_OBJTOSTRING_DEPTH=10 // circular refs are possible
     if(obj == null){ return String(obj); }
