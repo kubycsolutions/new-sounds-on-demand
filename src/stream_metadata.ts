@@ -157,13 +157,11 @@ export async function getStreamMetadataText():Promise<string> {
 	//
 	// GONK: OPEN ISSUE: The livestream meta server seems to
 	// always report the "most recent" episode, *NOT* the one
-	// currently being played in the livestream. I don't see much
-	// I can do about that except to say only "an episode of the
-	// daily New Sounds program" and leave it at that. This one
+	// currently being played in the livestream. This one
 	// has to be fixed by the station's IT folks.
 	console.error("SUSPECT DATA: It's an episode, but probably not the one stated. Server bug.")
 	console.error("CLAIMS TO BE: New Sounds",meta.current_show.title)
-	return "Now playing: An episode of the New Sounds daily show. Unfortunately I can't tell you which one right now."
+	return "Now playing: An episode of the daily New Sounds show, via the New Sounds Live Stream."
     } else {
 	console.error("\nvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv")
 	console.error("Ducktype failed; data not in expected format")

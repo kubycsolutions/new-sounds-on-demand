@@ -32,12 +32,12 @@
    been preloaded?
 https://alexa.uservoice.com/forums/906892-alexa-skills-developer-voice-and-vote/suggestions/44933392-loading-audio-with-offset-can-be-slow-losing-audi
 
-   TODO: Starting to add display 'cards' for screen-equipped
-   devices. Currently hardcoded show icon, Jovo generic
-   layout. Consider updating database with per-ep images, now that we
-   have a place to use them. Add cards to other interactions. Can
-   display change at rollover? Record not-playing state to improve
-   whats-on responses.
+   TODO: Display cards. Can display change at rollover? At stream
+   update? State DB should include not-playing state so we can say
+   "dunno" when we aren't playing.
+
+        BUG: When we start playing audio, it's switching back to
+	generic.  That looks like a Jovo problem.
 
    TODO: Metadata improvements. Full dump or specific response?
    Stop/pause/end should set user flag saying _not_ playing so we can
@@ -295,9 +295,15 @@ function parseISO8601Duration (iso8601Duration:string):ParsedDate|null {
 // so we can reference it later when screening out late events from previous
 // playback. TODO: REVIEW.
 //
-// NOTE: Given that audio* are all obtained from episode (except for
+// NOTE: Given that many params are all obtained from episode (except for
 // livestream), just pass in episode? Maybe not since live is currently
 // an exception rather than "really" episode 0. TODO: REVIEW.
+
+function setAVResponse(that:Jovo, text:(string|string[]|SpeechBuilder), audioURI:string, audioOffset:number, audioDate:number, audioTitle:string, imageURI:(string|null) ) {
+    setAudioResponse(that, text, audioURI, audioOffset, audioDate, audioTitle)
+    var graphic:string= (imageURI==null) ? NewSoundsLogoURI : imageURI
+    that.showImageCard("New Sounds On Demand",audioTitle,graphic)
+}
 
 function setAudioResponse(that:Jovo, text:(string|string[]|SpeechBuilder), audioURI:string, audioOffset:number, audioDate:number, audioTitle:string) {
     var taggedURI=addUriUsage(audioURI)
@@ -375,7 +381,7 @@ app.setHandler({
             var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
             this.$speech.addText('Fetching episode '+episode.title+".");
 
-	    setAudioResponse(this,this.$speech,episode.url,0,currentDate,episode.title)
+	    setAVResponse(this,this.$speech,episode.url,0,currentDate,episode.title,episode.imageurl)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	    console.error("FirstEpisodeIntent caught: ",e,trystack(e))
@@ -396,7 +402,7 @@ app.setHandler({
 		var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
 		this.$speech.addText('Fetching episode '+episode.title+".");
 
-		setAudioResponse(this,this.$speech,episode.url,0,currentDate,episode.title)
+		setAVResponse(this,this.$speech,episode.url,0,currentDate,episode.title,episode.imageurl)
 	    }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
@@ -420,7 +426,7 @@ app.setHandler({
             var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
             this.$speech.addText('Fetching episode '+episode.title+".");
 
-	    setAudioResponse(this,this.$speech,episode.url,0,currentDate,episode.title)
+	    setAVResponse(this,this.$speech,episode.url,0,currentDate,episode.title,episode.imageurl)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	    console.error("FirstEpisodeIntent caught: ",e,trystack(e))
@@ -444,7 +450,7 @@ app.setHandler({
 		var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
 		this.$speech.addText('Fetching episode '+episode.title+".");
 
-		setAudioResponse(this,this.$speech,episode.url,0,currentDate,episode.title)
+		setAVResponse(this,this.$speech,episode.url,0,currentDate,episode.title,episode.imageurl)
 	    }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
@@ -491,7 +497,7 @@ app.setHandler({
             this.$speech.addText('Loading and resuming episode '+episode.title+".")
 
 	    let offset = this.$user.$data.offset;
-	    setAudioResponse(this,this.$speech,episode.url,offset,currentDate,episode.title)
+	    setAVResponse(this,this.$speech,episode.url,offset,currentDate,episode.title,episode.imageurl)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	    console.error("ResumeIntent caught: ",e,trystack(e))
@@ -516,7 +522,7 @@ app.setHandler({
         currentDate = nextEpisodeDate;
         this.$user.$data.currentDate = currentDate;
         this.$speech.addText('Fetching episode '+nextEpisode.title+".");
-	setAudioResponse(this,this.$speech,nextEpisode.url,0,currentDate,nextEpisode.title)
+	setAVResponse(this,this.$speech,nextEpisode.url,0,currentDate,nextEpisode.title,nextEpisode.imageurl)
     },
 
     PreviousIntent: async function() {
@@ -539,7 +545,7 @@ app.setHandler({
         currentDate = previousEpisodeDate;
         this.$user.$data.currentDate = currentDate;
         this.$speech.addText('Fetching episode '+previousEpisode.title+".");
-	setAudioResponse(this,this.$speech,previousEpisode.url,0,currentDate,previousEpisode.title)
+	setAVResponse(this,this.$speech,previousEpisode.url,0,currentDate,previousEpisode.title,previousEpisode.imageurl)
     },
 
     FastForwardIntent() {
@@ -581,7 +587,7 @@ app.setHandler({
         let currentDate = randomEpisodeDate;
         this.$user.$data.currentDate = currentDate;
         this.$speech.addText('Fetching episode '+randomEpisode.title+".");
-	setAudioResponse(this,this.$speech,randomEpisode.url,0,currentDate,randomEpisode.title)
+	setAVResponse(this,this.$speech,randomEpisode.url,0,currentDate,randomEpisode.title,randomEpisode.imageurl)
     },
 
     IncompleteDateIntent() {
@@ -644,7 +650,7 @@ app.setHandler({
 
 	    this.$speech.addText("Fetching the show from "+format(localDate,"PPPP")+": episode "+episode.title+".");
 
-	    setAudioResponse(this,this.$speech,episode.url,0,currentDate,episode.title)
+	    setAVResponse(this,this.$speech,episode.url,0,currentDate,episode.title,episode.imageurl)
 	}
 	else {
 	    this.$speech.addText("An episode broadcast on "+format(localDate,"PPPP")+" does not seem to be available in the vault. What would you like me to do instead?")
@@ -660,7 +666,7 @@ app.setHandler({
 	    const currentDate=episode.broadcastDateMsec
 	    this.$user.$data.currentDate = currentDate;
 	    this.$speech.addText('Fetching episode '+episode.title+".");
-	    setAudioResponse(this,this.$speech,episode.url,0,currentDate,episode.title)
+	    setAVResponse(this,this.$speech,episode.url,0,currentDate,episode.title,episode.imageurl)
 	}
 	else {
 	    this.$speech.addText("Episode number "+episodeNumber+" does not seem to be available in the vault. What would you like me to do instead?")
@@ -678,7 +684,7 @@ app.setHandler({
 	const currentDate=Player.getLiveStreamDate()
         this.$user.$data.currentDate = currentDate;
         this.$speech.addText("Playing the New Sounds livestream.");
-	setAudioResponse(this,this.$speech,Player.getLiveStreamURI(),0,currentDate,"New Sounds On Demand live stream")
+	setAVResponse(this,this.$speech,Player.getLiveStreamURI(),0,currentDate,"New Sounds Live Stream",null)
     },
 
     HelpIntent() {
@@ -696,8 +702,7 @@ app.setHandler({
     // Hook for testing
     async DebugIntent() {
         this.$speech.addText("Debug hook baited. Awaiting micro fishies.")
-	//this.showSimpleCard("New Sounds On Demand","Open your ears and say 'ahhh'!")
-	this.showImageCard("New Sounds On Demand","Hear a little something!",NewSoundsLogoURI)
+	this.showImageCard("New Sounds On Demand","Open your ears and say ahhh!",NewSoundsLogoURI)
 	return this.ask(this.$speech)
     },
    
