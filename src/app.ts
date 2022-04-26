@@ -148,7 +148,7 @@ const AppCredits="The New Sounds On Demand player for smart speakers is being de
 // For use on displays; see https://v3.jovo.tech/docs/output/visual-output
 // Better rendering currently requires platform-specific coding again, alas;
 // consider wrappering that too.
-const NewSoundsLogoURI="https://media.wnyc.org/i/600/600/l/80/1/ns_showcard-newsounds.png"
+export const NewSoundsLogoURI="https://media.wnyc.org/i/600/600/l/80/1/ns_showcard-newsounds.png"
 
 ////////////////////////////////////////////////////////////////
 // NOTE: In most cases, JSON.stringify() is a better choice.  The
@@ -299,13 +299,13 @@ function parseISO8601Duration (iso8601Duration:string):ParsedDate|null {
 // livestream), just pass in episode? Maybe not since live is currently
 // an exception rather than "really" episode 0. TODO: REVIEW.
 
-function setAVResponse(that:Jovo, text:(string|string[]|SpeechBuilder), audioURI:string, audioOffset:number, audioDate:number, audioTitle:string, imageURI:(string|null) ) {
+export function setAVResponse(that:Jovo, text:(string|string[]|SpeechBuilder), audioURI:string, audioOffset:number, audioDate:number, audioTitle:string, imageURI:(string|null) ) {
     setAudioResponse(that, text, audioURI, audioOffset, audioDate, audioTitle)
     var graphic:string= (imageURI==null) ? NewSoundsLogoURI : imageURI
     that.showImageCard("New Sounds On Demand",audioTitle,graphic)
 }
 
-function setAudioResponse(that:Jovo, text:(string|string[]|SpeechBuilder), audioURI:string, audioOffset:number, audioDate:number, audioTitle:string) {
+export function setAudioResponse(that:Jovo, text:(string|string[]|SpeechBuilder), audioURI:string, audioOffset:number, audioDate:number, audioTitle:string) {
     var taggedURI=addUriUsage(audioURI)
     if (that.isAlexaSkill()) {
 	that.$alexaSkill!.$audioPlayer! // guaranteed non-null by test
@@ -579,7 +579,7 @@ app.setHandler({
     // by saving that in user state and using it in the auto-advance
     // code... TODO: REVIEW.
     //
-    // Grr: Currently "Shuffle off to Buffalo" is interpreted by Alexa as
+    // Sigh: Currently "Shuffle off to Buffalo" is interpreted by Alexa as
     // "play My Soundtrack", not "Shuffle Off" or even "Play Shuffle Off To
     // Buffalo". That's what happens when you try too hard to guess what the
     // user might have intended...

@@ -1,5 +1,6 @@
 import { Player } from '../player';
 import { Handler } from 'jovo-core';
+import { setAVResponse,NewSoundsLogoURI } from '../app'
 
 // Alexa music-player event management for Jovo newsounds player.
 // Based on the Jovo podcast player example, extended and modified.
@@ -11,8 +12,6 @@ export const AlexaHandler: Handler = {
 
     'AMAZON.PauseIntent'() {
         this.$alexaSkill!.$audioPlayer!.stop();
-	// Do I need to log index/offset here to make sure we resume in the
-	// right mode? Or does this trigger Playback Stopped, qv?
     },
 
     'AMAZON.LoopOffIntent'() {
@@ -114,12 +113,17 @@ export const AlexaHandler: Handler = {
 	    if(episode!=null) {
 		let nextDate = episode.broadcastDateMsec
                 this.$user.$data.currentDate = nextDate;
+		// Update the show card to display the new episode's info
+		var graphic:string= (episode.imageurl==null) ? NewSoundsLogoURI : episode.imageurl
+		this.showImageCard("New Sounds On Demand",episode.title,graphic)
             } else {
-		// "Resume" after play-to-stop of last ep
-		// was starting with that ep's starting offset.
-		// It should say none-such if we were on last ep.
-		// Leave myself a note to that effect in this.$user.%data,
-		// by setting a negative offset (otherwise impossible).
+		// Leave currentDate set to the last episode
+		// available, but with a flag saying we reached the
+		// end of it.  We use that when later asking for
+		// resume, to pick up with the next available or say
+		// there isn't one.  Overloading offset this way is a
+		// bit of a kluge, but it's working and resume needs
+		// to look at offset anyway...
 		this.$user.$data.offset= -1
 	    }
         },
