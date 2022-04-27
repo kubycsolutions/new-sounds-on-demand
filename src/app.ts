@@ -348,6 +348,7 @@ export function setAudioResponse(that:Jovo, text:(string|string[]|SpeechBuilder)
     else {
 	console.error("Unexpected action type",objToString(that))
     }
+    that.$user.$data.inProgress=true
 }
 
 
@@ -403,6 +404,7 @@ app.setHandler({
             this.$speech.addText('Fetching episode '+episode.title+".");
 
 	    setAVResponse(this,this.$speech,episode.url,0,currentDate,episode.title,episode.imageurl)
+	    if(DEBUG) console.error("DEBUG: FirstEpisodeIntent inProgress=",this.$user.$data.inProgress)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	    console.error("FirstEpisodeIntent caught: ",e,trystack(e))
@@ -424,6 +426,7 @@ app.setHandler({
 		this.$speech.addText('Fetching episode '+episode.title+".");
 
 		setAVResponse(this,this.$speech,episode.url,0,currentDate,episode.title,episode.imageurl)
+		if(DEBUG) console.error("DEBUG: LatestEpisodeIntent inProgress=",this.$user.$data.inProgress)
 	    }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
@@ -448,9 +451,10 @@ app.setHandler({
             this.$speech.addText('Fetching episode '+episode.title+".");
 
 	    setAVResponse(this,this.$speech,episode.url,0,currentDate,episode.title,episode.imageurl)
+	    if(DEBUG) console.error("DEBUG: LowestNumberedEpisodeIntent inProgress=",this.$user.$data.inProgress)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("FirstEpisodeIntent caught: ",e,trystack(e))
+	    console.error("LowestNumberedEpisodeIntent caught: ",e,trystack(e))
 	    throw e;
 	}
     },
@@ -472,6 +476,7 @@ app.setHandler({
 		this.$speech.addText('Fetching episode '+episode.title+".");
 
 		setAVResponse(this,this.$speech,episode.url,0,currentDate,episode.title,episode.imageurl)
+		if(DEBUG) console.error("DEBUG: LastEpisodeIntent inProgress=",this.$user.$data.inProgress)
 	    }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
@@ -519,6 +524,7 @@ app.setHandler({
 
 	    let offset = this.$user.$data.offset;
 	    setAVResponse(this,this.$speech,episode.url,offset,currentDate,episode.title,episode.imageurl)
+	    if(DEBUG) console.error("DEBUG: ResumeIntent inProgress=",this.$user.$data.inProgress)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	    console.error("ResumeIntent caught: ",e,trystack(e))
@@ -544,6 +550,7 @@ app.setHandler({
         this.$user.$data.currentDate = currentDate;
         this.$speech.addText('Fetching episode '+nextEpisode.title+".");
 	setAVResponse(this,this.$speech,nextEpisode.url,0,currentDate,nextEpisode.title,nextEpisode.imageurl)
+	if(DEBUG) console.error("DEBUG: NextIntent inProgress=",this.$user.$data.inProgress)
     },
 
     PreviousIntent: async function() {
@@ -567,6 +574,7 @@ app.setHandler({
         this.$user.$data.currentDate = currentDate;
         this.$speech.addText('Fetching episode '+previousEpisode.title+".");
 	setAVResponse(this,this.$speech,previousEpisode.url,0,currentDate,previousEpisode.title,previousEpisode.imageurl)
+	if(DEBUG) console.error("DEBUG: PreviousIntent inProgress=",this.$user.$data.inProgress)
     },
 
     FastForwardIntent() {
@@ -615,6 +623,7 @@ app.setHandler({
         this.$user.$data.currentDate = currentDate;
         this.$speech.addText('Fetching episode '+randomEpisode.title+".");
 	setAVResponse(this,this.$speech,randomEpisode.url,0,currentDate,randomEpisode.title,randomEpisode.imageurl)
+	if(DEBUG) console.error("DEBUG: RandomIntent inProgress=",this.$user.$data.inProgress)
     },
 
     IncompleteDateIntent() {
@@ -678,6 +687,7 @@ app.setHandler({
 	    this.$speech.addText("Fetching the show from "+format(localDate,"PPPP")+": episode "+episode.title+".");
 
 	    setAVResponse(this,this.$speech,episode.url,0,currentDate,episode.title,episode.imageurl)
+	    if(DEBUG) console.error("DEBUG: DateIntent inProgress=",this.$user.$data.inProgress)
 	}
 	else {
 	    this.$speech.addText("An episode broadcast on "+format(localDate,"PPPP")+" does not seem to be available in the vault. What would you like me to do instead?")
@@ -694,6 +704,7 @@ app.setHandler({
 	    this.$user.$data.currentDate = currentDate;
 	    this.$speech.addText('Fetching episode '+episode.title+".");
 	    setAVResponse(this,this.$speech,episode.url,0,currentDate,episode.title,episode.imageurl)
+	    if(DEBUG) console.error("DEBUG: NumberIntent inProgress=",this.$user.$data.inProgress)
 	}
 	else {
 	    this.$speech.addText("Episode number "+episodeNumber+" does not seem to be available in the vault. What would you like me to do instead?")
@@ -712,6 +723,7 @@ app.setHandler({
         this.$user.$data.currentDate = currentDate;
         this.$speech.addText("Playing the New Sounds livestream.");
 	setAVResponse(this,this.$speech,Player.getLiveStreamURI(),0,currentDate,"New Sounds Live Stream",null)
+	if(DEBUG) console.error("DEBUG: LiveIntent inProgress=",this.$user.$data.inProgress)
     },
 
     HelpIntent() {
@@ -747,23 +759,29 @@ app.setHandler({
 	// TODO: Probably want to refactor this into a subroutine, and have
 	// it and getStreamMetadataText() take parameters saying which
 	// field(s) have been requested.
-	var currentDate = this.$user.$data.currentDate;
-	if (currentDate==Player.getLiveStreamDate()) {
-	    let response=await getStreamMetadataText()
-	    this.showImageCard("New Sounds On Demand -- Live Stream",response,NewSoundsLogoURI)
-	    this.$speech.addText(response)
+	var inProgress:boolean = this.$user.$data.inProgress
+	if(inProgress)
+	{
+	    var currentDate = this.$user.$data.currentDate;
+	    if (currentDate==Player.getLiveStreamDate()) {
+		let response=await getStreamMetadataText()
+		this.showImageCard("New Sounds On Demand -- Live Stream",response,NewSoundsLogoURI)
+		this.$speech.addText(response)
+	    } else {
+		var episode=await Player.getEpisodeByDate(currentDate)
+		if(episode==null) {
+		    let response="Sorry, but I'm not sure what you are listening to right now."
+		    this.showImageCard("New Sounds On Demand",response,NewSoundsLogoURI)
+		    this.$speech.addText(response)
+		}
+		else {
+	    	    let response="Now playing Episode "+episode.title+"."
+		    this.showImageCard("New Sounds On Demand -- Daily Show",response,NewSoundsLogoURI)
+		    this.$speech.addText(response)
+		}
+	    }
 	} else {
-	    var episode=await Player.getEpisodeByDate(currentDate)
-	    if(episode==null) {
-		let response="Sorry, but I'm not sure what you are listening to right now."
-		this.showImageCard("New Sounds On Demand",response,NewSoundsLogoURI)
-		this.$speech.addText(response)
-	    }
-	    else {
-	    	let response="Now playing Episode "+episode.title+"."
-		this.showImageCard("New Sounds On Demand -- Daily Show",response,NewSoundsLogoURI)
-		this.$speech.addText(response)
-	    }
+	    this.$speech.addText("I don't think New Sounds On Demand is playing anything right now.")
 	}
 	return this.tell(this.$speech)
     },

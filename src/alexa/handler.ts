@@ -2,6 +2,8 @@ import { Player } from '../player';
 import { Handler } from 'jovo-core';
 import { NewSoundsLogoURI } from '../app'
 
+const DEBUG=true
+
 // Alexa music-player event management for Jovo newsounds player.
 // Based on the Jovo podcast player example, extended and modified.
 
@@ -12,6 +14,8 @@ export const AlexaHandler: Handler = {
 
     'AMAZON.PauseIntent'() {
         this.$alexaSkill!.$audioPlayer!.stop();
+	this.$user.$data.inProgress = false
+	if(DEBUG) console.error("DEBUG: PauseIntent inProgress=",this.$user.$data.inProgress)
     },
 
     'AMAZON.LoopOffIntent'() {
@@ -56,6 +60,8 @@ export const AlexaHandler: Handler = {
 	    else
 		uri=uri+"?"+keshlam_uri_parameters
 	}
+	this.$user.$data.inProgress = true
+	if(DEBUG) console.error("DEBUG: StartOverIntent inProgress=",this.$user.$data.inProgress)
         return this.$alexaSkill!.$audioPlayer!
 	    .setOffsetInMilliseconds(0) // Do not retain offset
 	    .play(uri, `${currentDate}`)
@@ -66,6 +72,8 @@ export const AlexaHandler: Handler = {
 	    // TODO: PlaybackNearlyFinished is officially "outdated".
 	    // However, trying to queue up the next during PlaybackStarted
 	    // is apparently verboten, so the logic has been left there.
+	    this.$user.$data.inProgress = true
+	    if(DEBUG) console.error("DEBUG: PlaybackStarted inProgress=",this.$user.$data.inProgress)
 	},
 	
         'AlexaSkill.PlaybackNearlyFinished': async function() {
@@ -119,6 +127,8 @@ export const AlexaHandler: Handler = {
 		// bit of a kluge, but it's working and resume needs
 		// to look at offset anyway...
 		this.$user.$data.offset= -1
+		this.$user.$data.inProgress = false
+		if(DEBUG) console.error("DEBUG: PlaybackFinished inProgress=",this.$user.$data.inProgress)
 	    }
         },
 
@@ -126,6 +136,8 @@ export const AlexaHandler: Handler = {
 	    // It's OK if we capture this for livestream; we just
 	    // won't use it in that case.
             this.$user.$data.offset = this.$alexaSkill!.$audioPlayer!.getOffsetInMilliseconds();
+	    this.$user.$data.inProgress = false
+	    if(DEBUG) console.error("DEBUG: PlaybackStopped inProgress=",this.$user.$data.inProgress)
         },
 
         'AlexaSkill.PlaybackFailed'() {
