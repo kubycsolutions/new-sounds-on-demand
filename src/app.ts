@@ -32,21 +32,21 @@
 https://alexa.uservoice.com/forums/906892-alexa-skills-developer-voice-and-vote/suggestions/44933392-loading-audio-with-offset-can-be-slow-losing-audi
 
    TODO: (Investigating) Can custom slots be used as a better way to
-   express synonym combinatorics?
+   express synonym combinatorics? (Yes, but does that blow up Alexa's
+   attempts to match synonyms?)
 
    TODO: Display cards. Can display change at rollover? At stream
-   update? State DB should include not-playing state so we can say
-   "dunno" when we aren't playing.
+   update? Should we add tease?
 
         BUG: Named interactions display, then switch back to generic,
-	then fade back to Show's default screens. Name-free are behaving
-	more the way I want. Jovo issue, I think...?
+	then fade. Name-free are behaving more the way I want. Jovo
+	issue, I think...?
 
-	Stream tracking cards would have to be updated on timer, since
-	there isn't any event available when stream changes
-	tracks. Need to handle clock-skew issue. BUT: Needs to come
-	through as a Jovo event so we have the right 'this' to respond
-	with. ASK how best to handle that in Jovo.
+	Stream cards would have to be updated on timer, since there
+	isn't any event available when stream changes tracks. Need to
+	handle clock-skew issue. BUT: Needs to come through as a Jovo
+	event so we have the right 'this' to respond with. ASK how
+	best to handle that in Jovo.
 
 	Attempting to update display at starting-new-track doesn't
 	seem to be working. Just cover this with the stream-style
@@ -58,83 +58,65 @@ https://alexa.uservoice.com/forums/906892-alexa-skills-developer-voice-and-vote/
 
    TODO: Continue to improve speech interactions. Name-Free
    Interaction, if/when possible (including meta
-   queries/searches). Figure out what Google can do; possibly
-   different parser.
+   queries/searches). Figure out what Google can do; different
+   parser/capabilities.
 
-   TODO: Forward/back (ff/rw, skip f/b, etc) by duration.  Note the
-   open ISSUE of possible long delay... though knowing the audio is in
-   cache may reduce that risk to some degree.
+   TODO: Forward/back (ff/rw, etc) by duration.  Note the open ISSUE
+   of possible long delay... though knowing the audio is in cache may
+   reduce that risk to some degree, and if user asks for long jump
+   they arguably know what they are getting themselves into.
 
    TODO: Can we announce ep# when we auto-advance via queue without
    causing a glitch in the audio? Haven't found a perfect incantation
    yet.  Doing this really cleanly might require giving up using the
    Alexa queue to preload audio, though that would slow ep-to-ep
-   transition.
+   transition. See above re display cards.
 
    TODO: Parameterize for New Sounds' other programs. Most elegant
    would be to work out VUI dialogs which let us navigate across them
-   through a single skill, but multiple would certainly do the job.
+   through a single skill, but multiple skills would certainly do the
+   job. Could even share DB, possibly, since showname is part of keys.
+	VUI design required. BUT NOTE that much of the good stuff from
+	Soundcheck, New Sounds Live, and Le Poisson Rouge does
+	eventually wind up in the New Sounds feed, so it isn't clear
+	accessing them directly is higher priority than keyword search.
 
-   TODO: Set, and return to, named state bookmarks.  Poor man's
-   alternative to search?
-
-   TODO MAYBE: Track calendar-order play separately, permitting poor
-   man's "play episodes I haven't heard yet" not disturbed by explicit
-   navigation, without the full tracking-every-slot or user having to
-   say "since <date>". Conceptually related to bookmarks. Tracking
-   most-recent-yet-played (or played to completion?) is one
-   cheap way to get this podcast-like effect.
-
-   TODO MAYBE: Play single ep? (Doable via sleep timer, so probably
-   not, but "stop after this episode" might be worthwhile.) Repeat?
-   (Probably not.) 
-
-   TODO MAYBE: Alternate auto-next modes, persistent per user:
-   Date, ep#, livestream, fwd/bkwd, shuffle (as opposed to current
-   random, which continues in calendar order from that point. WORK ON
-   COMMAND LANGUAGE.  Note that ep# currently implies earliest
-   broadcast of that episode and so works as publication-order, and
-   random actually randomizes date so rebroadcasts may show up under
-   any of their dates and is biased in favor of first episodes after
-   long date gaps.
+   TODO MAYBE: Poor man's "play episodes I haven't heard yet" based on
+   "play released since the most recent I've listened to".
+   Only requires tracking one value, most recent episode user has ever
+   listened to. Effectively, podcastish behavior. Does partial play
+   need to be tracked, or do we count it as heard or not-heard?
 
    TODO MAYBE: Shuffle? Just starting with random has most of the
    desired effect, with some risk of noticable repeats.  Does shuffle
    imply immediate random start, or only when the next Next occurs?
-
        Actually, shuffle is relatively easy since it only requires
        changing the next/auto-next logic. Can't back up (previous)
        with that unless a history of this shuffle is maintained;
-       that's not impossible, though.
+       that's not impossible, though, and failing to do so is not
+       intolerable.
 
-   TODO SOMEDAY: "Play one I haven't heard before". Requires tracking
-   all usage for every user, which might not be obscenely huge if it's
-   a bitvector or if it leverages ranges. Simpler to track only
-   highest date/ep# played, which addresses easy timeshifting... How
-   to handle partial plays?
+   TODO: Set, and return to, named state bookmarks.  Poor man's
+   alternative to search?
 
-       Actually, forward-only podcast-like behavior is relatively easy;
-       track highest-numbered episode heard (or heard to completion?).
+   TODO MAYBE: Play single ep? (Doable via sleep timer, so probably
+   not, but "stop after this episode" might be worthwhile.) Repeat?
+   (Probably not.) Unfortunately there's no builtin for do/don't stop,
+   just shuffle and repeat. I don't want to abuse repeat for this.
 
-   TODO SOMEDAY: Smartspeakers with displays. The tease is probably
-   wanted for this. Episode cover-pic too. Extracting from the HTML
-   body is not impossible but is ugly... Unfortunately body: is too
-   large to just render and declare done.
+   TODO MAYBE: Alternate auto-next modes, persistent per user: Date,
+   ep#, livestream, fwd/bkwd, shuffle (see above). Biggest challenge
+   is letting the user express their wishes cleanly. Note that ep#
+   currently implies earliest broadcast of that episode and so works
+   as publication-order, and random actually randomizes date so
+   rebroadcasts may show up under any of their dates and is biased in
+   favor of first episodes after long date gaps.
 
    TODO SOMEDAY: Tag searchability. Other music skills seem to handle
    bandname/recordname/trackname surprisingly well; is there something
    we can tap there, or is sounds-like matching the best we've got?
    Ties into playlists, unless this is a single selection and user has
    to work through the offerings.
-
-   TODO SOMEDAY: MAYBE handle combined shows though a single
-   skill. Initially easier to just clone the skill and lambdas (minor
-   tweaks needed to runtime parameters and voice model), but with
-   combined database "next" over multiple shows becomes plausible. VUI
-   design required. BUT NOTE that much of the good stuff from Soundcheck,
-   New Sounds Live, and Le Poisson Rouge does eventually wind up in the
-   New Sounds feed, so it isn't clear accessing them directly is a huge
-   win vs. via keyword search.
 
    TODO EVENTUALLY: At the moment I'm using the same zipfile for both
    skill and database-update lambdas, with different entry-point
