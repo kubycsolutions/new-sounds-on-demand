@@ -776,7 +776,8 @@ app.setHandler({
 		}
 		else {
 	    	    let response="Now playing Episode "+episode.title+"."
-		    this.showImageCard("New Sounds On Demand -- Daily Show",response,NewSoundsLogoURI)
+		    var graphic:string= (episode.imageurl==null) ? NewSoundsLogoURI : episode.imageurl
+		    this.showImageCard("New Sounds On Demand -- Daily Show",response,graphic)
 		    this.$speech.addText(response)
 		}
 	    }
