@@ -1,6 +1,6 @@
 import { Player } from '../player';
 import { Handler } from 'jovo-core';
-import { setAVResponse,NewSoundsLogoURI } from '../app'
+import { NewSoundsLogoURI } from '../app'
 
 // Alexa music-player event management for Jovo newsounds player.
 // Based on the Jovo podcast player example, extended and modified.
@@ -62,15 +62,12 @@ export const AlexaHandler: Handler = {
     },
 
     AUDIOPLAYER: {
-	// TODO: PlaybackNearlyFinished is officially "outdated".
-	// However, trying to queue up the next during PlaybackStarted
-	// is apparently verboten, so the logic has been left there.
-        'AlexaSkill.PlaybackStarted'() {
+        'AlexaSkill.PlaybackStarted': async function() {
+	    // TODO: PlaybackNearlyFinished is officially "outdated".
+	    // However, trying to queue up the next during PlaybackStarted
+	    // is apparently verboten, so the logic has been left there.
 	},
 	
-	// TODO: Implement continue along multiple axes -- fwd,
-	// bkwd, by date or ep#. That actually probably belongs in
-	// Player's next/prev...
         'AlexaSkill.PlaybackNearlyFinished': async function() {
             let currentDate = this.$user.$data.currentDate;
 	    if (currentDate==null) {
@@ -113,9 +110,6 @@ export const AlexaHandler: Handler = {
 	    if(episode!=null) {
 		let nextDate = episode.broadcastDateMsec
                 this.$user.$data.currentDate = nextDate;
-		// Update the show card to display the new episode's info
-		var graphic:string= (episode.imageurl==null) ? NewSoundsLogoURI : episode.imageurl
-		this.showImageCard("New Sounds On Demand",episode.title,graphic)
             } else {
 		// Leave currentDate set to the last episode
 		// available, but with a flag saying we reached the
