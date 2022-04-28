@@ -1,6 +1,6 @@
 **New Sounds On Demand** -- smartspeaker access to the archives, and livestream, of https://newsounds.org.
 
-**Live Alexa Skill:** https://www.amazon.com/dp/B09WJ3H657/ref=sr_1_1
+**Live Alexa Skill:** https://www.amazon.com/dp/B09WJ3H657
 
 **About this Skill**
 
