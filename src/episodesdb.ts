@@ -7,10 +7,14 @@
     instance properties, but unclear that works with expected
     evolution. TODO: REVIEW.
 
-    BUG: As retrieved from station database, tease appears to be
-    UTF16 or something like it, resulting in "o d d l y" spaced
-    text when just printed as it stands. Add a cleanup filter here
-    and rebuild DB.
+    DATA BUG: Some tease values (eg episode 825) have a space before
+    every character, " l i k e  s o ". There seems to be an ending
+    space too. Note that it looks like spaces did *not* get so processed,
+    so "ab c" became " a b c" and we can't do a simple even/odd split
+    to fix it. We could try replace space-space with something
+    reserved, remove all spaces, replace the something with
+    single-character space...  but we barely use tease right now,
+    so I'm going to defer that. Sigh. Reported.
 
     TODO: Parameterize remaining references explicitly to "newsounds".
     Any others that might want to be parameterized for reuse?
@@ -889,14 +893,20 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	broadcastDate.setUTCMilliseconds(0)
 
 	// For spoken description, take the one-phrase tease rather
-	// than the extended HTML-markup body. But NOTE: Tease
-	// sometimes truncates long text with "...", which is not
-	// ideal for humans. Workaround: If that is seen, take the
-	// first sentence or two of body instead.
+	// than the extended HTML-markup body. 
+	//
+	// BUT: Tease sometimes truncates long text with "...", which
+	// is not ideal for humans. Workaround: If that is seen, take
+	// the first sentence or two of body instead.
+	//
+	// KNOWN DATA BUG: Some teases are " m i s f o r m a t t e d ".
+	// The ones I've seen were truncated first, so poor man's recovery
+	// is to recognize the misformatted elipsis.
 	var tease=deHTMLify(attributes.tease)
-	if (tease.endsWith("..."))
-	    tease=deHTMLify(attributes.body+" ")
-	    .split(". ")[0]+"."
+	if (tease.endsWith("...") 
+	    || tease.endsWith(". . .")  // Recover from known data bug
+	    || tease.endsWith(". . . ")) // Recover from known data bug
+	    tease=deHTMLify(attributes.body+" ").split(". ")[0]+"."
 
 	// Playlist TODO: Someday, is it worth parsing out the
 	// ARTIST/WORK/SOURCE/INFO <span/>s from the HTML-markup body?

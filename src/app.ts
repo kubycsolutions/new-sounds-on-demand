@@ -404,7 +404,6 @@ app.setHandler({
 	    // aware of.  Have I said recently that I hate Javascript?
             var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
             this.$speech.addText('Fetching episode '+episode.title+".");
-
 	    setEpisodeAVResponse(this,this.$speech,episode,0)
 	    if(DEBUG) console.error("DEBUG: FirstEpisodeIntent inProgress=",this.$user.$data.inProgress)
 	} catch(e) {
@@ -743,6 +742,7 @@ app.setHandler({
     async DebugIntent() {
         this.$speech.addText("Debug hook baited. Awaiting micro fishies.")
 	this.showImageCard("New Sounds On Demand","Open your ears and say ahhh!",NewSoundsLogoURI)
+
 	return this.ask(this.$speech)
     },
    

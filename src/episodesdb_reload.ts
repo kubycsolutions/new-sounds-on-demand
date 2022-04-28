@@ -34,7 +34,7 @@ async function reLoad(maxdepth:number) {
 
 async function callUpdateEpisodes(table:string,program:string,depth:number) {
     try {
-	updateEpisodes(table,depth) // 0 to force rebuild, < incremental, > to specified depth
+	updateEpisodes(table,depth) // 0 to force rebuild/reload, < incremental, > to specified depth
     }
     catch(e) {
 	console.log("updateEpisodes:",e)
