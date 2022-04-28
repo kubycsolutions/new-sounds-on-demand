@@ -1,8 +1,9 @@
 {
     "invocation": "new sounds on demand",
-    "comment": "Grammar example generation was assisted by  WBUR's AUML combinatorial generator. Note that I'm hoping the systems are able to fairly reliably distinguish later from latest; if not, one or the other may need to drop out.",
+    "comment": "Initial grammar example generation was assisted by WBUR's AUML combinatorial generator. Note that I'm hoping the systems are able to fairly reliably distinguish later from latest; if not, one or the other may need to drop out. TODO REVIEW: Synonyms can be implemented as custom input types, reducing the combinatoric explosion of alternative phrasings... but I'm not sure how that interacts with system-level attempts to guess generalizations from the examples. Hold off for now. TODO FUTURE: It's been suggested that an AUML-like plug-in for Jovo could be useful.",
     "inputTypes": [
 	{ "name": "something",
+	  "comment": "Example of synonym-via-slot",
 	  "values": [
               {"value": "something"},
               {"value": "something else"}
@@ -13,9 +14,10 @@
         {
             "name": "DialogIntent",
             "comment": "Go back into prompted interactions",
-            "inputs": [
+            "comment-inputs": [
                 {
                     "name": "something",
+		    "comment": "Example of synonym-via-slot",
                     "type": {
                         "alexa": "something",
                         "dialogflow": "something",
@@ -24,23 +26,39 @@
                 }
             ],
             "phrases": [
-                "Do {something}",
-                "Go to {something}",
+                "Do something else",
+                "Do something",
+                "Go to something else",
+                "Go to something",
                 "I don't like that",
-                "I want to hear {something}",
-                "I want to listen to {something}",
-                "I want to play {something}",
-                "I want {something}",
-                "I would like to hear {something}",
-                "I would like to listen to {something}",
-                "I would like to play {something}",
-                "I would like {something}",
-                "I would prefer to hear {something}",
-                "I would prefer to listen to {something}",
-                "I would prefer to play {something}",
-                "I would prefer {something}",
+                "I don't like that",
+                "I want something else",
+                "I want something",
+                "I want to hear something else",
+                "I want to hear something",
+                "I want to listen to something else",
+                "I want to listen to something",
+                "I want to play something else",
+                "I want to play something",
+                "I would like something else",
+                "I would like something",
+                "I would like to hear something else",
+                "I would like to hear something",
+                "I would like to listen to something else",
+                "I would like to listen to something",
+                "I would like to play something else",
+                "I would like to play something",
+                "I would prefer something else",
+                "I would prefer something",
+                "I would prefer to hear something else",
+                "I would prefer to hear something",
+                "I would prefer to listen to something else",
+                "I would prefer to listen to something",
+                "I would prefer to play something else",
+                "I would prefer to play something",
                 "I'm bored",
-                "Play {something}"
+                "Play something else",
+                "Play something"
             ]
         },
 	{
@@ -5031,6 +5049,8 @@
                 "options",
                 "what I can do",
                 "what can I do",
+                "what you can do",
+                "what can you do",
                 "what are my choices",
                 "what are my options"
             ]
@@ -5068,6 +5088,10 @@
 		"About this song",
 		"About this piece",
 		"About this composition",
+		"Tell me about this track",
+		"Tell me about this song",
+		"Tell me about this piece",
+		"Tell me about this composition",
 		"What I am listening to",
 		"What am I listening to",
 		"What we are listening to",
@@ -5075,7 +5099,9 @@
 		"Who I am listening to",
 		"Who am I listening to",
 		"Who we are listening to",
-		"Who are we listening to"
+		"Who are we listening to",
+		"Who is this",
+		"Who this is"
             ]
         },
 	{

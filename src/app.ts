@@ -3,8 +3,8 @@
    the data driving the newsounds.org website, and to offer enhanced
    behaviors.
 
-   CAVEAT: This started as whittled, rather than designed, code in a
-   language and framework I was learning as I went.  Cleanup is
+   CAVEAT: This started as whittled code (as opposed to architected),
+   in a language and framework I was learning as I went.  Cleanup is
    progressing as I continue to work on it, but some inelegance should
    be expected to persist.
 
@@ -18,6 +18,18 @@
 
 
    OPEN TASKS:
+
+   BUG: The inProgress flag can get confused if user was playing on
+   multiple devices, then stopped one. We could keep a counter, but
+   I'm nervous about it getting out of synch. Since this state fixes
+   itself next time we play audio, I'm tolerating it for now.
+   
+	POSSIBLE FIXES: Maintaining a count could get messy.  I could
+	have a ResetAction, but that's kluge, not fix. We could drop
+	the flag, but then we still have confusing results if multiple
+	devices are playing.  Ideal would be to track _which_ devices
+	are playing what, in addition to user; does Jovo expose where
+	request came from? (Do the platforms, for that matter?)
 
    BUG/ISSUE: Possible long delay on resume IF not already in Alexa's
    local cache, presumably due to the computational cost of
