@@ -748,12 +748,10 @@ app.setHandler({
     },
    
     ////////////////////////////////////////////////////////////////
-    // Jovo and/or Amazon doesn't let us provide sample phrases in the
-    // model for the built-in queries, so there are two entry points:
+    // There are currently two entry points for metadata requests:
     // the standard "ask NSOD", plus the one called by Amazon's
-    // builtin grammar if/when prefixless can be enabled. NOTE:
-    // Prefixless may require supporting the canHandle interaction,
-    // which Jovo currently does not.
+    // builtin grammar if/when prefixless can be enabled. It may
+    // be possible to combine them. TODO:REVIEW
     //
     // TODO: Implement name-free when Amazon lets me do so.
 
@@ -777,6 +775,7 @@ app.setHandler({
 		    this.$speech.addText(response)
 		}
 		else {
+		    // TODO REVIEW: Add date to episode meta response? 
 	    	    let response="Now playing Episode "+episode.title+"."
 		    var graphic:string= (episode.imageurl==null) ? NewSoundsLogoURI : episode.imageurl
 		    this.showImageCard("New Sounds On Demand -- Daily Show",response,graphic)
