@@ -27,14 +27,18 @@ For other commands, you will either have to Open the skill first, or explicitly 
 
 **Known issues**
 
-KNOWN LIMITATION ON ALEXA: Alexa's default parsing of incomplete is biased toward assuming "next" instance of the described date -- "Tuesday" is taken as "next Tuesday." This skill is always backward-looking, so that is the wrong default. Until/unless we can fix this, we have to rely on the skill's checking the date and, if it's later than today, asking the user to rephrase their request.
+KNOWN LIMITATION ON ALEXA: Alexa's default parsing of incomplete is biased toward assuming "next" instance of the described date -- "Tuesday" is taken as "next Tuesday." This skill is always backward-looking, so that is the wrong default. Until/unless we can fix this, we have to rely on the skill's checking the date and, if it's later than today, asking the user to rephrase their request (eg "this Monday").
 
 KNOWN BUG ON ALEXA: "Play the highest numbered episode" is currently being misinterpreted as IncompleteEpisodeNumberRequest rather than HighestEpisodeRequest. It could be worse; the user can recover by just saying "Highest" again when asked which episode they want... but it would be good to analyse why the grammar causes this misinterpretation and get it fixed.
 
 
 **What's New**
 
-This skill is now live in the Alexa app collection, at https://www.amazon.com/dp/B09WJ3H657/ref=sr_1_1 ! Now "all I need to do" is get the attention of users. I've done a bit of low-key announcement on social media, but it's probably not going to take off -- if it ever does -- until the show's producers decide they want to publicize it.
+This skill is now live in the Alexa app collection, at https://www.amazon.com/dp/B09WJ3H657 ! Now "all I need to do" is get the attention of users. I've done a bit of low-key announcement on social media, but it's probably not going to take off -- if it ever does -- until the show's producers decide they want to publicize it.
+
+Second release begins taking advantage of displays (if you have an Echo Show or similar). There are some glitches where the card is overwritten; I'm working with the Jovo folks to get that fixed.
+
+Second release also adds **"<wakeword>, ask New Sounds On Demand what's playing"**. This is useful for the livestream, where music plays without being described. It's currently reading all the information we have; I'm considering adding more specific phrases (as in Alexa's music item queries) and may remove some of those categories from the default description. Unfortunately we don't have accurately timed playlists for the individual episodes, so for those all I can do is tell you which one you're listening to.
 
 
 **Future Goals**
