@@ -67,7 +67,9 @@ export class Player {
 	    var uri=LIVE_STREAM_METADATA_URI
 	    if(DEBUG) console.error("Calling got.get(\""+uri+"\")")
 	    var response=await got.get(uri) // default content-type is 'text'
-	    return JSON.parse(response.body);
+	    var response_object=JSON.parse(response.body);
+	    if(DEBUG) console.error(JSON.stringify(response_object,null,4))
+	    return response_object
 	}
 	catch(e) {
 	    console.error("ERROR: got.get() threw",e)

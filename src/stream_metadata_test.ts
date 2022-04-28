@@ -1,4 +1,5 @@
 import {getStreamMetadataText} from "./stream_metadata"
+import {Player} from "./player"
 
 // Kluge; JS has no official sleep function but it does have timeout.
 async function sleep(ms:number):Promise<any> {

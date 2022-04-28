@@ -168,26 +168,26 @@ export const NewSoundsLogoURI="https://media.wnyc.org/i/600/600/l/80/1/ns_showca
 // minor advantage of this one is that depth can be limited, which is
 // sometimes useful. Unclear I need it; retaining it for now. TODO:
 // REVIEW
-function objToString(obj:any, ndeep:number=0):string {
-    const MAX_OBJTOSTRING_DEPTH=10 // circular refs are possible
-    if(obj == null){ return String(obj); }
-    if(ndeep > MAX_OBJTOSTRING_DEPTH) {return "...(elided; might recurse)..." }
-    switch(typeof obj){
-    case "string": return '"'+obj+'"';
-    case "function": return obj.name || obj.toString();
-    case "object":
-	var indent = Array(ndeep||1).join('  '), isArray = Array.isArray(obj);
-	return '{['[+isArray] + Object.keys(obj).map(function(key){
-	    return '\n' + indent + key + ': ' + objToString(obj[key], (ndeep||1)+1);
-        }).join(',') + '\n' + indent + '}]'[+isArray];
-    default: return obj.toString();
-    }
-}
+// function objToString(obj:any, ndeep:number=0):string {
+//     const MAX_OBJTOSTRING_DEPTH=10 // circular refs are possible
+//     if(obj == null){ return String(obj); }
+//     if(ndeep > MAX_OBJTOSTRING_DEPTH) {return "...(elided; might recurse)..." }
+//     switch(typeof obj){
+//     case "string": return '"'+obj+'"';
+//     case "function": return obj.name || obj.toString();
+//     case "object":
+// 	var indent = Array(ndeep||1).join('  '), isArray = Array.isArray(obj);
+// 	return '{['[+isArray] + Object.keys(obj).map(function(key){
+// 	    return '\n' + indent + key + ': ' + objToString(obj[key], (ndeep||1)+1);
+//         }).join(',') + '\n' + indent + '}]'[+isArray];
+//     default: return obj.toString();
+//     }
+// }
 
 // Trying to make sure we report stacks when we catch an exception.
 function trystack(obj:any):string {
     if (obj instanceof Error) {
-	return objToString(obj.stack)
+	return JSON.stringify(obj.stack)
     }
     else return ""
 }
@@ -316,6 +316,12 @@ function parseISO8601Duration (iso8601Duration:string):ParsedDate|null {
 //
 // TODO: Can we improve display card rendering? Portably, if possible?
 
+export function setEpisodeAVResponse(that:Jovo, text:(string|string[]|SpeechBuilder), episode:EpisodeRecord,offset:number) {
+    // TODO: Add tease to text? Need multiple append operations...
+    // Do we really require the flexibility in arguments?
+    setAVResponse(that,text,episode.url,offset,episode.broadcastDateMsec,episode.title,episode.imageurl)
+}
+
 export function setAVResponse(that:Jovo, text:(string|string[]|SpeechBuilder), audioURI:string, audioOffset:number, audioDate:number, audioTitle:string, imageURI:(string|null) ) {
     setAudioResponse(that, text, audioURI, audioOffset, audioDate, audioTitle)
     var graphic:string = (imageURI==null) ? NewSoundsLogoURI : imageURI
@@ -342,7 +348,7 @@ export function setAudioResponse(that:Jovo, text:(string|string[]|SpeechBuilder)
 	that.ask(text);
     }
     else {
-	console.error("Unexpected action type",objToString(that))
+	console.error("Unexpected action type",JSON.stringify(that))
     }
     that.$user.$data.inProgress=true
 }
@@ -399,7 +405,7 @@ app.setHandler({
             var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
             this.$speech.addText('Fetching episode '+episode.title+".");
 
-	    setAVResponse(this,this.$speech,episode.url,0,currentDate,episode.title,episode.imageurl)
+	    setEpisodeAVResponse(this,this.$speech,episode,0)
 	    if(DEBUG) console.error("DEBUG: FirstEpisodeIntent inProgress=",this.$user.$data.inProgress)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
@@ -421,7 +427,7 @@ app.setHandler({
 		var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
 		this.$speech.addText('Fetching episode '+episode.title+".");
 
-		setAVResponse(this,this.$speech,episode.url,0,currentDate,episode.title,episode.imageurl)
+		setEpisodeAVResponse(this,this.$speech,episode,0)
 		if(DEBUG) console.error("DEBUG: LatestEpisodeIntent inProgress=",this.$user.$data.inProgress)
 	    }
 	} catch(e) {
@@ -445,8 +451,7 @@ app.setHandler({
 	    // aware of.  Have I said recently that I hate Javascript?
             var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
             this.$speech.addText('Fetching episode '+episode.title+".");
-
-	    setAVResponse(this,this.$speech,episode.url,0,currentDate,episode.title,episode.imageurl)
+	    setEpisodeAVResponse(this,this.$speech,episode,0)
 	    if(DEBUG) console.error("DEBUG: LowestNumberedEpisodeIntent inProgress=",this.$user.$data.inProgress)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
@@ -471,7 +476,7 @@ app.setHandler({
 		var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
 		this.$speech.addText('Fetching episode '+episode.title+".");
 
-		setAVResponse(this,this.$speech,episode.url,0,currentDate,episode.title,episode.imageurl)
+		setEpisodeAVResponse(this,this.$speech,episode,0)
 		if(DEBUG) console.error("DEBUG: LastEpisodeIntent inProgress=",this.$user.$data.inProgress)
 	    }
 	} catch(e) {
@@ -519,7 +524,7 @@ app.setHandler({
             this.$speech.addText('Loading and resuming episode '+episode.title+".")
 
 	    let offset = this.$user.$data.offset;
-	    setAVResponse(this,this.$speech,episode.url,offset,currentDate,episode.title,episode.imageurl)
+	    setEpisodeAVResponse(this,this.$speech,episode,offset)
 	    if(DEBUG) console.error("DEBUG: ResumeIntent inProgress=",this.$user.$data.inProgress)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
@@ -545,7 +550,7 @@ app.setHandler({
         currentDate = nextEpisodeDate;
         this.$user.$data.currentDate = currentDate;
         this.$speech.addText('Fetching episode '+nextEpisode.title+".");
-	setAVResponse(this,this.$speech,nextEpisode.url,0,currentDate,nextEpisode.title,nextEpisode.imageurl)
+	setEpisodeAVResponse(this,this.$speech,nextEpisode,0)
 	if(DEBUG) console.error("DEBUG: NextIntent inProgress=",this.$user.$data.inProgress)
     },
 
@@ -569,7 +574,7 @@ app.setHandler({
         currentDate = previousEpisodeDate;
         this.$user.$data.currentDate = currentDate;
         this.$speech.addText('Fetching episode '+previousEpisode.title+".");
-	setAVResponse(this,this.$speech,previousEpisode.url,0,currentDate,previousEpisode.title,previousEpisode.imageurl)
+	setEpisodeAVResponse(this,this.$speech,previousEpisode,0)
 	if(DEBUG) console.error("DEBUG: PreviousIntent inProgress=",this.$user.$data.inProgress)
     },
 
@@ -618,7 +623,7 @@ app.setHandler({
         let currentDate = randomEpisodeDate;
         this.$user.$data.currentDate = currentDate;
         this.$speech.addText('Fetching episode '+randomEpisode.title+".");
-	setAVResponse(this,this.$speech,randomEpisode.url,0,currentDate,randomEpisode.title,randomEpisode.imageurl)
+	setEpisodeAVResponse(this,this.$speech,randomEpisode,0)
 	if(DEBUG) console.error("DEBUG: RandomIntent inProgress=",this.$user.$data.inProgress)
     },
 
@@ -682,7 +687,7 @@ app.setHandler({
 
 	    this.$speech.addText("Fetching the show from "+format(localDate,"PPPP")+": episode "+episode.title+".");
 
-	    setAVResponse(this,this.$speech,episode.url,0,currentDate,episode.title,episode.imageurl)
+	    setEpisodeAVResponse(this,this.$speech,episode,0)
 	    if(DEBUG) console.error("DEBUG: DateIntent inProgress=",this.$user.$data.inProgress)
 	}
 	else {
@@ -699,7 +704,7 @@ app.setHandler({
 	    const currentDate=episode.broadcastDateMsec
 	    this.$user.$data.currentDate = currentDate;
 	    this.$speech.addText('Fetching episode '+episode.title+".");
-	    setAVResponse(this,this.$speech,episode.url,0,currentDate,episode.title,episode.imageurl)
+	    setEpisodeAVResponse(this,this.$speech,episode,0)
 	    if(DEBUG) console.error("DEBUG: NumberIntent inProgress=",this.$user.$data.inProgress)
 	}
 	else {
@@ -778,7 +783,7 @@ app.setHandler({
 		}
 	    }
 	} else {
-	    this.$speech.addText("I don't think New Sounds On Demand is playing anything right now.")
+	    this.$speech.addText("I don't think New Sounds On Demand is playing anything on this device right now. But I may be confused.")
 	}
 	return this.tell(this.$speech)
     },
