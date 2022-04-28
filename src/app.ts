@@ -367,6 +367,7 @@ app.setHandler({
 	try {
             this.$speech.addText('Welcome to New Sounds On Demand!')
 		.addText('We can begin listening from the oldest or newest episode, from a specific date or episode number, play the live stream, or I can surprise you with a random selection. Which would you like?')
+	    this.showImageCard("New Sounds On Demand","Try: \"Play the newest show\", \"Play episode 4000\", or \"Play the live stream\"",NewSoundsLogoURI)
             return this.ask(this.$speech);
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
@@ -382,6 +383,7 @@ app.setHandler({
     DialogIntent() {
 	try {
             this.$speech.addText('Would you like to resume where you left off, listen to the newest or oldest episode, play from a date or episode number, play a random episode, or play the live stream?')
+	this.showImageCard("New Sounds On Demand","Try: \"Newest\", \"Oldest\", \"Episode 4000\", \"This Monday's Show\", \"Live Stream\", or \"Surprise Me!\"",NewSoundsLogoURI)
             this.ask(this.$speech);
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
@@ -469,9 +471,6 @@ app.setHandler({
 	    }
 	    else
 	    {
-		// GONK: This is boilerplate, isn't it. REFACTOR!
-		// (Sorry -- whittled code is prone to copypasta.)
-		// Need to understand how Javascript scopes _this_...
 		var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
 		this.$speech.addText('Fetching episode '+episode.title+".");
 
@@ -676,6 +675,7 @@ app.setHandler({
 	{
 	    this.$speech.addText("That came through as a future date. Could you rephrase your request?")
 	    this.ask(this.$speech)
+	    return
 	}
 
 	let episode=await Player.getEpisodeByDate(utcDatestamp)
@@ -723,6 +723,8 @@ app.setHandler({
         this.$user.$data.currentDate = currentDate;
         this.$speech.addText("Playing the New Sounds livestream.");
 	setAVResponse(this,this.$speech,Player.getLiveStreamURI(),0,currentDate,"New Sounds Live Stream",null)
+	this.showImageCard("New Sounds On Demand -- Live Stream","Try: \"Ask New Sounds On Demand what we are listening to.\""
+,NewSoundsLogoURI)
 	if(DEBUG) console.error("DEBUG: LiveIntent inProgress=",this.$user.$data.inProgress)
     },
 
@@ -742,7 +744,6 @@ app.setHandler({
     async DebugIntent() {
         this.$speech.addText("Debug hook baited. Awaiting micro fishies.")
 	this.showImageCard("New Sounds On Demand","Open your ears and say ahhh!",NewSoundsLogoURI)
-
 	return this.ask(this.$speech)
     },
    
