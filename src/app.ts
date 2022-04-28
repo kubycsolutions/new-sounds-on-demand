@@ -35,12 +35,10 @@ https://alexa.uservoice.com/forums/906892-alexa-skills-developer-voice-and-vote/
    express synonym combinatorics? (Yes, but does that blow up Alexa's
    attempts to match synonyms?)
 
-   TODO: Display cards. Can display change at rollover? At stream
-   update? Should we add tease?
+   TODO: Display cards for DialogIntent, Incomplete intents, others? Can
+   we pop a card up at queued-playback rollover? At stream metadata update?
 
-        BUG: Named interactions display, then switch back to generic,
-	then fade. Name-free are behaving more the way I want. Jovo
-	issue, I think...?
+        BUG: "Generic" skill card appears at unexpected times.
 
 	Stream cards would have to be updated on timer, since there
 	isn't any event available when stream changes tracks. Need to
@@ -298,13 +296,17 @@ function parseISO8601Duration (iso8601Duration:string):ParsedDate|null {
 // so we can reference it later when screening out late events from previous
 // playback. TODO: REVIEW.
 //
-// NOTE: Given that many params are all obtained from episode (except for
-// livestream), just pass in episode? Maybe not since live is currently
-// an exception rather than "really" episode 0. TODO: REVIEW.
+// NOTE: Given that many params are all obtained from episode (except
+// for livestream), just pass in episode? Might require a separate
+// call for livestream, but that's relatively simple. Would make
+// adding the tease relatively easy. TODO: REVIEW.
+// ISSUE/BUG: At this writing, tease is misformatted (UTF16?)
+//
+// TODO: Can we improve display card rendering? Portably, if possible?
 
 export function setAVResponse(that:Jovo, text:(string|string[]|SpeechBuilder), audioURI:string, audioOffset:number, audioDate:number, audioTitle:string, imageURI:(string|null) ) {
     setAudioResponse(that, text, audioURI, audioOffset, audioDate, audioTitle)
-    var graphic:string= (imageURI==null) ? NewSoundsLogoURI : imageURI
+    var graphic:string = (imageURI==null) ? NewSoundsLogoURI : imageURI
     that.showImageCard("New Sounds On Demand",audioTitle,graphic)
 }
 

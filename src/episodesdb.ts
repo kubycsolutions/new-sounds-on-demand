@@ -7,6 +7,11 @@
     instance properties, but unclear that works with expected
     evolution. TODO: REVIEW.
 
+    BUG: As retrieved from station database, tease appears to be
+    UTF16 or something like it, resulting in "o d d l y" spaced
+    text when just printed as it stands. Add a cleanup filter here
+    and rebuild DB.
+
     TODO: Parameterize remaining references explicitly to "newsounds".
     Any others that might want to be parameterized for reuse?
 
