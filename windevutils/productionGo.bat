@@ -14,11 +14,19 @@ set DYNAMODB_ENDPOINT=https://dynamodb.%DYNAMODB_REGION%.amazonaws.com
 set NSOD_EPISODES_TABLE=episodes_debug
 set NSOD_PROGRAM=newsounds
 
-: TSC is apparently a batchfile, and either needs to be CALLed or single-lined
-: to avoid ending the script prematurely.
-
 cls
+
+: I've found jovo3 doesn't always notice when a file has been changed, and
+: may skip things like the grammar builds. Flush the previous build to
+: insist on a complete refresh.
+rmdir /s bundle
+
+: TSC is apparently a batchfile, and either needs to be CALLed or single-lined
+: to avoid ending the script prematurely. NOTE that
+: "jovo3 build" should be running TSC, and in fact running it with a
+: slightly different configuration, so this may be redundant.
 call tsc
+
 call jovo3 build --stage lambda
 
 call jovo3 deploy

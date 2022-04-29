@@ -354,6 +354,19 @@ export function setAudioResponse(that:Jovo, text:(string|string[]|SpeechBuilder)
     that.$user.$data.inProgress=true
 }
 
+////////////////////////////////////////////////////////////////
+// Portability hook
+export function getRequestingDeviceID(that:Jovo):string {
+    // Official API in Jovo v4 and later:
+    // return that.$device.id
+    
+    // In Jovo v3, fetch it out of the Request, if available
+    // ... which requires platform-sensitive code.
+    // (Borrow the logic backward from v4?)
+    //
+    // Is the request typed by the platform?
+    return that.$request.context.System.device.deviceId
+}
 
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -384,7 +397,7 @@ app.setHandler({
     DialogIntent() {
 	try {
             this.$speech.addText('Would you like to resume where you left off, listen to the newest or oldest episode, play from a date or episode number, play a random episode, or play the live stream?')
-	this.showImageCard("New Sounds On Demand","Try: \"Newest\", \"Oldest\", \"Episode 4000\", \"This Monday's Show\", \"Live Stream\", or \"Surprise Me!\"",NewSoundsLogoURI)
+	    this.showImageCard("New Sounds On Demand","Try: \"Newest\", \"Oldest\", \"Episode 4000\", \"This Monday's Show\", \"Live Stream\", or \"Surprise Me!\"",NewSoundsLogoURI)
             this.ask(this.$speech);
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
@@ -393,6 +406,9 @@ app.setHandler({
 	}
     },
 
+    // NOTE: Now that ordinals are being handled as episode numbers, this
+    // intent isn't actually getting used for "first", but does handle
+    // "earliest" and "oldest"
     FirstEpisodeIntent: async function() {
 	try {
             let episode = await Player.getOldestEpisode();
@@ -416,6 +432,7 @@ app.setHandler({
 	}
     },
 
+    // NOTE: Alexa considers "last" a synonym of "previous".
     async LatestEpisodeIntent() {
 	try {
             let episode = await Player.getMostRecentBroadcastEpisode();
@@ -434,7 +451,7 @@ app.setHandler({
 	    }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
-	    console.error("LastEpisodeIntent caught: ",e,trystack(e))
+	    console.error("LatestEpisodeIntent caught: ",e,trystack(e))
 	    throw e;
 	}
     },
@@ -697,7 +714,19 @@ app.setHandler({
     },
 
     async EpisodeNumberIntent() {
-	const episodeNumber=parseInt(this.getInput('episodeNumber').value) // comes back as string
+	// There was some confusion about whether ordinals should be
+	// taken as episode number, date, or (???) Latest.  Explicitly
+	// allowing both forms is an attempt to disambiguate
+	// this... but requires either two intents or that we check
+	// both slots.
+	var episodeNumberString=this.getInput('episodeNumber').value
+	var episodeOrdinalString=this.getInput('episodeOrdinal').value
+	var episodeNumber=parseInt(
+	    (episodeNumberString && episodeNumberString.length>0)
+		? episodeNumberString
+		: episodeOrdinalString
+	)
+
 	const episode=await Player.getEpisodeByNumber(episodeNumber)
 	if(episode!=null && episode !=undefined)
 	{
