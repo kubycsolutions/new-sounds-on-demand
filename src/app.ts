@@ -356,17 +356,17 @@ export function setAudioResponse(that:Jovo, text:(string|string[]|SpeechBuilder)
 
 ////////////////////////////////////////////////////////////////
 // Portability hook
-export function getRequestingDeviceID(that:Jovo):string {
-    // Official API in Jovo v4 and later:
-    // return that.$device.id
+// export function getRequestingDeviceID(that:Jovo):string {
+//     // Official API in Jovo v4 and later:
+//     // return that.$device.id
     
-    // In Jovo v3, fetch it out of the Request, if available
-    // ... which requires platform-sensitive code.
-    // (Borrow the logic backward from v4?)
-    //
-    // Is the request typed by the platform?
-    return that.$request.context.System.device.deviceId
-}
+//     // In Jovo v3, fetch it out of the Request, if available
+//     // ... which requires platform-sensitive code.
+//     // (Borrow the logic backward from v4?)
+//     //
+//     // Is the request typed by the platform?
+//     return that.$request.context.System.device.deviceId
+// }
 
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
