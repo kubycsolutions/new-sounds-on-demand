@@ -26,12 +26,10 @@
    was last requested -- not necessarily on this device, and not
    necessarily currently playing.
    
-	POSSIBLE FIXES: Maintaining a count could get messy, though
-	the failure modes aren't worse than what we have now.  I could
-	have a ResetAction, but that's kluge, not fix. Ideal would be
-	to track _which_ devices are playing what, in addition to
-	user; does Jovo expose where request came from? (Do the
-	platforms, for that matter?)
+	POSSIBLE FIX: Track by specific device. "You can access the
+	request and all its properties with this.$request. In Jovo v4,
+	you can access the device id with this.$device.id." So do a
+	forward-portability wrapper.
 
    BUG/ISSUE: Possible long delay on resume IF not already in Alexa's
    local cache, presumably due to the computational cost of
@@ -45,14 +43,15 @@
    been preloaded?
 https://alexa.uservoice.com/forums/906892-alexa-skills-developer-voice-and-vote/suggestions/44933392-loading-audio-with-offset-can-be-slow-losing-audi
 
-   TODO: (Investigating) Can custom slots be used as a better way to
-   express synonym combinatorics? (Yes, but does that blow up Alexa's
-   attempts to match synonyms?)
+   TODO: (Investigating) Custom slots can be used as a better way to
+   express synonym combinatorics. But does that blow up Alexa's
+   native attempts to match synonyms?
 
-   TODO: Display cards for DialogIntent, Incomplete intents, others? Can
-   we pop a card up at queued-playback rollover? At stream metadata update?
+   TODO: Display card work. Can we pop a card up at queued-playback
+   rollover?  At stream metadata update?
 
         BUG: "Generic" skill card appears at unexpected times.
+	Probably a Jovo issue; ask them to look at it.
 
 	Stream cards would have to be updated on timer, since there
 	isn't any event available when stream changes tracks. Need to
@@ -360,8 +359,8 @@ export function setAudioResponse(that:Jovo, text:(string|string[]|SpeechBuilder)
 // ------------------------------------------------------------------
 // APP LOGIC FOLLOWS
 //
-// Note: Javascript/Jovo default exception handling may not report stack
-// trace. Hence the try/catch{print;rethrow} here.
+// I'm not sure Javascript/Jovo default exception handling will report stack
+// trace. Hence the try/catch{print;rethrow} here. May not be necessary.
 // ------------------------------------------------------------------
 
 app.setHandler({
@@ -771,7 +770,7 @@ app.setHandler({
 	// inProgress can be maintained on a device basis rather
 	// than only on user.
 	var inProgress:boolean = this.$user.$data.inProgress
-	if(inProgress)
+	if(inProgress==inProgress)// if(inProgress)
 	{
 	    var currentDate = this.$user.$data.currentDate;
 	    if (currentDate==Player.getLiveStreamDate()) {

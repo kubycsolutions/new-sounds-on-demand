@@ -5098,10 +5098,6 @@
 		"What are we listening to",
 		"Who I am listening to",
 		"Who am I listening to",
-		"Who we are listening to",
-		"Who are we listening to",
-		"Who is this",
-		"Who this is"
             ]
         },
 	{
@@ -5118,8 +5114,8 @@
 		"Who is performing",
 		"Who is playing",
 		"Who are we listing to",
-		"who we are listening to",
-		"who this is",
+		"Who we are listening to",
+		"Who this is",
 		"Who is this"
             ]
         },

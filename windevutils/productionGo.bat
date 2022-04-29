@@ -21,15 +21,16 @@ cls
 call tsc
 call jovo3 build --stage lambda
 
-: There's currently a problem (at least on my box) where jovo deploy
-: is not producing and uploading the zipfile. This workaround produces it.
-: call jovo3 deploy --target lambda
+call jovo3 deploy
+
+: There's currently a problem (at least on my box) where jovo deploy is not
+: reliably producing and uploading the zipfile. This workaround produces it.
 call npm run bundle
 
-: Since we aren't using Deploy, we need to upload the jarfile explicitly.
+: For the workaround, we need to upload the jarfile explicitly.
 : User (see output of  aws sts get-caller-identity) must have appropriate
-: permissions to allow this. For now I'm just doing manual uploadl
+: permissions to allow this. For now I'm just doing manual upload
 
 : aws lambda update-function-code --function-name prod-new-sounds-on-demand --zip-file fileb://bundle.zip  --dry-run
 
-: No jovo3 run, since the lambda now handles execution.
+: No "jovo3 run", since the lambda now handles execution.
