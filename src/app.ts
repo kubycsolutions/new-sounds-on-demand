@@ -21,15 +21,17 @@
 
    BUG: The inProgress flag can get confused if user was playing on
    multiple devices, then stopped one. We could keep a counter, but
-   I'm nervous about it getting out of synch. Since this state fixes
-   itself next time we play audio, I'm tolerating it for now.
+   I'm nervous about it getting out of synch. For now, I'm disabling
+   the test, which means that when stopped we'll reply with whatever
+   was last requested -- not necessarily on this device, and not
+   necessarily currently playing.
    
-	POSSIBLE FIXES: Maintaining a count could get messy.  I could
-	have a ResetAction, but that's kluge, not fix. We could drop
-	the flag, but then we still have confusing results if multiple
-	devices are playing.  Ideal would be to track _which_ devices
-	are playing what, in addition to user; does Jovo expose where
-	request came from? (Do the platforms, for that matter?)
+	POSSIBLE FIXES: Maintaining a count could get messy, though
+	the failure modes aren't worse than what we have now.  I could
+	have a ResetAction, but that's kluge, not fix. Ideal would be
+	to track _which_ devices are playing what, in addition to
+	user; does Jovo expose where request came from? (Do the
+	platforms, for that matter?)
 
    BUG/ISSUE: Possible long delay on resume IF not already in Alexa's
    local cache, presumably due to the computational cost of
@@ -759,6 +761,15 @@ app.setHandler({
 	// TODO: Probably want to refactor this into a subroutine, and have
 	// it and getStreamMetadataText() take parameters saying which
 	// field(s) have been requested.
+
+	// BUG: When using multiple devices, Alexa can get confused
+	// about whether and where New Sounds is running. For now,
+	// the safer solution is to disable the inProgress test.
+	// TODO: We could try to maintain a counter rather than a
+	// simple flag, but I'm unreasonably nervous about that
+	// getting out of synch. Or we can investigate whether
+	// inProgress can be maintained on a device basis rather
+	// than only on user.
 	var inProgress:boolean = this.$user.$data.inProgress
 	if(inProgress)
 	{
