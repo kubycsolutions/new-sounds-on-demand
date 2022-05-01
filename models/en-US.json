@@ -914,6 +914,7 @@
         },
 	{
             "name": "RestartIntent",
+	    "comment": "Alexa seems to have built-in support of this, so I haven't had to implement it.",
             "alexa": {
                 "name": "AMAZON.StartOverIntent",
                 "samples": []
@@ -3144,6 +3145,14 @@
                 "play the webcast",
                 "play webcast"
             ]
+        },
+	{
+	    "name": "FallbackIntent",
+            "alexa": {
+                "name": "AMAZON.FallbackIntent",
+                "samples": []
+            },
+	    "phrases": []
         },
 	{
             "name": "HelpIntent",

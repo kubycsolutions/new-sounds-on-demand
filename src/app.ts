@@ -356,17 +356,23 @@ export function setAudioResponse(that:Jovo, text:(string|string[]|SpeechBuilder)
 
 ////////////////////////////////////////////////////////////////
 // Portability hook
-// export function getRequestingDeviceID(that:Jovo):string {
-//     // Official API in Jovo v4 and later:
-//     // return that.$device.id
+const _get = require("lodash.get");
+export function getRequestingDeviceID(that:Jovo):string {
+    // Official API in Jovo v4 and later:
+    // return that.$device.id
     
-//     // In Jovo v3, fetch it out of the Request, if available
-//     // ... which requires platform-sensitive code.
-//     // (Borrow the logic backward from v4?)
-//     //
-//     // Is the request typed by the platform?
-//     return that.$request.context.System.device.deviceId
-// }
+    // In Jovo v3, fetch it out of the Request, if available
+    // ... which requires platform-sensitive code.
+    // Is the request typed by the platform?
+    if (that.isAlexaSkill())
+	// lodash.get used to bypass TS strict typing, in lieu of
+	// type sentry. Sloppy, but Jovo uses this approach in places.
+	return _get(that.$request,"context.System.device.deviceId","unknownAlexaDeviceId")
+    else if (that.isGoogleAction())
+	return "unimplementedGoogleDeviceId"
+    else
+	return "unimplementedUnknownPlatformDeviceId"
+}
 
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -773,10 +779,28 @@ app.setHandler({
     // Hook for testing
     async DebugIntent() {
         this.$speech.addText("Debug hook baited. Awaiting micro fishies.")
-	this.showImageCard("New Sounds On Demand","Open your ears and say ahhh!",NewSoundsLogoURI)
+	var testmsg=getRequestingDeviceID(this)
+	this.showImageCard("New Sounds On Demand",testmsg,NewSoundsLogoURI)
 	return this.ask(this.$speech)
     },
    
+    ////////////////////////////////////////////////////////////////
+    // There are currently two entry points for Fallback because I'm not
+    // sure which one Jovo is actually invoking, or if it varies by
+    // platform. That might also be relevant for HelpIntent.
+    // TODO: Resolve.
+    FallbackIntent() {
+        this.$speech.addText("I'm sorry, I didn't hear that properly. Could you try saying it another way?")
+	this.showImageCard("New Sounds On Demand","I didn't hear that properly. Could you try saying it another way?",NewSoundsLogoURI)
+	return this.ask(this.$speech)
+    },
+    "AMAZON.FallbackIntent"() {
+//	return this.toIntent('FallbackIntent')
+        this.$speech.addText("I'm sorry, but I don't think I heard that properly. Could you try saying it another way?")
+	this.showImageCard("New Sounds On Demand","I don't think I heard that properly. Could you try saying it another way?",NewSoundsLogoURI)
+	return this.ask(this.$speech)
+    },
+
     ////////////////////////////////////////////////////////////////
     // There are currently two entry points for metadata requests:
     // the standard "ask NSOD", plus the one called by Amazon's
