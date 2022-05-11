@@ -496,7 +496,7 @@ export function getRandomItem(tableName:string,program:string): Promise<EpisodeR
     // at or after the random timestamp (which is why this calls Next).
     var earliest=EPOCH_DATE; // fallback epoch date. Parameterize? GONK
     var latest=Date.now() - 7*24*60*60*1000 // Roll back one day, paranoia
-    if(DEBUG) console.error("DEBUG: getRandomItem: getNextItemByDate Inteval ("+earliest+","+latest+")")
+    if(DEBUG) console.error("DEBUG: getRandomItem: getNextItemByDate Interval ("+earliest+","+latest+")")
     var pickDate=Math.floor(earliest +Math.random()*(latest-earliest))
     return getNextItemByDate(tableName,program,pickDate)
 }
