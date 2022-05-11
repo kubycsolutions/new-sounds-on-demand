@@ -891,7 +891,7 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// is not ideal for humans. Workaround: If that is seen, take
 	// the first sentence or two of de-HTMLified body instead.
 	var tease=attributes.tease
-	if (tease.endsWith("...") {
+	if (tease.endsWith("...")) {
 	    if(DEBUG) console.error("TRUNCATED/GARBLED TEASE: \""+tease+"\"")
 	    tease=deHTMLify(attributes.body).replace(/[.].*$/g,".")
 	    if(DEBUG) console.error("REPLACEMENT TEASE: \""+tease+"\"")
