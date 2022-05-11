@@ -895,10 +895,14 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// BUT: Tease sometimes truncates long text with "...", which
 	// is not ideal for humans. Possible workaround: If that is
 	// seen, take the first sentence or two of de-HTMLified body
-	// instead.  A bit of dancing is needed to get past early
-	// elipsis in body text, and to balance quotes. HAZARD:
-	// Periods can also appear for initials.
+	// instead. Known hazards include elipses and initials in the
+	// body text, plus period within quotes.
+	//
 	// GONK TODO: WHITTLED CODE. REVIEW FOR MORE PRINCIPLED SOLUTION.
+	//
+	// GONK TODO REVIEW: Should this attempt to suppress
+	// "tonight's New Sounds", "this episode of New Sounds" and
+	// similar phrases that are arguably redundant for my needs?
 	var tease=attributes.tease
 	if (tease.endsWith("...")) {
 	    var bod=deHTMLify(attributes.body)
@@ -914,7 +918,7 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	    
 	    // Cleanup, sloppily.
 	    tease=bod.substring(0,len).trim()
-	    var quoteCount = [...str].filter(x => x === "\"").length;
+	    var quoteCount = [...tease].filter(x => x === "\"").length;
 	    if( quoteCount % 2 == 1)
 		tease+="\"" // Balance quotes, in case we split at '."'
 	    if(DEBUG) console.error("REPLACEMENT TEASE: \""+tease+"\"")
@@ -922,7 +926,6 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	
 	// If title is just program number (as is true for some of the
 	// oldest), try the (possibly re-derived) tease instead.
-	
 	if (title.match(/^ *#[0-9]*: *Program +#[0-9]* *$/i)) {
 	    title=""+episodeNumber+": "+tease
 	    if(DEBUG) console.error("REPLACEMENT TITLE: \""+title+"\"")
