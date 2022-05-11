@@ -7,15 +7,6 @@
     instance properties, but unclear that works with expected
     evolution. TODO: REVIEW.
 
-    DATA BUG: Some tease values (eg episode 825) have a space before
-    every character, " l i k e  s o ". There seems to be an ending
-    space too. Note that it looks like spaces did *not* get so processed,
-    so "ab c" became " a b c" and we can't do a simple even/odd split
-    to fix it. We could try replace space-space with something
-    reserved, remove all spaces, replace the something with
-    single-character space...  but we barely use tease right now,
-    so I'm going to defer that. Sigh. Reported.
-
     TODO: Parameterize remaining references explicitly to "newsounds".
     Any others that might want to be parameterized for reuse?
 
@@ -770,20 +761,20 @@ export async function reportEpisodeStats(table:string,program:string="newsounds"
 
 // Convert HTML escapes to speakable. Note RE syntax in .replace().
 function deHTMLify(text:string):string {
-    return text
-	.replace(/<.*>/gi," ") // Discard markup
-	.replace(/&nbsp;/gi," ") // Expand character entities AS ASCII
-	.replace(/&amp;/gi," & ")
-	.replace(/&[lr]squo;/gi,"'")
-	.replace(/&[lr]dquo;/gi,'"')
-	.replace(/&[lr]ndash;/gi," -- ")
+    text=text.replace(/[<].*?[>]/gi," ") // Discard TAGS. Lazy match essential!
+    text=text.replace(/&nbsp;/gi," ") // Expand character entities AS ASCII
+    text=text.replace(/&amp;/gi," & ")
+    text=text.replace(/&[lr]squo;/gi,"'")
+    text=text.replace(/&[lr]dquo;/gi,'"')
+    text=text.replace(/&[lr]ndash;/gi," -- ")
     // TODO: Do we want to do something with (case sensitive?) aelig,
     // eacute, aacute, iacute, oacute, hellip, Uuml, uacute, auml,
     // oslash? Or will speech synthesis handle these well enough?
 
-    // While we're here, convert newlines to spaces, then drop repeated spaces
-	.replace(/\n/g," ")
-	.replace(/ */g," ")
+    // While we're here, convert newlines to spaces, and drop repeated spaces
+    // CAREFUL -- This is the stage at which we were generating excess spaces.
+    text=text.replace(/\s\s+/g," ")
+    return text
 }
 
 // Appended to URI so station can distinguish our data updates from
@@ -839,12 +830,13 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// range.)  There may be another field we can pull descriptive
 	// text from, such as the tease. (See below re tease.)
 	var title=attributes.title
-	    .replace(/The Undead # ?[0-9.]*/gi," ")
-	    .replace(/The Undead/gi,"")
-	    .replace(/Undead # ?[0-9.]*/gi," ")
-	    .replace(/ Pt. /gi," Part ") // For speech-synth pronouncability
+	    .replace(/The Undead # ?[0-9.]*/i," ")
+	    .replace(/The Undead/i,"")
+	    .replace(/Undead # ?[0-9.]*/i," ")
+	    .replace(/ Pt. /i," Part ") // For speech-synth pronouncability
 	// Deal with buried episode number (#nnnn:) by pulling it to
 	// front. 
+	// BUG: This may result int "#nnn:  , "
 	if(!title.startsWith("#")) {
 	    title=title.replace(/(^[^#]*)(#[0-9.]+)(.*)/i,"$2: $1 $3")
 	}
@@ -897,16 +889,13 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	//
 	// BUT: Tease sometimes truncates long text with "...", which
 	// is not ideal for humans. Workaround: If that is seen, take
-	// the first sentence or two of body instead.
-	//
-	// KNOWN DATA BUG: Some teases are " m i s f o r m a t t e d ".
-	// The ones I've seen were truncated first, so poor man's recovery
-	// is to recognize the misformatted elipsis.
-	var tease=deHTMLify(attributes.tease)
-	if (tease.endsWith("...") 
-	    || tease.endsWith(". . .")  // Recover from known data bug
-	    || tease.endsWith(". . . ")) // Recover from known data bug
-	    tease=deHTMLify(attributes.body+" ").split(". ")[0]+"."
+	// the first sentence or two of de-HTMLified body instead.
+	var tease=attributes.tease
+	if (tease.endsWith("...") {
+	    if(DEBUG) console.error("TRUNCATED/GARBLED TEASE: \""+tease+"\"")
+	    tease=deHTMLify(attributes.body).replace(/[.].*$/g,".")
+	    if(DEBUG) console.error("REPLACEMENT TEASE: \""+tease+"\"")
+	}
 
 	// Playlist TODO: Someday, is it worth parsing out the
 	// ARTIST/WORK/SOURCE/INFO <span/>s from the HTML-markup body?
