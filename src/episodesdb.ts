@@ -906,24 +906,25 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	    var initOffset=bod.search(/\s\S[.]/)+2
 	    var stop=bod.indexOf(".") // Do NOT stop at rhetorical ? and !.
 	    initOffset= (stop<initOffset)? initOffset=0 : initOffset+1
-
+	    
 	    stop=bod.indexOf(".",initOffset)
 	    var elipsis=bod.indexOf("...",initOffset)
 	    var len=(stop==elipsis) ? bod.indexOf(".",elipsis+3) : stop
 	    if(len<=0) len=bod.length
-
+	    
 	    // Cleanup, sloppily.
 	    tease=bod.substring(0,len).trim()
 	    var quoteCount = [...str].filter(x => x === "\"").length;
-	    if( quoteCount % 2) == 1)
+	    if( quoteCount % 2 == 1)
 		tease+="\"" // Balance quotes, in case we split at '."'
 	    if(DEBUG) console.error("REPLACEMENT TEASE: \""+tease+"\"")
 	}
-
+	
 	// If title is just program number (as is true for some of the
-	// oldest), is the tease any better?
+	// oldest), try the (possibly re-derived) tease instead.
+	
 	if (title.match(/^ *#[0-9]*: *Program +#[0-9]* *$/i)) {
-	    title=tease
+	    title=""+episodeNumber+": "+tease
 	    if(DEBUG) console.error("REPLACEMENT TITLE: \""+title+"\"")
 	}
 
