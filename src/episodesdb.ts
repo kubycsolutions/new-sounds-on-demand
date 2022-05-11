@@ -610,6 +610,11 @@ export async function updateEpisodes(table:string,maxdepth:number) {
 	    }
 	    
 	    // PROCESS EPISODES IN THIS PAGE OF THE DATABASE READ
+	    //
+	    // NOTE: Currently they are spawned in parallel, then
+	    // gathered with a Promise.all(). But performance isn't a
+	    // serious concern here. Looping with await and stopping
+	    // incremental sooner might reduce cost very slightly.
 	    var episodes=data.data
 	    //for (let ep of episodes) {
 	    var promises:Promise<string>[] = episodes.map( ep => {
@@ -890,11 +895,28 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// BUT: Tease sometimes truncates long text with "...", which
 	// is not ideal for humans. Workaround: If that is seen, take
 	// the first sentence or two of de-HTMLified body instead.
+	// A bit of dancing to get past early elipsis in body, and
+	// to balance quotes.
 	var tease=attributes.tease
 	if (tease.endsWith("...")) {
-	    if(DEBUG) console.error("TRUNCATED/GARBLED TEASE: \""+tease+"\"")
-	    tease=deHTMLify(attributes.body).replace(/[.].*$/g,".")
+	    var bod=deHTMLify(attributes.body)
+	    // TODO REVIEW: Do I want to handle ? and ! stops too?
+	    var stop=bod.indexOf(".")
+	    var elipsis=bod.indexOf("...")
+	    var len=(stop==elipsis) ? bod.indexOf(".",elipsis+3) : stop
+	    if(len<=0) len=bod.length
+	    tease=bod.substring(0,len).trim()
+	    // Idiom: fallback to 0-length array so .length is safe
+	    if( ((tease.match(/\"/g) || []).length) %2 ==1)
+		tease+="\""
 	    if(DEBUG) console.error("REPLACEMENT TEASE: \""+tease+"\"")
+	}
+
+	// If title is just program number (as is true for some of the
+	// oldest), is the tease any better?
+	if (title.match(/^ *Program +#[0-9]* *$/i)) {
+	    title=tease
+	    if(DEBUG) console.error("REPLACEMENT TITLE: \""+title+"\"")
 	}
 
 	// Playlist TODO: Someday, is it worth parsing out the
