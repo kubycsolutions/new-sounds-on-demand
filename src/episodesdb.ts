@@ -893,28 +893,36 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// than the extended HTML-markup body. 
 	//
 	// BUT: Tease sometimes truncates long text with "...", which
-	// is not ideal for humans. Workaround: If that is seen, take
-	// the first sentence or two of de-HTMLified body instead.
-	// A bit of dancing to get past early elipsis in body, and
-	// to balance quotes.
+	// is not ideal for humans. Possible workaround: If that is
+	// seen, take the first sentence or two of de-HTMLified body
+	// instead.  A bit of dancing is needed to get past early
+	// elipsis in body text, and to balance quotes. HAZARD:
+	// Periods can also appear for initials.
+	// GONK TODO: WHITTLED CODE. REVIEW FOR MORE PRINCIPLED SOLUTION.
 	var tease=attributes.tease
 	if (tease.endsWith("...")) {
 	    var bod=deHTMLify(attributes.body)
-	    // TODO REVIEW: Do I want to handle ? and ! stops too?
-	    var stop=bod.indexOf(".")
-	    var elipsis=bod.indexOf("...")
+	    // Is there an initial before the stop?
+	    var initOffset=bod.search(/\s\S[.]/)+2
+	    var stop=bod.indexOf(".") // Do NOT stop at rhetorical ? and !.
+	    initOffset= (stop<initOffset)? initOffset=0 : initOffset+1
+
+	    stop=bod.indexOf(".",initOffset)
+	    var elipsis=bod.indexOf("...",initOffset)
 	    var len=(stop==elipsis) ? bod.indexOf(".",elipsis+3) : stop
 	    if(len<=0) len=bod.length
+
+	    // Cleanup, sloppily.
 	    tease=bod.substring(0,len).trim()
-	    // Idiom: fallback to 0-length array so .length is safe
-	    if( ((tease.match(/\"/g) || []).length) %2 ==1)
-		tease+="\""
+	    var quoteCount = [...str].filter(x => x === "\"").length;
+	    if( quoteCount % 2) == 1)
+		tease+="\"" // Balance quotes, in case we split at '."'
 	    if(DEBUG) console.error("REPLACEMENT TEASE: \""+tease+"\"")
 	}
 
 	// If title is just program number (as is true for some of the
 	// oldest), is the tease any better?
-	if (title.match(/^ *Program +#[0-9]* *$/i)) {
+	if (title.match(/^ *#[0-9]*: *Program +#[0-9]* *$/i)) {
 	    title=tease
 	    if(DEBUG) console.error("REPLACEMENT TITLE: \""+title+"\"")
 	}
