@@ -847,7 +847,7 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	}
 	title=title.trim()
 	if(title.endsWith("-"))
-	    title=title.substr(0,title.length-1)
+	    title=title.substr(0,title.length-1).trim()
 	
 	// Nominally, number should be easier to parse off
 	// attributes.slug. But that doesn't produce the right results
@@ -929,7 +929,7 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// If title is just program number (as is true for some of the
 	// oldest), try the (possibly re-derived) tease instead.
 	if (title.match(/^ *#[0-9]*: *Program +#[0-9]* *$/i)) {
-	    title=""+episodeNumber+": "+tease
+	    title="#"+episodeNumber+": "+tease
 	    if(DEBUG) console.error("REPLACEMENT TITLE: \""+title+"\"")
 	}
 
