@@ -941,7 +941,8 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// eventually want to display the body on smartspeakers with
 	// screens, I s'pose... Caryn reports that this data may exist
 	// in spreadsheet form, which would be much more reliable and
-	// easier to use; can that be automagically fetched?
+	// easier to use; how current is that and can it be
+	// automagically fetched?
 	
 	// Tag searchability: TODO.  Sounds-like handling can be
 	// achieved by matching under, eg, metaphone transformation.
