@@ -907,6 +907,8 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	if (tease.endsWith("...")) {
 	    var bod=deHTMLify(attributes.body)
 	    // Is there an initial before the stop?
+	    // GONK KNOWN GLITCHES: Misses "Wendy Carlos/J. S. Bach", 
+	    // "G.I. Gurdjieff", "(Mr. Heartbreak)", "Vol. 1"...
 	    var initOffset=bod.search(/\s\S[.]/)+2
 	    var stop=bod.indexOf(".") // Do NOT stop at rhetorical ? and !.
 	    initOffset= (stop<initOffset)? initOffset=0 : initOffset+1
