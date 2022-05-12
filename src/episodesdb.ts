@@ -929,7 +929,7 @@ function attributesToEpisodeRecord(attributes:StationEpisodeAttributes):(Episode
 	// If title is just program number (as is true for some of the
 	// oldest), try the (possibly re-derived) tease instead.
 	if (title.match(/^ *#[0-9]*: *Program +#[0-9]* *$/i)) {
-	    title="#"+episodeNumber+": "+tease
+	    title="#"+episodeNumber+": "+deHTMLify(tease)
 	    if(DEBUG) console.error("REPLACEMENT TITLE: \""+title+"\"")
 	}
 
