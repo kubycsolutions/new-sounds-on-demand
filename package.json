@@ -1,5 +1,5 @@
 {
-  "name": "jovo-sample-podcast-player",
+  "name": "new-sounds-on-demand",
   "version": "3.0.0",
   "description": "New Sounds On Demand Player for smartspeakers",
   "main": "./dist/src/index.js",

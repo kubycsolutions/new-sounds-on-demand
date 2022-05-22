@@ -1,5 +1,6 @@
 import { Player } from '../player';
 import { Handler } from 'jovo-core';
+import { updateUserStateDatabase } from '../app'
 
 // TODO: TRY TO REPLICATE THE LOGIC SUPPLIED BY ALEXA.
 // Cancel? Pause? Start Over? Stopped (logging index/offset)?
@@ -33,7 +34,8 @@ export const GoogleHandler: Handler = {
 			uri=uri+"?"+app_uri_parameters
 		}
 		console.log("GOOGLE: uri=",uri)
-                this.$user.$data.currentDate = nextDate
+                //this.$user.$data.currentDate = nextDate
+		updateUserStateDatabase(this.$user.$data,nextDate,0)
                 this.$googleAction!.$mediaResponse!.play(uri, episode.title);
                 this.$googleAction!.showSuggestionChips(['pause', 'start over']);
 		this.$speech.addText('Loading episode '+episode.title+".")

@@ -7,9 +7,6 @@
     instance properties, but unclear that works with expected
     evolution. TODO: REVIEW.
 
-    TODO: Parameterize remaining references explicitly to "newsounds".
-    Any others that might want to be parameterized for reuse?
-
     TODO NITPICK: Strip trailing "," from titles, make sure there's a
     colon (or comma?) after the episode number. The rare occurrances
     are mostly harmless but may affect prosody.
@@ -17,6 +14,9 @@
     TODO: Database can handle multiple programs, but we're currently
     hardwired to populate/update only from New Sounds. That should be
     parameterized, at least.
+
+    TODO: Parameterize remaining references explicitly to "newsounds".
+    Any others that might want to be parameterized for reuse?
  */
 
 const DEBUG=("DEBUG"==process.env.EPISODESDB_DEBUG)

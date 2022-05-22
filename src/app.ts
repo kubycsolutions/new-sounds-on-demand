@@ -25,7 +25,6 @@
    the test, which means that when stopped we'll reply with whatever
    was last requested -- not necessarily on this device, and not
    necessarily currently playing.
-   
 	POSSIBLE FIX: Track by specific device. "You can access the
 	request and all its properties with this.$request. In Jovo v4,
 	you can access the device id with this.$device.id." So do a
@@ -43,9 +42,19 @@
    been preloaded?
 https://alexa.uservoice.com/forums/906892-alexa-skills-developer-voice-and-vote/suggestions/44933392-loading-audio-with-offset-can-be-slow-losing-audi
 
+   IN DEV: PodcastIntent, cheap common bookmark. Store highWaterDate
+   and highWaterOffset. At invocation, if no highwater interpret as
+   Latest; if highWaterDate=current interpret as Resume; else like
+   Resume but with hWD/hWO (including end-of-list). ... Can/should I
+   cheat this by patching the .currentDate/.offset and handing off to
+   Resume?
+
    TODO: (Investigating) Custom slots can be used as a better way to
    express synonym combinatorics. But does that blow up Alexa's
-   native attempts to match synonyms?
+   native attempts to match synonyms? It's been suggested that a
+   macro exploder be built as a Jovo preprocessor. Not hard to do,
+   could use Array.sort to prettify output... May need a
+   "suppress" clause for infelicitous combinations?
 
    TODO: Display card work. Can we pop a card up at queued-playback
    rollover?  At stream metadata update?
@@ -63,9 +72,13 @@ https://alexa.uservoice.com/forums/906892-alexa-skills-developer-voice-and-vote/
 	seem to be working. Just cover this with the stream-style
 	timed update?
 
+	Should the card abstraction use Amazon Presentation Language
+	markup when on Alexa rather than structure-based card config?
+
    TODO: Metadata improvements. Full dump or specific response to
    individual questions?  Stop/pause/end should set user flag saying
-   _not_ playing so we can report that.
+   _not_ playing so we can report that; requires DEVICE state, not
+   just user state. 
 
    TODO: Continue to improve speech interactions. Name-Free
    Interaction, if/when possible (including meta
@@ -91,12 +104,6 @@ https://alexa.uservoice.com/forums/906892-alexa-skills-developer-voice-and-vote/
 	Soundcheck, New Sounds Live, and Le Poisson Rouge does
 	eventually wind up in the New Sounds feed, so it isn't clear
 	accessing them directly is higher priority than keyword search.
-
-   TODO MAYBE: Poor man's "play episodes I haven't heard yet" based on
-   "play released since the most recent I've listened to".
-   Only requires tracking one value, most recent episode user has ever
-   listened to. Effectively, podcastish behavior. Does partial play
-   need to be tracked, or do we count it as heard or not-heard?
 
    TODO MAYBE: Shuffle? Just starting with random has most of the
    desired effect, with some risk of noticable repeats.  Does shuffle
@@ -355,6 +362,33 @@ export function setAudioResponse(that:Jovo, text:(string|string[]|SpeechBuilder)
 }
 
 ////////////////////////////////////////////////////////////////
+// Refactoring for clarity.
+
+// In addition to writing back the new "current" location to user
+// state, we want to check if the new is the latest we've ever seen
+// for this user, and if so update that for PodcastIntent's "gimme
+// something new, not necessarily the newest".
+//
+// As the original example did, I'm using Jovo's implied-persistant
+// this.$user.$data to stash user-state information
+//
+// TODO: REVIEW whether calls to this should be refactored into
+// setAudioResponse(). Arguably yes...
+export function updateUserStateDatabase(userData:any,newDate:number,newOffset:number) {
+    userData.currentDate = newDate
+    userData.offset = newOffset
+    
+    if(!userData.highWaterDate     // First use?
+       || userData.highWaterDate <= newDate) { // Later show than highWater?
+	userData.highWaterDate = newDate
+	userData.highWaterOffset = newOffset
+    }
+    else if(userData.highWaterDate == newDate) { // Later in the highWater show?
+	userData.highWaterOffset=Math.max(userData.highWaterOffset,newOffset)
+    }
+}
+
+////////////////////////////////////////////////////////////////
 // Portability hook
 const _get = require("lodash.get");
 export function getRequestingDeviceID(that:Jovo):string {
@@ -423,14 +457,12 @@ app.setHandler({
 	    	this.tell("Sorry, but the database appears to be empty right now. That shouldn't happen. Please try again later, and register a complaint if it persists.")
 		return;
 	    }
-	    // Quick note: "var a=b=c" declares a as var, but does NOT
-	    // so declare b; it's left in the default scope if not
-	    // already bound. Fine in this case, but a hazard to be
-	    // aware of.  Have I said recently that I hate Javascript?
-            var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
-            this.$speech.addText('Fetching episode '+episode.title+".");
-	    setEpisodeAVResponse(this,this.$speech,episode,0)
-	    if(DEBUG) console.error("DEBUG: FirstEpisodeIntent inProgress=",this.$user.$data.inProgress)
+            var currentDate = episode.broadcastDateMsec;
+	    var offset=0
+	    updateUserStateDatabase(this.$user.$data,currentDate,offset)
+
+	    this.$speech.addText('Fetching episode '+episode.title+".");
+	    setEpisodeAVResponse(this,this.$speech,episode,offset)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	    console.error("FirstEpisodeIntent caught: ",e,trystack(e))
@@ -449,11 +481,12 @@ app.setHandler({
 	    }
 	    else
 	    {
-		var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
+		var currentDate = episode.broadcastDateMsec;
+		updateUserStateDatabase(this.$user.$data,currentDate,0)
+
 		this.$speech.addText('Fetching episode '+episode.title+".");
 
 		setEpisodeAVResponse(this,this.$speech,episode,0)
-		if(DEBUG) console.error("DEBUG: LatestEpisodeIntent inProgress=",this.$user.$data.inProgress)
 	    }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
@@ -470,14 +503,12 @@ app.setHandler({
 	    	this.tell("Sorry, but the database appears to be empty right now. That shouldn't happen. Please try again later, and register a complaint if it persists.")
 		return;
 	    }
-	    // Quick note: "var a=b=c" declares a as var, but does NOT
-	    // so declare b; it's left in the default scope if not
-	    // already bound. Fine in this case, but a hazard to be
-	    // aware of.  Have I said recently that I hate Javascript?
-            var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
+	    var currentDate = episode.broadcastDateMsec;
+	    var offset = 0
+	    updateUserStateDatabase(this.$user.$data,currentDate,offset)
+
             this.$speech.addText('Fetching episode '+episode.title+".");
-	    setEpisodeAVResponse(this,this.$speech,episode,0)
-	    if(DEBUG) console.error("DEBUG: LowestNumberedEpisodeIntent inProgress=",this.$user.$data.inProgress)
+	    setEpisodeAVResponse(this,this.$speech,episode,offset)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	    console.error("LowestNumberedEpisodeIntent caught: ",e,trystack(e))
@@ -495,11 +526,13 @@ app.setHandler({
 	    }
 	    else
 	    {
-		var currentDate = this.$user.$data.currentDate = episode.broadcastDateMsec;
+		var currentDate = episode.broadcastDateMsec;
+		var offset = 0
+		updateUserStateDatabase(this.$user.$data,currentDate,offset)
+
 		this.$speech.addText('Fetching episode '+episode.title+".");
 
-		setEpisodeAVResponse(this,this.$speech,episode,0)
-		if(DEBUG) console.error("DEBUG: LastEpisodeIntent inProgress=",this.$user.$data.inProgress)
+		setEpisodeAVResponse(this,this.$speech,episode,offset)
 	    }
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
@@ -547,13 +580,13 @@ app.setHandler({
 
 	    let offset = this.$user.$data.offset;
 	    setEpisodeAVResponse(this,this.$speech,episode,offset)
-	    if(DEBUG) console.error("DEBUG: ResumeIntent inProgress=",this.$user.$data.inProgress)
 	} catch(e) {
 	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
 	    console.error("ResumeIntent caught: ",e,trystack(e))
 	    throw e;
 	}
     },
+
 
     async NextIntent() {
         let currentDate = this.$user.$data.currentDate;
@@ -568,12 +601,12 @@ app.setHandler({
 	    this.tell('That was the most recent episode. You will have to wait until a new episode gets released, or ask for a different one.');
 	    return
         }
-        let nextEpisodeDate = nextEpisode.broadcastDateMsec
-        currentDate = nextEpisodeDate;
-        this.$user.$data.currentDate = currentDate;
+        currentDate = nextEpisode.broadcastDateMsec
+	let offset=0
+	updateUserStateDatabase(this.$user.$data,currentDate,offset)
+
         this.$speech.addText('Fetching episode '+nextEpisode.title+".");
-	setEpisodeAVResponse(this,this.$speech,nextEpisode,0)
-	if(DEBUG) console.error("DEBUG: NextIntent inProgress=",this.$user.$data.inProgress)
+	setEpisodeAVResponse(this,this.$speech,nextEpisode,offset)
     },
 
     PreviousIntent: async function() {
@@ -592,12 +625,12 @@ app.setHandler({
 	    this.tell('You are already at the oldest episode.');
 	    return
         }
-        let previousEpisodeDate = previousEpisode.broadcastDateMsec
-        currentDate = previousEpisodeDate;
-        this.$user.$data.currentDate = currentDate;
+        currentDate = previousEpisode.broadcastDateMsec
+	let offset=0
+	updateUserStateDatabase(this.$user.$data,currentDate,offset)
+
         this.$speech.addText('Fetching episode '+previousEpisode.title+".");
-	setEpisodeAVResponse(this,this.$speech,previousEpisode,0)
-	if(DEBUG) console.error("DEBUG: PreviousIntent inProgress=",this.$user.$data.inProgress)
+	setEpisodeAVResponse(this,this.$speech,previousEpisode,offset)
     },
 
     FastForwardIntent() {
@@ -641,12 +674,11 @@ app.setHandler({
 	    console.error("RandomIntent returned null. Empty DB?")
 	    this.tell("Sorry, but I can't fetch a random episode right now. That shouldn't happen. Please try again later, and register a complaint if it persists.")
 	}
-        let randomEpisodeDate = randomEpisode.broadcastDateMsec
-        let currentDate = randomEpisodeDate;
-        this.$user.$data.currentDate = currentDate;
+        let currentDate = randomEpisode.broadcastDateMsec
+	let offset=0
+	updateUserStateDatabase(this.$user.$data,currentDate,offset)
         this.$speech.addText('Fetching episode '+randomEpisode.title+".");
-	setEpisodeAVResponse(this,this.$speech,randomEpisode,0)
-	if(DEBUG) console.error("DEBUG: RandomIntent inProgress=",this.$user.$data.inProgress)
+	setEpisodeAVResponse(this,this.$speech,randomEpisode,offset)
     },
 
     IncompleteDateIntent() {
@@ -706,12 +738,12 @@ app.setHandler({
 	if(episode!=null && episode !=undefined)
 	{
 	    let currentDate=episode.broadcastDateMsec
-	    this.$user.$data.currentDate = currentDate;
+	    let offset=0
+	    updateUserStateDatabase(this.$user.$data,currentDate,offset)
 
 	    this.$speech.addText("Fetching the show from "+format(localDate,"PPPP")+": episode "+episode.title+".");
 
-	    setEpisodeAVResponse(this,this.$speech,episode,0)
-	    if(DEBUG) console.error("DEBUG: DateIntent inProgress=",this.$user.$data.inProgress)
+	    setEpisodeAVResponse(this,this.$speech,episode,offset)
 	}
 	else {
 	    this.$speech.addText("An episode broadcast on "+format(localDate,"PPPP")+" does not seem to be available in the vault. What would you like me to do instead?")
@@ -737,10 +769,11 @@ app.setHandler({
 	if(episode!=null && episode !=undefined)
 	{
 	    const currentDate=episode.broadcastDateMsec
-	    this.$user.$data.currentDate = currentDate;
+	    const offset=0
+	    updateUserStateDatabase(this.$user.$data,currentDate,offset)
+
 	    this.$speech.addText('Fetching episode '+episode.title+".");
-	    setEpisodeAVResponse(this,this.$speech,episode,0)
-	    if(DEBUG) console.error("DEBUG: NumberIntent inProgress=",this.$user.$data.inProgress)
+	    setEpisodeAVResponse(this,this.$speech,episode,offset)
 	}
 	else {
 	    this.$speech.addText("Episode number "+episodeNumber+" does not seem to be available in the vault. What would you like me to do instead?")
@@ -756,12 +789,13 @@ app.setHandler({
     // call), but this gets back to the "bookmarks" wishlist item.
     LiveStreamIntent() {
 	const currentDate=Player.getLiveStreamDate()
-        this.$user.$data.currentDate = currentDate;
+	const offset=0
+	updateUserStateDatabase(this.$user.$data,currentDate,offset)
+
         this.$speech.addText("Playing the New Sounds livestream.");
 	setAVResponse(this,this.$speech,Player.getLiveStreamURI(),0,currentDate,"New Sounds Live Stream",null)
 	this.showImageCard("New Sounds On Demand -- Live Stream","Try: \"Ask New Sounds On Demand what we are listening to.\""
 ,NewSoundsLogoURI)
-	if(DEBUG) console.error("DEBUG: LiveIntent inProgress=",this.$user.$data.inProgress)
     },
 
     HelpIntent() {
@@ -776,8 +810,52 @@ app.setHandler({
 	return this.tell(this.$speech)
     },
 
+    async PodcastIntent() {
+	try {
+	    var data=this.$user.$data
+	    if(!data.highWaterDate) {
+		// No highest-yet-seen, so fall back to start of highest-known
+		this.toIntent("LatestEpisodeIntent")
+	    } else { 
+		// Guaranteed highWaterDate/highWaterOffset>=currentDate/offset.
+		// Basically, Resume to that point.
+		//
+		// TODO REVIEW: Unclear highWaterOffset is more useful than
+		// confusing.
+		// TODO REVIEW: Does hWO get set <0 when offset does? Should.
+		var episode
+		var offset=0
+		if(data.highWaterOffset < 0) // was last but was finished
+		{
+		    episode=await Player.getNextEpisodeByDate(data.highWaterDate);
+		    if(!episode) {
+			this.tell("You have already heard all of the most recent episode, so we can't resume right now. You can try again after a new episode gets released, or make a different request.");
+			return
+		    }
+		    let offset=0
+		}
+		else {
+		    let episode=await Player.getEpisodeByDate(data.highWaterDate);
+		    let offset=data.highWaterOffset
+		}
+		if(!episode) {
+		    console.error("PodcastIntent returned null. Empty DB?")
+	    	    this.tell("Sorry, but I am having trouble accessing the database right now. That shouldn't happen. Please try again later, and register a complaint if it persists.")
+		    return;
+		}
+		this.$speech.addText("Starting podcast-style play with episode "+episode.title+".")
+		setEpisodeAVResponse(this,this.$speech,episode,offset)
+	    } 
+	} catch(e) {
+	    this.tell("Sorry, but I am having trouble doing that right now. Please try again later.")
+	    console.error("ResumeIntent caught: ",e,trystack(e))
+	    throw e;
+	}
+    },
+
     // Hook for testing
     async DebugIntent() {
+	// Usual debug:
         this.$speech.addText("Debug hook baited. Awaiting micro fishies.")
 	var testmsg=getRequestingDeviceID(this)
 	this.showImageCard("New Sounds On Demand",testmsg,NewSoundsLogoURI)
@@ -823,7 +901,7 @@ app.setHandler({
 	// inProgress can be maintained on a device basis rather
 	// than only on user.
 	var inProgress:boolean = this.$user.$data.inProgress
-	if(inProgress==inProgress)// if(inProgress)
+	if(inProgress==inProgress)// DISABLED if(inProgress)
 	{
 	    var currentDate = this.$user.$data.currentDate;
 	    if (currentDate==Player.getLiveStreamDate()) {

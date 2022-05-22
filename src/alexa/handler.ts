@@ -1,6 +1,6 @@
 import { Player } from '../player';
 import { Handler } from 'jovo-core';
-import { NewSoundsLogoURI } from '../app'
+import { updateUserStateDatabase } from '../app'
 
 const DEBUG=true
 
@@ -117,7 +117,8 @@ export const AlexaHandler: Handler = {
 	    let episode=await Player.getNextEpisodeByDate(currentDate)
 	    if(episode!=null) {
 		let nextDate = episode.broadcastDateMsec
-                this.$user.$data.currentDate = nextDate;
+		updateUserStateDatabase(this.$user.$data,nextDate,0)
+                //this.$user.$data.currentDate = nextDate;
             } else {
 		// Leave currentDate set to the last episode
 		// available, but with a flag saying we reached the
