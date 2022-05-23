@@ -813,6 +813,7 @@ app.setHandler({
     async PodcastIntent() {
 	try {
 	    var data=this.$user.$data
+	    if(DEBUG) console.log("DBG PI: data="+JSON.stringify(data))
 	    if(!data.highWaterDate) {
 		// No highest-yet-seen, so fall back to start of highest-known
 		this.toIntent("LatestEpisodeIntent")
@@ -823,7 +824,7 @@ app.setHandler({
 		// TODO REVIEW: Unclear highWaterOffset is more useful than
 		// confusing.
 		// TODO REVIEW: Does hWO get set <0 when offset does? Should.
-		var episode
+		var episode=null
 		var offset=0
 		if(data.highWaterOffset < 0) // was last but was finished
 		{
@@ -835,15 +836,15 @@ app.setHandler({
 		    let offset=0
 		}
 		else {
-		    let episode=await Player.getEpisodeByDate(data.highWaterDate);
-		    let offset=data.highWaterOffset
+		    episode=await Player.getEpisodeByDate(data.highWaterDate);
+		    offset=data.highWaterOffset
 		}
 		if(!episode) {
-		    console.error("PodcastIntent returned null. Empty DB?")
+		    console.error("PodcastIntent returned null episode. Empty DB?")
 	    	    this.tell("Sorry, but I am having trouble accessing the database right now. That shouldn't happen. Please try again later, and register a complaint if it persists.")
 		    return;
 		}
-		this.$speech.addText("Starting podcast-style play with episode "+episode.title+".")
+		this.$speech.addText("Starting podcast-style playback with episode "+episode.title+".")
 		setEpisodeAVResponse(this,this.$speech,episode,offset)
 	    } 
 	} catch(e) {
