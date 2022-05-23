@@ -848,7 +848,9 @@ app.setHandler({
 		// GONK: Should updateUserStateDatabase be a side effect
 		// of setEpisodeAVResponse?  More reliable, cleaner...
 		updateUserStateDatabase(this.$user.$data,episode.broadcastDateMsec,offset)
-		this.$speech.addText("Starting podcast-style playback with episode "+episode.title+".")
+		this.$speech.addText(
+		    offset==0 ? "Starting " : "Resuming ")
+		this.$speech.addText("podcast-style playback with episode "+episode.title+".")
 		setEpisodeAVResponse(this,this.$speech,episode,offset)
 	    } 
 	} catch(e) {
