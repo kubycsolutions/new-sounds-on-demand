@@ -367,25 +367,26 @@ export function setAudioResponse(that:Jovo, text:(string|string[]|SpeechBuilder)
 // In addition to writing back the new "current" location to user
 // state, we want to check if the new is the latest we've ever seen
 // for this user, and if so update that for PodcastIntent's "gimme
-// something new, not necessarily the newest".
-//
-// As the original example did, I'm using Jovo's implied-persistant
-// this.$user.$data to stash user-state information
+// the newest I haven't already listened to."
 //
 // TODO: REVIEW whether calls to this should be refactored into
 // setAudioResponse(). Arguably yes...
+// TODO: Are we reliably calling this at stop/pause time?
 export function updateUserStateDatabase(userData:any,newDate:number,newOffset:number) {
+    if(DEBUG) console.log("DEBUG: uUSD was",JSON.stringify(userData))
     userData.currentDate = newDate
     userData.offset = newOffset
     
     if(!userData.highWaterDate     // First use?
-       || userData.highWaterDate <= newDate) { // Later show than highWater?
+       || userData.highWaterDate < newDate) { // Show we haven't seen?
 	userData.highWaterDate = newDate
 	userData.highWaterOffset = newOffset
     }
     else if(userData.highWaterDate == newDate) { // Later in the highWater show?
 	userData.highWaterOffset=Math.max(userData.highWaterOffset,newOffset)
     }
+    // If earlier show, that doesn't change highWater marks.
+    if(DEBUG) console.log("DEBUG: uUSD now",JSON.stringify(userData))
 }
 
 ////////////////////////////////////////////////////////////////
@@ -813,7 +814,7 @@ app.setHandler({
     async PodcastIntent() {
 	try {
 	    var data=this.$user.$data
-	    if(DEBUG) console.log("DBG PI: data="+JSON.stringify(data))
+	    if(DEBUG) console.log("DEBUG PodcastIntent: data="+JSON.stringify(data))
 	    if(!data.highWaterDate) {
 		// No highest-yet-seen, so fall back to start of highest-known
 		this.toIntent("LatestEpisodeIntent")
@@ -844,6 +845,9 @@ app.setHandler({
 	    	    this.tell("Sorry, but I am having trouble accessing the database right now. That shouldn't happen. Please try again later, and register a complaint if it persists.")
 		    return;
 		}
+		// GONK: Should updateUserStateDatabase be a side effect
+		// of setEpisodeAVResponse?  More reliable, cleaner...
+		updateUserStateDatabase(this.$user.$data,episode.broadcastDateMsec,offset)
 		this.$speech.addText("Starting podcast-style playback with episode "+episode.title+".")
 		setEpisodeAVResponse(this,this.$speech,episode,offset)
 	    } 

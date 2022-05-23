@@ -2,7 +2,7 @@ import { Player } from '../player';
 import { Handler } from 'jovo-core';
 import { updateUserStateDatabase } from '../app'
 
-const DEBUG=true
+const DEBUG=("DEBUG"==process.env.HANDLER_DEBUG)
 
 // Alexa music-player event management for Jovo newsounds player.
 // Based on the Jovo podcast player example, extended and modified.
@@ -127,7 +127,8 @@ export const AlexaHandler: Handler = {
 		// there isn't one.  Overloading offset this way is a
 		// bit of a kluge, but it's working and resume needs
 		// to look at offset anyway...
-		this.$user.$data.offset= -1
+		updateUserStateDatabase(this.$user.$data,currentDate,-1)
+//		this.$user.$data.offset= -1
 		this.$user.$data.inProgress = false
 		if(DEBUG) console.error("DEBUG: PlaybackFinished inProgress=",this.$user.$data.inProgress)
 	    }
@@ -136,7 +137,10 @@ export const AlexaHandler: Handler = {
         'AlexaSkill.PlaybackStopped'() {
 	    // It's OK if we capture this for livestream; we just
 	    // won't use it in that case.
-            this.$user.$data.offset = this.$alexaSkill!.$audioPlayer!.getOffsetInMilliseconds();
+	    updateUserStateDatabase(this.$user.$data,
+			    this.$user.$data.currentDate,
+			    this.$alexaSkill!.$audioPlayer!.getOffsetInMilliseconds())
+//            this.$user.$data.offset = this.$alexaSkill!.$audioPlayer!.getOffsetInMilliseconds();
 	    this.$user.$data.inProgress = false
 	    if(DEBUG) console.error("DEBUG: PlaybackStopped inProgress=",this.$user.$data.inProgress)
         },
