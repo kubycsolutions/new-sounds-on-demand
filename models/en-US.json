@@ -3330,6 +3330,7 @@
 	    "comment": "Like Resume, but high-water-mark",
             "phrases": [
 		"Catch up",
+		"Catch up mode",
 		"Episodes I haven't heard",
 		"I want episodes I haven't heard",
 		"I want podcast mode",
@@ -3347,6 +3348,7 @@
 		"Go to something I haven't heard",
 		"Go to something new",
 		"Go to the podcast",
+		"Play catch up mode",
 		"Play episodes I haven't heard",
 		"Play podcast mode",
 		"Play podcast",

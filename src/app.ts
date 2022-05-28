@@ -42,13 +42,6 @@
    been preloaded?
 https://alexa.uservoice.com/forums/906892-alexa-skills-developer-voice-and-vote/suggestions/44933392-loading-audio-with-offset-can-be-slow-losing-audi
 
-   IN DEV: PodcastIntent, cheap common bookmark. Store highWaterDate
-   and highWaterOffset. At invocation, if no highwater interpret as
-   Latest; if highWaterDate=current interpret as Resume; else like
-   Resume but with hWD/hWO (including end-of-list). ... Can/should I
-   cheat this by patching the .currentDate/.offset and handing off to
-   Resume?
-
    TODO: (Investigating) Custom slots can be used as a better way to
    express synonym combinatorics. But does that blow up Alexa's
    native attempts to match synonyms? It's been suggested that a
@@ -369,9 +362,10 @@ export function setAudioResponse(that:Jovo, text:(string|string[]|SpeechBuilder)
 // for this user, and if so update that for PodcastIntent's "gimme
 // the newest I haven't already listened to."
 //
-// TODO: REVIEW whether calls to this should be refactored into
-// setAudioResponse(). Arguably yes...
-// TODO: Are we reliably calling this at stop/pause time?
+// TODO: REVIEW whether calls to this should be called from
+// setAudioResponse(). Arguably yes, but we also need it exposed for
+// "finished" (-1) flagging, so...
+// TODO: Time to clean up that flag?
 export function updateUserStateDatabase(userData:any,newDate:number,newOffset:number) {
     if(DEBUG) console.log("DEBUG: uUSD was",JSON.stringify(userData))
     userData.currentDate = newDate
@@ -383,7 +377,12 @@ export function updateUserStateDatabase(userData:any,newDate:number,newOffset:nu
 	userData.highWaterOffset = newOffset
     }
     else if(userData.highWaterDate == newDate) { // Later in the highWater show?
-	userData.highWaterOffset=Math.max(userData.highWaterOffset,newOffset)
+	// -1 (off end) is later than other values.
+	// TODO: Consider using a different flag rather than overloading offset
+	if(newOffset == -1)
+	    userData.highWaterOffset=Math.max(userData.highWaterOffset,newOffset)
+	else
+	    userData.highWaterOffset=Math.max(userData.highWaterOffset,newOffset)
     }
     // If earlier show, that doesn't change highWater marks.
     if(DEBUG) console.log("DEBUG: uUSD now",JSON.stringify(userData))
