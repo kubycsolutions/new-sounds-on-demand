@@ -380,7 +380,7 @@ export function updateUserStateDatabase(userData:any,newDate:number,newOffset:nu
 	// -1 (off end) is later than other values.
 	// TODO: Consider using a different flag rather than overloading offset
 	if(newOffset == -1)
-	    userData.highWaterOffset=Math.max(userData.highWaterOffset,newOffset)
+	    userData.highWaterOffset=-1
 	else
 	    userData.highWaterOffset=Math.max(userData.highWaterOffset,newOffset)
     }
@@ -561,7 +561,7 @@ app.setHandler({
 		    // order, or reverse order. It will definitely
 		    // need to be adapted if/when we support
 		    // search/playlist.
-		    return this.tell("You have already heard all of the most recent episode, so we can't resume right now. You can try again after a new episode gets released, or make a different request.");
+		    return this.ask("You have already heard all of the most recent episode, so we can't resume right now. You can try again after a new episode gets released, or make a different request.");
 		}
 		currentDate=episode.broadcastDateMsec
 		currentOffset=0;
@@ -820,17 +820,15 @@ app.setHandler({
 	    } else { 
 		// Guaranteed highWaterDate/highWaterOffset>=currentDate/offset.
 		// Basically, Resume to that point.
+		// (Should this be refactored as common code?)
 		//
-		// TODO REVIEW: Unclear highWaterOffset is more useful than
-		// confusing.
-		// TODO REVIEW: Does hWO get set <0 when offset does? Should.
 		var episode=null
 		var offset=0
 		if(data.highWaterOffset < 0) // was last but was finished
 		{
 		    episode=await Player.getNextEpisodeByDate(data.highWaterDate);
 		    if(!episode) {
-			this.tell("You have already heard all of the most recent episode, so we can't resume right now. You can try again after a new episode gets released, or make a different request.");
+			this.tell("You have already heard all of the most recent episode. You can try again after a new episode gets released, or make a different request.");
 			return
 		    }
 		    let offset=0

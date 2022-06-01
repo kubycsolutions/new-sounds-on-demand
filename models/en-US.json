@@ -1211,6 +1211,28 @@
 
         },
 	{
+            "name": "FastForwardIntent",
+            "phrases": [
+                "go forward by {duration}",
+                "go forward {duration}",
+                "fast forward {duration}",
+                "forward {duration}",
+                "{duration} later"
+            ],
+            "inputs": [
+		{
+                    "name": "duration",
+                    "type": {
+                        "alexa": "AMAZON.DURATION",
+                        "dialogflow": "@sys.duration",
+			"googleAssistantGONK": "UNCLEAR WHAT TYPE TO USE.",
+			"googleAssistant": "actions.type.Number"
+                    }
+                }
+            ]
+
+        },
+	{
             "name": "RandomIntent",
             "phrases": [
                 "I want a random broadcast",
@@ -3442,10 +3464,16 @@
 		"Podcast mode",
 		"Podcast",
 		"Programs I haven't heard",
+		"Resume catch up",
+		"Resume catch up mode",
+		"Resume catching up",
+		"Resume podcast mode",
+		"Resume podcast",
+		"Resume the podcast",
 		"Shows I haven't heard",
 		"Something I haven't heard",
 		"Something new",
-		"The podcast"
+		"The podcast"		
             ]
         },
 	{
