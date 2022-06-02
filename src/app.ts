@@ -366,8 +366,15 @@ export function setAudioResponse(that:Jovo, text:(string|string[]|SpeechBuilder)
 // setAudioResponse(). Arguably yes, but we also need it exposed for
 // "finished" (-1) flagging, so...
 // TODO: Time to clean up that flag?
+// TODO: Fix that :any? Requires ducktype checking again. Ugh.
 export function updateUserStateDatabase(userData:any,newDate:number,newOffset:number) {
+    if(DEBUG) console.log("DEBUG: uUSD new date,offset=",newDate,newOffset)
+    if(newDate==0)
+	console.trace("BUG: Zero date asserted?!")
+    if(userData.currentDate==0)
+	console.trace("BUG: Zero date somehow set?!")
     if(DEBUG) console.log("DEBUG: uUSD was",JSON.stringify(userData))
+    
     userData.currentDate = newDate
     userData.offset = newOffset
     
@@ -376,8 +383,10 @@ export function updateUserStateDatabase(userData:any,newDate:number,newOffset:nu
 	userData.highWaterDate = newDate
 	userData.highWaterOffset = newOffset
     }
-    else if(userData.highWaterDate == newDate) { // Later in the highWater show?
-	// -1 (off end) is later than other values.
+    else if(userData.highWaterDate == newDate) { // Same as highWater show?
+	// -1 (off end) should be considered later than other values.
+	// TODO: Consider using Number.MAX_SAFE_INTEGER rather than -1, to
+	// simplify this?
 	// TODO: Consider using a different flag rather than overloading offset
 	if(newOffset == -1)
 	    userData.highWaterOffset=-1
@@ -563,8 +572,7 @@ app.setHandler({
 		    // search/playlist.
 		    return this.ask("You have already heard all of the most recent episode, so we can't resume right now. You can try again after a new episode gets released, or make a different request.");
 		}
-		currentDate=episode.broadcastDateMsec
-		currentOffset=0;
+		// No change to user state
 	    }
 	    else {
 		// Resume stored date, at stored offset if possible

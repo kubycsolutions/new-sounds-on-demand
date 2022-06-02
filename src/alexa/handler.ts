@@ -118,7 +118,6 @@ export const AlexaHandler: Handler = {
 	    if(episode!=null) {
 		let nextDate = episode.broadcastDateMsec
 		updateUserStateDatabase(this.$user.$data,nextDate,0)
-                //this.$user.$data.currentDate = nextDate;
             } else {
 		// Leave currentDate set to the last episode
 		// available, but with a flag saying we reached the
